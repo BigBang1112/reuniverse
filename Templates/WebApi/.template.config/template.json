@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "BigBang1112",
+    "classifications": [
+        "Web",
+        "Web API",
+        "API",
+        "Service"
+    ],
+    "identity": "Reuniverse.Templates.WebApi",
+    "name": "Reuniverse: Web API with OpenTelemetry",
+    "shortName": "reu-webapi",
+    "sourceName": "MyWebApi",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "description": "Provides a web API project with OpenTelemetry, Serilog, caching, health checks, and Scalar."
+}
