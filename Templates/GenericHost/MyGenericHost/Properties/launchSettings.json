@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MyGenericHost": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

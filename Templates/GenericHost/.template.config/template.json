@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "BigBang1112",
+    "classifications": [
+        "Host",
+        "Generic Host",
+        "Service"
+    ],
+    "identity": "Reuniverse.Templates.GenericHost",
+    "name": "Reuniverse: Generic Host with OpenTelemetry",
+    "shortName": "reu-host",
+    "sourceName": "MyGenericHost",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "description": "Provides a generic host project with OpenTelemetry and Serilog."
+}

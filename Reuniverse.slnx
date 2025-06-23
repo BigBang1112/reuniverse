@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/Templates/" />
+  <Folder Name="/Templates/GenericHost/">
+    <Project Path="Templates/GenericHost/MyGenericHost/MyGenericHost.csproj" />
+  </Folder>
   <Folder Name="/Templates/WebApi/">
     <Project Path="Templates/WebApi/MyWebApi/MyWebApi.csproj" />
   </Folder>
