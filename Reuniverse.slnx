@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/Templates/" />
+  <Folder Name="/Templates/DiscordBot/">
+    <Project Path="Templates/DiscordBot/MyDiscordBot/MyDiscordBot.csproj" />
+  </Folder>
   <Folder Name="/Templates/GenericHost/">
     <Project Path="Templates/GenericHost/MyGenericHost/MyGenericHost.csproj" />
   </Folder>

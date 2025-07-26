@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "MyGenericHost": {
+    "MyDiscordBot": {
       "commandName": "Project",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development"

@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "BigBang1112",
+    "classifications": [
+        "Host",
+        "Generic Host",
+        "Service",
+        "Discord",
+        "Bot"
+    ],
+    "identity": "Reuniverse.Templates.DiscordBot",
+    "name": "Reuniverse: Discord Bot with OpenTelemetry",
+    "shortName": "reu-dbot",
+    "sourceName": "MyDiscordBot",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "description": "Provides a Discord bot project with OpenTelemetry and Serilog."
+}
