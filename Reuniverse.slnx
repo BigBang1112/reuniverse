@@ -2,7 +2,7 @@
   <Folder Name="/Samples/">
     <Project Path="Samples/BlazorSample/BlazorSample.Client/BlazorSample.Client.csproj" Id="63f73668-53ba-4a87-9c9e-3f534ce8dc9d" />
     <Project Path="Samples/BlazorSample/BlazorSample/BlazorSample.csproj" Id="35bbd690-5397-4402-98cc-b3ae1bf96328" />
-    <Project Path="Samples/RazorPagesSample/RazorPagesSample.csproj" Id="82f84048-78f6-4b92-a67d-f1a25cfb48ec" />
+    <Project Path="Samples/RazorPagesSample/RazorPagesSample.csproj" />
   </Folder>
   <Folder Name="/Src/">
     <Project Path="Src/Reuniverse.Razor/Reuniverse.Razor.csproj" Id="acf7cbb6-b175-43e0-925a-93eabc013962" />
