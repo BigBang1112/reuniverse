@@ -1,0 +1,31 @@
+::deep .nav-link {
+    color: white;
+    background-color: #3333;
+    border-bottom: 2px solid #FFF3;
+    border-radius: 4px;
+    height: 2.5rem;
+    min-width: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background-color 0.05s ease, min-width 0.2s ease;
+    backdrop-filter: blur(5px);
+}
+
+    ::deep .nav-link:hover {
+        color: white;
+        background-color: #3338;
+    }
+
+    ::deep .nav-link.wide {
+        min-width: 8rem;
+    }
+
+    ::deep .nav-link img.icon {
+        display: none;
+    }
+
+::deep a.active, ::deep button.active {
+    background-color: #555A !important;
+}

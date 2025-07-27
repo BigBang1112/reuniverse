@@ -1,0 +1,74 @@
+@font-face {
+    font-family: 'Mona Sans';
+    src: url('Mona-Sans.woff2') format('woff2 supports variations'), url('Mona-Sans.woff2') format('woff2-variations');
+    font-weight: 200 900;
+    font-stretch: 75% 125%;
+}
+
+@import url('PTMono-Regular.ttf');
+
+html, body {
+    font-family: "Mona Sans";
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+    font-size: 18px;
+    color: white;
+}
+
+button {
+    all: unset;
+}
+
+.reu-discord {
+    background-color: #5865F2DD !important;
+}
+
+    .reu-discord:hover {
+        background-color: #6373EDDD !important;
+    }
+
+.reu-kofi {
+    background-color: #FF4F19DD !important;
+    cursor: pointer;
+}
+
+    .reu-kofi:hover {
+        background-color: #FF6433DD !important;
+    }
+
+    .reu-kofi.open {
+        background-color: #FF8966DD !important;
+    }
+
+
+
+.reu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background: #2225;
+    border-bottom: 2px solid #FFF3;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.05s ease;
+    padding: 10px 5px;
+    cursor: pointer;
+}
+
+    .reu-button:hover {
+        background-color: #3338;
+        color: white;
+        text-decoration: none;
+    }
+
+    .reu-button.active {
+        background-color: #333C;
+    }
+
+    .reu-button.disabled {
+        background-color: #3334;
+        color: #888;
+        cursor: not-allowed;
+    }
