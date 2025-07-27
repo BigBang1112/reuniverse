@@ -10,7 +10,9 @@
   <Folder Name="/Src/">
     <Project Path="Src/Reuniverse.Razor/Reuniverse.Razor.csproj" Id="acf7cbb6-b175-43e0-925a-93eabc013962" />
   </Folder>
-  <Folder Name="/Templates/" />
+  <Folder Name="/Templates/">
+    <Project Path="Templates/Reuniverse.Templates.csproj" />
+  </Folder>
   <Folder Name="/Templates/DiscordBot/">
     <Project Path="Templates/DiscordBot/MyDiscordBot/MyDiscordBot.csproj" />
   </Folder>
