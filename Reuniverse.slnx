@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Položky řešení/">
+    <File Path="README.md" />
+  </Folder>
   <Folder Name="/Samples/">
     <Project Path="Samples/BlazorSample/BlazorSample.Client/BlazorSample.Client.csproj" Id="63f73668-53ba-4a87-9c9e-3f534ce8dc9d" />
     <Project Path="Samples/BlazorSample/BlazorSample/BlazorSample.csproj" Id="35bbd690-5397-4402-98cc-b3ae1bf96328" />

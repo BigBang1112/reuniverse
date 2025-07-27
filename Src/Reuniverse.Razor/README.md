@@ -1,5 +1,23 @@
-﻿@inherits LayoutComponentBase
+# Reuniverse.Razor
 
+[![NuGet](https://img.shields.io/nuget/vpre/Reuniverse.Razor?style=for-the-badge&logo=nuget)](https://www.nuget.org/packages/Reuniverse.Razor/)
+
+Common Blazor components for BigBang1112 projects (gbx.tools).
+
+## Setup
+
+In Blazor Web App:
+
+`App.razor`
+
+```html
+<link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/reuniverse.css"]" />
+<link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
+```
+
+To use the components:
+
+```cs
 @using Reuniverse.Razor;
 
 <ReuNavMenu Brand="reuniverse.net">
@@ -9,11 +27,4 @@
     <ReuNavItem Name="GitHub" Href="https://github.com/BigBang1112/nations-converter" IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" IconWidth="28" IconHeight="28"></ReuNavItem>
     <ReuNavItem Name="Discord" Href="https://discord.nc.gbx.tools" IconType="IconType.Discord" IsNavLink="false" IconOnly="true" Title="Join the Discord server"></ReuNavItem>
 </ReuNavMenu>
-
-@Body
-
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+```
