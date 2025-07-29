@@ -7,5 +7,6 @@ public enum IconType
     Download,
     Info,
     Discord,
-    GitHub
+    GitHub,
+    Docker
 }
