@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Components.Routing
 
-<div class="navbar" @attributes="AdditionalAttributes">
+<div class="navbar @Class" @attributes="AdditionalAttributes">
     <div class="reu-container">
         <div class="navbar-left">
             <a class="brand" href="">@Brand</a>
@@ -26,6 +26,9 @@
 
     [Parameter, EditorRequired]
     public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
