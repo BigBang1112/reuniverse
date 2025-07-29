@@ -6,14 +6,9 @@
     border-bottom: 2px solid #333;
 }
 
-    .navbar-container {
-        display: flex;
-        padding: 1rem;
-        width: 75%;
-        margin-right: auto;
-        margin-left: auto;
-        transition: width 0.2s ease, padding 0.2s ease;
-    }
+.reu-container {
+    display: flex;
+}
 
 .navbar-left {
     display: flex;
@@ -100,7 +95,7 @@ nav {
         backdrop-filter: blur(5px);
     }
 
-    .navbar-container {
+    .reu-container {
         width: calc(100% - 3rem);
     }
 }
@@ -121,7 +116,7 @@ nav {
 }
 
 @media (max-height: 600px) {
-    .navbar-container {
+    .reu-container {
         padding: 0.7rem;
     }
 }

@@ -1,0 +1,105 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div class="upload-area @(dragged ? "drag" : "")" style="@(Height.HasValue ? $"height: {Height.Value}px" : ""); font-size: @(FontSize)%;" @attributes="AdditionalAttributes">
+    @if (RendererInfo.IsInteractive)
+    {
+        @ChildContent
+        
+        <input @ref="inputFile"
+            @ondragenter="DragEnter"
+            @ondragleave="DragEnd"
+            @ondragend="DragEnd"
+            @ondrop="DragEnd" type="file" class="file" accept="@(Extensions is null ? "" : string.Join(',', Extensions.Select(x => "." + x)))" />
+    }
+    else
+    {
+        <ReuLoader></ReuLoader>
+    }
+</div>
+
+@code {
+    private ElementReference inputFile;
+    private IJSObjectReference? module;
+    private DotNetObjectReference<ReuUploadArea>? objRef;
+
+    private bool dragged;
+    private string? uploadFileName;
+
+    [Parameter]
+    public int? Height { get; set; } = 100;
+
+    [Parameter]
+    public int FontSize { get; set; } = 100;
+
+    /// <summary>
+    /// Extensions without the dot.
+    /// </summary>
+    [Parameter]
+    public required string[]? Extensions { get; set; }
+
+    [Parameter]
+    public EventCallback<UploadEventArgs> OnUpload { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    protected override void OnInitialized() =>
+        objRef = DotNetObjectReference.Create(this);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadArea.razor.js");
+            await module.InvokeVoidAsync("addHandlers", inputFile, objRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task UploadAsync(string fileName, byte[] data, long lastModified)
+    {
+        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, DateTimeOffset.FromUnixTimeMilliseconds(lastModified)));
+    }
+
+    public void SetUploadFileName(string fileName)
+    {
+        uploadFileName = fileName;
+    }
+
+    [JSInvokable]
+    public void ClearUploadFileName()
+    {
+        uploadFileName = null;
+    }
+
+    private void DragEnter(DragEventArgs e)
+    {
+        dragged = true;
+    }
+
+    private void DragEnd()
+    {
+        dragged = false;
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            try
+            {
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+
+        objRef?.Dispose();
+    }
+}

@@ -1,0 +1,12 @@
+<div class="loader" style="width: @(Size)px; padding: @(Thickness)px;" @attributes="AdditionalAttributes"></div>
+
+@code {
+    [Parameter]
+    public int Size { get; set; } = 50;
+
+    [Parameter]
+    public int Thickness { get; set; } = 8;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+}

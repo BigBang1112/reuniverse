@@ -14,11 +14,38 @@ html, body {
     padding: 0;
     font-size: 18px;
     color: white;
+}
+
+body {
     overflow-x: hidden;
 }
 
 button {
     all: unset;
+}
+
+a {
+    color: #26A8FF;
+    text-decoration: none;
+}
+
+    a:hover {
+        color: #47B5FF;
+        text-decoration: underline;
+    }
+
+.reu-container {
+    padding: 1rem;
+    width: 75%;
+    margin-right: auto;
+    margin-left: auto;
+    transition: width 0.2s ease, padding 0.2s ease;
+}
+
+@media (max-width: 850px) {
+    .reu-container {
+        width: calc(100% - 3rem);
+    }
 }
 
 .reu-discord {
@@ -54,7 +81,7 @@ button {
     border-radius: 4px;
     text-decoration: none;
     transition: background-color 0.05s ease;
-    padding: 10px 5px;
+    padding: 10px;
     cursor: pointer;
 }
 
@@ -68,7 +95,7 @@ button {
         background-color: #333C;
     }
 
-    .reu-button.disabled {
+    .reu-button.disabled, .reu-button:disabled {
         background-color: #3334;
         color: #888;
         cursor: not-allowed;
