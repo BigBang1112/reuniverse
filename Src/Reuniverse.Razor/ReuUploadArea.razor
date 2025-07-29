@@ -2,7 +2,7 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
-<div class="upload-area @(dragged ? "drag" : "")" style="@(Height.HasValue ? $"height: {Height.Value}px" : ""); font-size: @(FontSize)%;" @attributes="AdditionalAttributes">
+<div class="upload-area @(dragged ? "drag" : "")" style="font-size: @(FontSize)%;" @attributes="AdditionalAttributes">
     @if (RendererInfo.IsInteractive)
     {
         @ChildContent
@@ -26,9 +26,6 @@
 
     private bool dragged;
     private string? uploadFileName;
-
-    [Parameter]
-    public int? Height { get; set; } = 100;
 
     [Parameter]
     public int FontSize { get; set; } = 100;
