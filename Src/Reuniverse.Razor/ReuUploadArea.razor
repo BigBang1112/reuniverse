@@ -8,10 +8,11 @@
         @ChildContent
         
         <input @ref="inputFile"
-            @ondragenter="DragEnter"
-            @ondragleave="DragEnd"
-            @ondragend="DragEnd"
-            @ondrop="DragEnd" type="file" class="file" accept="@(Extensions is null ? "" : string.Join(',', Extensions.Select(x => "." + x)))" />
+               @ondragenter="DragEnter"
+               @ondragleave="DragEnd"
+               @ondragend="DragEnd"
+               @ondrop="DragEnd" type="file" class="file" accept="@(Extensions is null ? "" : string.Join(',', Extensions.Select(x => "." + x)))"
+               multiple="@(MaxFileCount is null or > 1)" />
     }
     else
     {
@@ -25,7 +26,6 @@
     private DotNetObjectReference<ReuUploadArea>? objRef;
 
     private bool dragged;
-    private string? uploadFileName;
 
     [Parameter]
     public int FontSize { get; set; } = 100;
@@ -40,10 +40,22 @@
     public EventCallback<UploadEventArgs> OnUpload { get; set; }
 
     [Parameter]
+    public EventCallback<FileInfoEventArgs> OnFileTooLarge { get; set; }
+
+    [Parameter]
+    public EventCallback<FileInfoEventArgs> OnFileExceedCount { get; set; }
+
+    [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
     public string? CssClass { get; set; }
+
+    [Parameter]
+    public int? MaxFileCount { get; set; }
+
+    [Parameter]
+    public int? MaxFileSize { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
@@ -66,15 +78,22 @@
         await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, DateTimeOffset.FromUnixTimeMilliseconds(lastModified)));
     }
 
-    public void SetUploadFileName(string fileName)
+    [JSInvokable]
+    public Task<int> GetMaxFileCountAsync() => Task.FromResult(MaxFileCount ?? 0);
+
+    [JSInvokable]
+    public Task<int> GetMaxFileSizeAsync() => Task.FromResult(MaxFileSize ?? 0);
+
+    [JSInvokable]
+    public async Task OnFileTooLargeAsync(string fileName, int size, long lastModified)
     {
-        uploadFileName = fileName;
+        await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified)));
     }
 
     [JSInvokable]
-    public void ClearUploadFileName()
+    public async Task OnFileExceedCountAsync(string fileName, int size, long lastModified)
     {
-        uploadFileName = null;
+        await OnFileExceedCount.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified)));
     }
 
     private void DragEnter(DragEventArgs e)
