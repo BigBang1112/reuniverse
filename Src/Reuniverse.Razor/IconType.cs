@@ -8,5 +8,6 @@ public enum IconType
     Info,
     Discord,
     GitHub,
-    Docker
+    Docker,
+    Results
 }
