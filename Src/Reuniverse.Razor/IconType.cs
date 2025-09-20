@@ -9,5 +9,8 @@ public enum IconType
     Discord,
     GitHub,
     Docker,
-    Results
+    Results,
+    API,
+    SDK,
+    Webhook
 }
