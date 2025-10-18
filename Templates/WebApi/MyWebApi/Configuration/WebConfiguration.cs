@@ -1,4 +1,5 @@
-﻿using MyWebApi.Services;
+﻿using Microsoft.AspNetCore.ResponseCompression;
+using MyWebApi.Services;
 
 namespace MyWebApi.Configuration;
 
@@ -10,6 +11,13 @@ public static class WebConfiguration
         {
             client.DefaultRequestHeaders.UserAgent.ParseAdd("MyWebApi/1.0 (+https://example.com; support@example.com)");
         }).AddStandardResilienceHandler();
+
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+        });
 
         services.AddAuthentication();
         services.AddAuthorization();
