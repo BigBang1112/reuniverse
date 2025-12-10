@@ -1,3 +1,29 @@
+:root {
+    /* Color Dictionary */
+    --color-text-primary: white;
+    --color-text-secondary: #888;
+    
+    /* Link Colors */
+    --color-link: #26A8FF;
+    --color-link-hover: #47B5FF;
+    
+    /* Discord Brand Colors */
+    --color-discord: #5865F2DD;
+    --color-discord-hover: #6373EDDD;
+    
+    /* Ko-fi Brand Colors */
+    --color-kofi: #FF4F19DD;
+    --color-kofi-hover: #FF6433DD;
+    --color-kofi-open: #FF8966DD;
+    
+    /* Button Colors */
+    --color-button-bg: #2225;
+    --color-button-bg-hover: #3338;
+    --color-button-bg-active: #333C;
+    --color-button-bg-disabled: #3334;
+    --color-button-border: #FFF3;
+}
+
 @font-face {
     font-family: 'Mona Sans';
     src: url('Mona-Sans.woff2') format('woff2 supports variations'), url('Mona-Sans.woff2') format('woff2-variations');
@@ -13,7 +39,7 @@ html, body {
     margin: 0;
     padding: 0;
     font-size: 18px;
-    color: white;
+    color: var(--color-text-primary);
 }
 
 body {
@@ -25,12 +51,12 @@ button {
 }
 
 a {
-    color: #26A8FF;
+    color: var(--color-link);
     text-decoration: none;
 }
 
     a:hover {
-        color: #47B5FF;
+        color: var(--color-link-hover);
         text-decoration: underline;
     }
 
@@ -49,24 +75,24 @@ a {
 }
 
 .reu-discord {
-    background-color: #5865F2DD !important;
+    background-color: var(--color-discord) !important;
 }
 
     .reu-discord:hover {
-        background-color: #6373EDDD !important;
+        background-color: var(--color-discord-hover) !important;
     }
 
 .reu-kofi {
-    background-color: #FF4F19DD !important;
+    background-color: var(--color-kofi) !important;
     cursor: pointer;
 }
 
     .reu-kofi:hover {
-        background-color: #FF6433DD !important;
+        background-color: var(--color-kofi-hover) !important;
     }
 
     .reu-kofi.open {
-        background-color: #FF8966DD !important;
+        background-color: var(--color-kofi-open) !important;
     }
 
 
@@ -75,9 +101,9 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    background: #2225;
-    border-bottom: 2px solid #FFF3;
+    color: var(--color-text-primary);
+    background: var(--color-button-bg);
+    border-bottom: 2px solid var(--color-button-border);
     border-radius: 4px;
     text-decoration: none;
     transition: background-color 0.05s ease;
@@ -86,17 +112,17 @@ a {
 }
 
     .reu-button:hover {
-        background-color: #3338;
-        color: white;
+        background-color: var(--color-button-bg-hover);
+        color: var(--color-text-primary);
         text-decoration: none;
     }
 
     .reu-button.active {
-        background-color: #333C;
+        background-color: var(--color-button-bg-active);
     }
 
     .reu-button.disabled, .reu-button:disabled {
-        background-color: #3334;
-        color: #888;
+        background-color: var(--color-button-bg-disabled);
+        color: var(--color-text-secondary);
         cursor: not-allowed;
     }
