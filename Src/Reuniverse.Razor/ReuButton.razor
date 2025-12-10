@@ -1,4 +1,4 @@
-<button class="reu-button @(Active ? "active" : "") @CssClass" @onclick="OnClick" @attributes="AdditionalAttributes">
+<button class="reu-button @(Active ? "active" : "") @GetVariantClass() @CssClass" @onclick="OnClick" @attributes="AdditionalAttributes">
     @ChildContent
 </button>
 
@@ -13,8 +13,21 @@
     public bool Active { get; set; }
 
     [Parameter]
+    public ReuButtonVariant Variant { get; set; } = ReuButtonVariant.Default;
+
+    [Parameter]
     public string? CssClass { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string GetVariantClass()
+    {
+        return Variant switch
+        {
+            ReuButtonVariant.Blue => "reu-button-blue",
+            ReuButtonVariant.Yellow => "reu-button-yellow",
+            _ => string.Empty
+        };
+    }
 }

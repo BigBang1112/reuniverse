@@ -2,20 +2,24 @@
     /* Color Dictionary */
     --color-text-primary: white;
     --color-text-secondary: #888;
-    
     /* Link Colors */
     --color-link: #26A8FF;
     --color-link-hover: #47B5FF;
-    
     /* Discord Brand Colors */
     --color-discord: #5865F2DD;
     --color-discord-hover: #6373EDDD;
-    
     /* Ko-fi Brand Colors */
     --color-kofi: #FF4F19DD;
     --color-kofi-hover: #FF6433DD;
     --color-kofi-open: #FF8966DD;
-    
+    /* Blue Button Variant Colors */
+    --color-blue: #1E72CCDD;
+    --color-blue-hover: #2B7FD4DD;
+    --color-blue-active: #3A8CDDDD;
+    /* Yellow Button Variant Colors */
+    --color-yellow: #FFCC11DD;
+    --color-yellow-hover: #FFD633DD;
+    --color-yellow-active: #FFE055DD;
     /* Button Colors */
     --color-button-bg: #2225;
     --color-button-bg-hover: #3338;
@@ -125,4 +129,28 @@ a {
         background-color: var(--color-button-bg-disabled);
         color: var(--color-text-secondary);
         cursor: not-allowed;
+    }
+
+.reu-button-blue {
+    background-color: var(--color-blue) !important;
+}
+
+    .reu-button-blue:hover {
+        background-color: var(--color-blue-hover) !important;
+    }
+
+    .reu-button-blue.active {
+        background-color: var(--color-blue-active) !important;
+    }
+
+.reu-button-yellow {
+    background-color: var(--color-yellow) !important;
+}
+
+    .reu-button-yellow:hover {
+        background-color: var(--color-yellow-hover) !important;
+    }
+
+    .reu-button-yellow.active {
+        background-color: var(--color-yellow-active) !important;
     }
