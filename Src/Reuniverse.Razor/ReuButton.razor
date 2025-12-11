@@ -1,10 +1,22 @@
-<button class="reu-button @(Active ? "active" : "") @GetVariantClass() @CssClass" @onclick="OnClick" @attributes="AdditionalAttributes">
-    @ChildContent
-</button>
+@if (string.IsNullOrEmpty(Href))
+{
+    <button class="reu-button @(Active ? "active" : "") @GetVariantClass() @CssClass" @onclick="OnClick" @attributes="AdditionalAttributes">
+        @ChildContent
+    </button>
+}
+else
+{
+    <a href="@Href" class="reu-button @(Active ? "active" : "") @GetVariantClass() @CssClass" @attributes="AdditionalAttributes">
+        @ChildContent
+    </a>
+}
 
 @code {
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string? Href { get; set; }
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
