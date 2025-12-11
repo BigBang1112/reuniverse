@@ -154,3 +154,9 @@ a {
     .reu-button-yellow.active {
         background-color: var(--color-yellow-active) !important;
     }
+
+.reu-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
