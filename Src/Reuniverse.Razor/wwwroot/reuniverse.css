@@ -132,27 +132,27 @@ a {
     }
 
 .reu-button-blue {
-    background-color: var(--color-blue) !important;
+    background-color: var(--color-blue);
 }
 
     .reu-button-blue:hover {
-        background-color: var(--color-blue-hover) !important;
+        background-color: var(--color-blue-hover);
     }
 
     .reu-button-blue.active {
-        background-color: var(--color-blue-active) !important;
+        background-color: var(--color-blue-active);
     }
 
 .reu-button-yellow {
-    background-color: var(--color-yellow) !important;
+    background-color: var(--color-yellow);
 }
 
     .reu-button-yellow:hover {
-        background-color: var(--color-yellow-hover) !important;
+        background-color: var(--color-yellow-hover);
     }
 
     .reu-button-yellow.active {
-        background-color: var(--color-yellow-active) !important;
+        background-color: var(--color-yellow-active);
     }
 
 .reu-center {
