@@ -24,10 +24,27 @@
         <option value="b">BBB BBBBBBB BB BBBBB</option>
         <option value="c">CCCCCCCC CCCCCC CCC</option>
     </InputSelect>
+    <InputDate @bind-Value="selectedDate" />
+    <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="selectedDate" />
+    <InputDate Type="InputDateType.Time" @bind-Value="selectedDate" />
+    <InputDate Type="InputDateType.Month" @bind-Value="selectedDate" />
+    <input type="color" @bind="selectedColor" />
+    <input type="password" />
+    <input type="search" />
+    <input type="submit" />
+    <input type="week" />
+    <input type="url" />
+    <input type="tel" />
+    <input type="email" />
+    <input type="button" value="Test" />
+    <input type="number" />
+    <progress id="file" value="32" max="100"> 32% </progress>
 </ReuContainer>
 
 @code {
     private string assetSearchValue = "";
+    private DateTime selectedDate = DateTime.Today;
+    private string selectedColor = "#FF0000";
 
     public string AssetSearchValue
     {

@@ -59,7 +59,7 @@ body {
     flex-direction: column;
 }
 
-button {
+button, input[type=submit], input[type=button] {
     all: unset;
 }
 
@@ -114,7 +114,7 @@ main.reu-main {
 
 
 
-.reu-button {
+.reu-button, input[type=submit], input[type=button] {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -128,7 +128,7 @@ main.reu-main {
     cursor: pointer;
 }
 
-    .reu-button:hover {
+    .reu-button:hover, input[type=submit]:hover, input[type=button]:hover {
         background-color: var(--color-button-bg-hover);
         color: var(--color-text-primary);
         text-decoration: none;
@@ -138,7 +138,7 @@ main.reu-main {
         background-color: var(--color-button-bg-active);
     }
 
-    .reu-button.disabled, .reu-button:disabled {
+    .reu-button.disabled, .reu-button:disabled, input[type=submit]:disabled, input[type=button]:disabled {
         background-color: var(--color-button-bg-disabled);
         color: var(--color-text-secondary);
         cursor: not-allowed;
@@ -174,19 +174,67 @@ main.reu-main {
     align-items: center;
 }
 
-input[type=text], input.text, select {
+input[type=text],
+input.text,
+select,
+input[type=date],
+input[type=color],
+input[type=datetime-local],
+input[type=time],
+input[type=month],
+input[type=password],
+input[type=search],
+input[type=week],
+input[type=url],
+input[type=tel],
+input[type=email],
+input[type=number] {
     border: 1px solid var(--color-input-border);
-    font-family: inherit;
     border-radius: 5px;
+    font-family: inherit;
     color: inherit;
     padding: 2px 10px;
     background-color: var(--color-input-bg);
     font-size: inherit;
+    color-scheme: dark;
 }
 
-    input[type=text]:hover, input.text:hover, select:hover {
+    input[type=text]:hover,
+    input.text:hover,
+    select:hover,
+    input[type=date]:hover,
+    input[type=datetime-local]:hover,
+    input[type=color]:hover,
+    input[type=time]:hover,
+    input[type=month]:hover,
+    input[type=password]:hover,
+    input[type=search]:hover,
+    input[type=week]:hover,
+    input[type=url]:hover,
+    input[type=tel]:hover,
+    input[type=email]:hover,
+    input[type=number]:hover {
         border-color: var(--color-input-border-hover);
         background-color: var(--color-input-bg-hover);
+    }
+
+progress {
+    border: 1px solid var(--color-input-border);
+    border-radius: 5px;
+}
+    progress::-webkit-progress-bar {
+        border-radius: 5px;
+        background-color: var(--color-input-bg);
+    }
+
+    progress::-webkit-progress-value {
+        border-radius: 5px;
+        background-color: var(--color-blue);
+    }
+
+    progress::-moz-progress-bar {
+        border-radius: 0px !important;
+        background-color: var(--color-blue);
     }
 
 footer.reu-footer {
