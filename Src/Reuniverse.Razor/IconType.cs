@@ -12,5 +12,8 @@ public enum IconType
     Results,
     API,
     SDK,
-    Webhook
+    Webhook,
+    Login,
+    Logout,
+    Person
 }
