@@ -1,0 +1,20 @@
+.reu-footer-important {
+    display: flex;
+    gap: 1rem;
+}
+
+.copyright {
+    flex: 1;
+}
+
+.links {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+@media (max-width: 1000px) {
+    .reu-footer-important {
+        flex-direction: column;
+    }
+}

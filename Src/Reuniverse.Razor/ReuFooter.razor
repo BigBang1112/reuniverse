@@ -1,0 +1,30 @@
+<footer class="reu-footer @CssClass" @attributes="AdditionalAttributes">
+    <ReuContainer>
+        <div class="reu-footer-important">
+            <div class="copyright">
+                @CopyrightContent
+            </div>
+            <div class="links">
+                @LinkContent
+            </div>
+        </div>
+        @ExtraContent
+    </ReuContainer>
+</footer>
+
+@code {
+    [Parameter]
+    public RenderFragment? CopyrightContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? LinkContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? ExtraContent { get; set; }
+
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+}

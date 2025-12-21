@@ -1,0 +1,14 @@
+<main class="reu-main @CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</main>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+}

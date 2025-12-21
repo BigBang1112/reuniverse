@@ -3,8 +3,8 @@
     --color-text-primary: white;
     --color-text-secondary: #888;
     /* Link Colors */
-    --color-link: #26A8FF;
-    --color-link-hover: #47B5FF;
+    --color-link: #4CB7FF;
+    --color-link-hover: #66C1FF;
     /* Discord Brand Colors */
     --color-discord: #5865F2DD;
     --color-discord-hover: #6373EDDD;
@@ -26,6 +26,13 @@
     --color-button-bg-active: #333C;
     --color-button-bg-disabled: #3334;
     --color-button-border: #FFF3;
+    /* Input Colors */
+    --color-input-border: #333;
+    --color-input-border-hover: #444;
+    --color-input-bg: #1A1A1A;
+    --color-input-bg-hover: #222;
+    /* Modal Colors */
+    --color-modal-bg: #111C;
 }
 
 @import url('PTMono-Regular.ttf');
@@ -47,6 +54,9 @@ html, body {
 
 body {
     overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 button {
@@ -69,6 +79,10 @@ a {
     margin-right: auto;
     margin-left: auto;
     transition: width 0.2s ease, padding 0.2s ease;
+}
+
+main.reu-main {
+    flex: 1;
 }
 
 @media (max-width: 850px) {
@@ -160,9 +174,40 @@ a {
     align-items: center;
 }
 
+input[type=text], input.text, select {
+    border: 1px solid var(--color-input-border);
+    font-family: inherit;
+    border-radius: 5px;
+    color: inherit;
+    padding: 2px 10px;
+    background-color: var(--color-input-bg);
+    font-size: inherit;
+}
+
+    input[type=text]:hover, input.text:hover, select:hover {
+        border-color: var(--color-input-border-hover);
+        background-color: var(--color-input-bg-hover);
+    }
+
+footer.reu-footer {
+    background: var(--color-input-bg);
+}
+
+    footer.reu-footer small {
+        color: var(--color-text-secondary);
+    }
+
+.footer-discover-more {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem 1rem;
+    flex-wrap: wrap;
+    font-size: 75%;
+}
+
 #components-reconnect-modal {
     display: none;
-    background-color: #111C;
+    background-color: var(--color-modal-bg);
     text-align: center;
     position: fixed;
     top: 0;
@@ -189,7 +234,7 @@ a {
 
     #components-reconnect-modal .reu-connection-lost-detail {
         font-size: 75%;
-        color: #AAA;
+        color: var(--color-text-secondary);
     }
 
 @keyframes fadeIn {

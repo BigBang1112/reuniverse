@@ -17,4 +17,36 @@
     <ReuButton Href="https://gbx.tools" Variant="ReuButtonVariant.Yellow" disabled>Disabled link</ReuButton>
 
     <ReuUploadArea CssClass="uploader"></ReuUploadArea>
+
+    <InputText type="text" @bind-Value="AssetSearchValue" @oninput="OnAssetSearchInput" placeholder="Search..." />
+    <InputSelect @bind-Value="selected">
+        <option value="a">AAAA AAA AAAAAAA AAAAAA</option>
+        <option value="b">BBB BBBBBBB BB BBBBB</option>
+        <option value="c">CCCCCCCC CCCCCC CCC</option>
+    </InputSelect>
 </ReuContainer>
+
+@code {
+    private string assetSearchValue = "";
+
+    public string AssetSearchValue
+    {
+        get => assetSearchValue;
+        set
+        {
+            if (assetSearchValue == value)
+            {
+                return;
+            }
+
+            assetSearchValue = value;
+        }
+    }
+
+    private void OnAssetSearchInput(ChangeEventArgs e)
+    {
+        AssetSearchValue = e.Value?.ToString() ?? "";
+    }
+
+    private string selected = "a";
+}
