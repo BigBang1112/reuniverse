@@ -146,7 +146,7 @@ a {
     background-color: var(--color-yellow);
 }
 
-    .reu-button-yellow:hover {
+    .reu-button-yellow:hover:not(.disabled) {
         background-color: var(--color-yellow-hover);
     }
 
