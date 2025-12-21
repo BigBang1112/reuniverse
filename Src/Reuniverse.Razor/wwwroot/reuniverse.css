@@ -28,18 +28,17 @@
     --color-button-border: #FFF3;
 }
 
-@font-face {
-    font-family: 'Mona Sans';
-    src: url('Mona-Sans.woff2') format('woff2 supports variations'), url('Mona-Sans.woff2') format('woff2-variations');
-    font-weight: 200 900;
-    font-stretch: 75% 125%;
-}
-
 @import url('PTMono-Regular.ttf');
 
+@font-face {
+    font-family: 'Rubik';
+    src: url('Rubik-VariableFont_wght.ttf');
+}
+
 html, body {
-    font-family: "Mona Sans";
-    font-weight: 400;
+    font-family: "Rubik";
+    font-optical-sizing: auto;
+    font-style: normal;
     margin: 0;
     padding: 0;
     font-size: 18px;
