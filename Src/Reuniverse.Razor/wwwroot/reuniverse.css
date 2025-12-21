@@ -148,7 +148,7 @@ main.reu-main {
     background-color: var(--color-blue);
 }
 
-    .reu-button-blue:hover {
+    .reu-button-blue:hover:enabled, .reu-button-blue:hover:not(.disabled) {
         background-color: var(--color-blue-hover);
     }
 
@@ -160,7 +160,7 @@ main.reu-main {
     background-color: var(--color-yellow);
 }
 
-    .reu-button-yellow:hover:not(.disabled) {
+    .reu-button-yellow:hover:enabled, .reu-button-yellow:hover:not(.disabled) {
         background-color: var(--color-yellow-hover);
     }
 

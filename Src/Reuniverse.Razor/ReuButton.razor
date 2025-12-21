@@ -1,12 +1,12 @@
 @if (string.IsNullOrEmpty(Href))
 {
-    <button class="reu-button @(Active ? "active" : "") @(Disabled ? "disabled" : "") @GetVariantClass() @CssClass" @onclick="OnClick" @attributes="AdditionalAttributes">
+    <button class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass" disabled="@Disabled" @onclick="OnClick" @attributes="AdditionalAttributes">
         @ChildContent
     </button>
 }
 else
 {
-    <a href="@Href" class="reu-button @(Active ? "active" : "") @(Disabled ? "disabled" : "") @GetVariantClass() @CssClass" @attributes="AdditionalAttributes">
+    <a href="@Href" class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass" @attributes="AdditionalAttributes">
         @ChildContent
     </a>
 }
@@ -25,7 +25,7 @@ else
     public bool Active { get; set; }
 
     [Parameter]
-    public bool Disabled { get; set; }
+    public bool Enable { get; set; } = true;
 
     [Parameter]
     public ReuButtonVariant Variant { get; set; } = ReuButtonVariant.Default;
@@ -35,6 +35,8 @@ else
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    public bool Disabled => !Enable;
 
     private string GetVariantClass()
     {
