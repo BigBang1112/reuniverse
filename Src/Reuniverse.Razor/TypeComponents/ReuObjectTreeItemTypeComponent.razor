@@ -1,0 +1,31 @@
+﻿<span>#@Value.Index</span>
+<span>
+
+    @if (Value.Value is null)
+    {
+        <span>null</span>
+    }
+    else if (TypeValueComponents.TryGetValue(Value.Value.GetType(), out var componentType))
+    {
+        var parameters = new Dictionary<string, object?>
+        {
+            ["Property"] = null,
+            ["Value"] = Value.Value
+        };
+
+        <DynamicComponent Type="componentType" Parameters="parameters" />
+    }
+    else
+    {
+        <span>@Value.Value</span>
+    }
+
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required ReuObjectTreeItem Value { get; set; }
+
+    [Parameter, EditorRequired]
+    public Dictionary<Type, Type> TypeValueComponents { get; set; }
+}

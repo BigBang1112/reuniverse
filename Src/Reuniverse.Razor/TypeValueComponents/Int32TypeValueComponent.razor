@@ -1,0 +1,40 @@
+﻿<input type="number" @bind="Value" disabled="@IsReadOnly" />
+@if (Exception is not null)
+{
+    <div style="color: red;">@Exception.Message</div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public PropertyInfo? Property { get; set; }
+
+    [Parameter, EditorRequired]
+    public object Parent { get; set; }
+
+    public int? Value
+    {
+        get
+        {
+            if (Property is null) return null;
+            return (int?)Property.GetValue(Parent);
+        }
+        set
+        {
+            if (Property is null) return;
+
+            try
+            {
+                Property.SetValue(Parent, value);
+                Exception = null;
+            }
+            catch (TargetInvocationException ex)
+            {
+                Exception = ex.InnerException ?? ex;
+            }
+        }
+    }
+
+    public Exception? Exception { get; private set; }
+
+    private bool IsReadOnly => Property?.SetMethod is null;
+}

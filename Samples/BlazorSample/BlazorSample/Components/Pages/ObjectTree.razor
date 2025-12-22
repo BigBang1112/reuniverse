@@ -1,0 +1,14 @@
+﻿@page "/object-tree"
+
+@using Reuniverse.Razor
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+<ReuContainer>
+    <ReuObjectTree DisplayName="My custom named list" Value="new List<string> { 69.ToString(), 420.ToString() }">
+        <NullFormat>
+            <em>null</em>
+        </NullFormat>
+    </ReuObjectTree>
+</ReuContainer>

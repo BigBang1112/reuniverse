@@ -1,0 +1,133 @@
+<div>
+    <div @onclick="() => IsExpanded = !IsExpanded">
+        @if (Value is null)
+        {
+            @NullFormat
+        }
+        else if (TypeComponents.TryGetValue(Value.GetType(), out var componentType))
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                ["Value"] = Value,
+                ["TypeValueComponents"] = TypeValueComponents
+            };
+
+            <DynamicComponent Type="componentType" Parameters="parameters" />
+        }
+        else
+        {
+            @(DisplayName ?? Value.ToString())
+        }
+    </div>
+    @if (IsExpanded && Children.Any())
+    {
+        <div style="margin-left: 1rem">
+            @foreach (var child in Children)
+            {
+                <ReuObjectTree Value="child" TypeComponents="TypeComponents" TypeValueComponents="TypeValueComponents" NullFormat="NullFormat" ChildrenProvider="ChildrenProvider"></ReuObjectTree>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private static HashSet<object> expandedObjects = new();
+
+    [Parameter, EditorRequired]
+    public object? Value { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment NullFormat { get; set; } = default!;
+
+    [Parameter]
+    public Dictionary<Type, Type> TypeComponents { get; set; } = DefaultTypeComponents;
+
+    [Parameter]
+    public Dictionary<Type, Type> TypeValueComponents { get; set; } = DefaultTypeValueComponents;
+
+    [Parameter]
+    public Func<object, ICollection<object?>> ChildrenProvider { get; set; } = DefaultChildrenProvider;
+
+    [Parameter]
+    public string? DisplayName { get; set; }
+
+    public bool IsExpanded
+    {
+        get => Value is not null && expandedObjects.Contains(Value);
+        set
+        {
+            if (Value is not null)
+            {
+                if (value)
+                {
+                    expandedObjects.Add(Value);
+                }
+                else
+                {
+                    expandedObjects.Remove(Value);
+                }
+            }
+        }
+    }
+
+    public ICollection<object?> Children => Value is null ? [] : ChildrenProvider(Value);
+
+    private static ICollection<object?> DefaultChildrenProvider(object parent)
+    {
+        Type parentType;
+
+        switch (parent)
+        {
+            case ReuObjectTreeMember member:
+                var valueMember = member.Value;
+                if (valueMember is null) return [];
+                parentType = valueMember.GetType();
+                parent = valueMember;
+                break;
+            case ReuObjectTreeItem item:
+                var valueItem = item.Value;
+                if (valueItem is null) return [];
+                parentType = valueItem.GetType();
+                parent = valueItem;
+                break;
+            default:
+                parentType = parent.GetType();
+                break;
+        }
+
+        var list = new List<object?>();
+
+        foreach (var prop in parentType.GetProperties().OrderBy(x => x.Name))
+        {
+            if (prop.GetIndexParameters().Length > 0)
+            {
+                continue;
+            }
+
+            list.Add(new ReuObjectTreeMember(parent, prop));
+        }
+
+        if (parent is IEnumerable<object?> enumerable)
+        {
+            var index = 0;
+            foreach (var item in enumerable)
+            {
+                list.Add(new ReuObjectTreeItem(index, item));
+                index++;
+            }
+        }
+
+        return list;
+    }
+
+    public static Dictionary<Type, Type> DefaultTypeComponents { get; } = new()
+    {
+        [typeof(ReuObjectTreeMember)] = typeof(ReuObjectTreeMemberTypeComponent),
+        [typeof(ReuObjectTreeItem)] = typeof(ReuObjectTreeItemTypeComponent),
+    };
+
+    public static Dictionary<Type, Type> DefaultTypeValueComponents { get; } = new()
+    {
+        [typeof(int)] = typeof(Int32TypeValueComponent),
+    };
+}

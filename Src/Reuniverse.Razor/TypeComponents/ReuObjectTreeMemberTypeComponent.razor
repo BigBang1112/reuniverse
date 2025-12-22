@@ -1,0 +1,32 @@
+﻿<span>@Value.GetFriendlyTypeName()</span>
+<span>@Value.Property.Name</span>
+<span>
+
+    @if (TypeValueComponents.TryGetValue(Value.Value?.GetType() ?? Value.Property.PropertyType, out var componentType))
+    {
+        var parameters = new Dictionary<string, object?>
+        {
+            ["Property"] = Value.Property,
+            ["Parent"] = Value.Parent
+        };
+
+        <DynamicComponent Type="componentType" Parameters="parameters" />
+    }
+    else if (Value.Value is null)
+    {
+        <span>null</span>
+    }
+    else 
+    {
+        <span>@Value.Value</span>
+    }
+
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required ReuObjectTreeMember Value { get; set; }
+
+    [Parameter, EditorRequired]
+    public Dictionary<Type, Type> TypeValueComponents { get; set; }
+}
