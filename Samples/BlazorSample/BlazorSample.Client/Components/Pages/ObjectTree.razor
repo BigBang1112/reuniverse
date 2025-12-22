@@ -1,0 +1,99 @@
+﻿@page "/object-tree"
+
+@using Reuniverse.Razor
+@rendermode InteractiveServer
+
+<PageTitle>Object tree</PageTitle>
+
+<ReuContainer>
+    <ReuObjectTree Value="obj">
+        <NullFormat>
+            <em>null</em>
+        </NullFormat>
+    </ReuObjectTree>
+</ReuContainer>
+
+@code {
+    User obj = new User
+    {
+        Id = Guid.NewGuid(),
+        Username = "jane.doe",
+        Status = UserStatus.Active,
+        LastLogin = DateTime.UtcNow.AddDays(-2),
+
+        PrimaryAddress = new Address
+        {
+            Street = "123 Main St",
+            City = "Berlin",
+            Country = "Germany",
+            Location = new GeoLocation
+            {
+                Latitude = 52.5200,
+                Longitude = 13.4050
+            }
+        },
+
+        PreviousAddresses = new List<Address>
+        {
+            new Address
+            {
+                Street = "45 Old Road",
+                City = "Munich",
+                Country = "Germany",
+                Location = null
+            }
+        },
+
+        Preferences = new UserPreferences
+        {
+            ReceiveNewsletter = true,
+            CustomSettings = new Dictionary<string, string>
+            {
+                { "theme", "dark" },
+                { "language", "en-US" }
+            }
+        },
+
+        Orders = new List<Order>
+        {
+            new Order
+            {
+                OrderId = Guid.NewGuid(),
+                CreatedAt = DateTime.UtcNow.AddDays(-10),
+                TotalAmount = 149.97m,
+                Items = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        Sku = "ABC-123",
+                        Name = "Mechanical Keyboard",
+                        Quantity = 1,
+                        UnitPrice = 99.99m,
+                        Tags = new List<string> { "electronics", "keyboard" }
+                    },
+                    new OrderItem
+                    {
+                        Sku = "XYZ-456",
+                        Name = "Mouse Pad",
+                        Quantity = 2,
+                        UnitPrice = 24.99m,
+                        Tags = new List<string> { "accessories" }
+                    }
+                },
+                Metadata = new Dictionary<string, object?>
+                {
+                    { "couponUsed", true },
+                    { "deliveryEstimateDays", 3 },
+                    { "giftMessage", null }
+                }
+            }
+        },
+
+        Extensions = new Dictionary<string, object>
+        {
+            { "internalScore", 87.5 },
+            { "flags", new[] { "beta-user", "priority-support" } },
+            { "lastAudit", new { Auditor = "system", Passed = true } }
+        }
+    };
+}

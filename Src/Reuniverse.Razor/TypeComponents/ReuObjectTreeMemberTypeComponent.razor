@@ -1,27 +1,38 @@
-﻿<span>@Value.GetFriendlyTypeName()</span>
-<span>@Value.Property.Name</span>
-<span>
+﻿@if (ShowType)
+{
+    <div class="reu-object-tree-box type">
+        <ReuFriendlyType Type="Value.Property.PropertyType"></ReuFriendlyType>
+    </div>
+}
+<div class="reu-object-tree-box general">@Value.Property.Name</div>
+@if (IsExpandable)
+{
+    <div @onclick="OnExpandToggle" class="reu-object-tree-box general expander">
+        @(IsExpanded ? "▼" : "▶")
+    </div>
+}
+<div style="display: flex; align-items: center; gap: 0.5rem">
 
-    @if (TypeValueComponents.TryGetValue(Value.Value?.GetType() ?? Value.Property.PropertyType, out var componentType))
+    @if (TryGetValueComponent(out var componentType))
     {
         var parameters = new Dictionary<string, object?>
         {
-            ["Property"] = Value.Property,
-            ["Parent"] = Value.Parent
+            ["Member"] = Value,
+            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
         };
 
         <DynamicComponent Type="componentType" Parameters="parameters" />
     }
     else if (Value.Value is null)
     {
-        <span>null</span>
+        <span style="color: #888">null</span>
     }
     else 
     {
-        <span>@Value.Value</span>
+        <span style="color: #888; padding: 0 8px;">@Value.Value</span>
     }
 
-</span>
+</div>
 
 @code {
     [Parameter, EditorRequired]
@@ -29,4 +40,32 @@
 
     [Parameter, EditorRequired]
     public Dictionary<Type, Type> TypeValueComponents { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnExpandToggle { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool IsExpandable { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool IsExpanded { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool ShowType { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback ValueChanged { get; set; }
+
+    private bool TryGetValueComponent(out Type? componentType)
+    {
+        var type = Value.Value?.GetType() ?? Value.Property.PropertyType;
+
+        if (type.IsEnum)
+        {
+            componentType = typeof(EnumTypeValueComponent);
+            return true;
+        }
+
+        return TypeValueComponents.TryGetValue(type, out componentType);
+    }
 }

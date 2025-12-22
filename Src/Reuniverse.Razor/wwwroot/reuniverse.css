@@ -34,6 +34,8 @@
     --color-input-bg-disabled: #282828;
     /* Modal Colors */
     --color-modal-bg: #111C;
+    /* Object Tree Colors */
+    --color-object-tree-box-bg: #222;
 }
 
 @import url('PTMono-Regular.ttf');
@@ -289,6 +291,30 @@ footer.reu-footer {
     flex-wrap: wrap;
     font-size: 75%;
 }
+
+.reu-object-tree-box {
+    padding: 0 10px;
+    border-radius: 4px;
+    line-height: 30px;
+    background: #2224;
+    border-bottom: 1px solid #3338;
+    transition: background 0.1s ease;
+}
+
+    .reu-object-tree-box.type {
+        font-size: 75%;
+    }
+
+    .reu-object-tree-box.general:hover {
+        background: var(--color-object-tree-box-bg);
+        cursor: pointer;
+    }
+
+    .reu-object-tree-box.general.expander {
+        user-select: none;
+        width: 18px;
+        text-align: center;
+    }
 
 #components-reconnect-modal {
     display: none;

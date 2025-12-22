@@ -1,0 +1,28 @@
+.type:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.keyword {
+    color: #59B9FF;
+}
+
+.enum {
+    color: #DBFFC1;
+}
+
+.struct {
+    color: #63FFFF;
+}
+
+.class {
+    color: #5BFFDE;
+}
+
+.generic {
+    color: #B8D7A3;
+}
+
+.interface {
+    color: #B6D7A3;
+}

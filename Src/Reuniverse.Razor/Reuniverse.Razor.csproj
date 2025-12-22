@@ -44,4 +44,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" Condition="'$(TargetFramework)' == 'net10.0'" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Exceptions\" />
+    </ItemGroup>
+
 </Project>

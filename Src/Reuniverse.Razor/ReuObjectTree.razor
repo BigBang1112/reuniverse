@@ -1,5 +1,5 @@
-<div>
-    <div @onclick="() => IsExpanded = !IsExpanded">
+﻿<div>
+    <div class="item">
         @if (Value is null)
         {
             @NullFormat
@@ -9,32 +9,58 @@
             var parameters = new Dictionary<string, object>
             {
                 ["Value"] = Value,
-                ["TypeValueComponents"] = TypeValueComponents
+                ["TypeValueComponents"] = TypeValueComponents,
+                ["IsExpandable"] = IsExpandable,
+                ["IsExpanded"] = IsExpanded,
+                ["OnExpandToggle"] = EventCallback.Factory.Create(this, ToggleExpanded),
+                ["ShowType"] = ShowType,
+                ["ValueChanged"] = EventCallback.Factory.Create(this, StateHasChanged) // this will not update the parent object just yet, which could be affected as well
             };
 
             <DynamicComponent Type="componentType" Parameters="parameters" />
         }
         else
         {
-            @(DisplayName ?? Value.ToString())
+            <div class="reu-object-tree-box">@(DisplayName ?? Value.ToString())</div>
+
+            @if (IsExpandable)
+            {
+                <div @onclick="ToggleExpanded" class="reu-object-tree-box general expander">
+                    @(IsExpanded ? "▼" : "▶")
+                </div>
+            }
+        }
+
+        @if (Exception is not null)
+        {
+            <div style="color: red;">@Exception.Message</div>
         }
     </div>
     @if (IsExpanded && Children.Any())
     {
-        <div style="margin-left: 1rem">
+        <div class="items">
             @foreach (var child in Children)
             {
-                <ReuObjectTree Value="child" TypeComponents="TypeComponents" TypeValueComponents="TypeValueComponents" NullFormat="NullFormat" ChildrenProvider="ChildrenProvider"></ReuObjectTree>
+                <ReuObjectTree Parent="Value" Value="child" TypeComponents="TypeComponents" TypeValueComponents="TypeValueComponents" NullFormat="NullFormat" ChildrenProvider="ChildrenProvider"></ReuObjectTree>
             }
         </div>
     }
 </div>
 
 @code {
-    private static HashSet<object> expandedObjects = new();
+    private static HashSet<ExpandedObject> expandedObjects = new();
+    private static HashSet<object> expansionPath = new();
+
+    private ExpandedObject expandedObject = new();
 
     [Parameter, EditorRequired]
     public object? Value { get; set; }
+
+    /// <summary>
+    /// Tracks the parent object of the current <see cref="Value"/>. Do not set unless you know what you are doing.
+    /// </summary>
+    [Parameter]
+    public object? Parent { get; set; }
 
     [Parameter, EditorRequired]
     public RenderFragment NullFormat { get; set; } = default!;
@@ -51,22 +77,42 @@
     [Parameter]
     public string? DisplayName { get; set; }
 
+    public Exception? Exception { get; private set; }
+
+    public bool ShowType { get; set; } = true;
+
+    public bool IsExpandable => Value is not null && Children.Any();
+
     public bool IsExpanded
     {
-        get => Value is not null && expandedObjects.Contains(Value);
+        get => expandedObjects.Contains(expandedObject);
         set
         {
-            if (Value is not null)
+            // Children.Any could be a bit expensive
+            if (!value || !IsExpandable)
             {
-                if (value)
-                {
-                    expandedObjects.Add(Value);
-                }
-                else
-                {
-                    expandedObjects.Remove(Value);
-                }
+                expandedObjects.Remove(expandedObject);
+                return;
             }
+
+            if (HasCyclicReference())
+            {
+                throw new InvalidOperationException("Detected cyclic reference in object tree");
+            }
+
+            expandedObjects.Add(expandedObject);
+        }
+    }
+
+    public void ToggleExpanded()
+    {
+        try
+        {
+            IsExpanded = !IsExpanded;
+        }
+        catch (Exception ex)
+        {
+            Exception = ex;
         }
     }
 
@@ -112,12 +158,32 @@
             var index = 0;
             foreach (var item in enumerable)
             {
-                list.Add(new ReuObjectTreeItem(index, item));
+                list.Add(new ReuObjectTreeItem(parent, index, item));
                 index++;
             }
         }
 
         return list;
+    }
+
+    private bool HasCyclicReference()
+    {
+        if (Value is not ReuObjectTreeMember currentMember)
+        {
+            return false;
+        }
+
+        while (Parent is ReuObjectTreeMember parentMember)
+        {
+            if (Equals(currentMember.Value, parentMember.Value))
+            {
+                return true;
+            }
+
+            Parent = parentMember.Parent;
+        }
+
+        return false;
     }
 
     public static Dictionary<Type, Type> DefaultTypeComponents { get; } = new()
@@ -129,5 +195,11 @@
     public static Dictionary<Type, Type> DefaultTypeValueComponents { get; } = new()
     {
         [typeof(int)] = typeof(Int32TypeValueComponent),
+        [typeof(string)] = typeof(StringTypeValueComponent),
+        [typeof(DateTime)] = typeof(DateTimeTypeValueComponent),
+        [typeof(Enum)] = typeof(EnumTypeValueComponent),
     };
+
+    // This object cannot be record type as it needs to be unique for ALL instances
+    private sealed class ExpandedObject;
 }

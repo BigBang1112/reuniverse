@@ -1,4 +1,7 @@
-﻿<input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="11" style="width: 11ch;" />
+﻿@using Microsoft.AspNetCore.Components.Forms
+
+<InputDate @bind-Value="Value" Type="InputDateType.DateTimeLocal" disabled="@IsReadOnly" />
+<span>(@Value)</span>
 @if (Exception is not null)
 {
     <div style="color: red;">@Exception.Message</div>
@@ -17,22 +20,30 @@
     public PropertyInfo? Property => Member?.Property;
     public object? Parent => Member?.Parent ?? Item?.Parent;
 
-    public int? Value
+    public DateTime? Value
     {
         get
         {
-            if (Property is not null) return (int?)Property.GetValue(Parent);
-            if (Item is not null) return (int?)Item.Value;
+            if (Property is not null) return (DateTime?)Property.GetValue(Parent);
+            if (Item is not null) return (DateTime?)Item.Value;
             return null;
         }
         set
         {
             if (Property is null) return;
 
+            var oldValue = Value;
+
             try
             {
                 Property.SetValue(Parent, value);
                 Exception = null;
+
+                // Only invoke ValueChanged if the value actually changed
+                if (oldValue != value)
+                {
+                    ValueChanged.InvokeAsync();
+                }
             }
             catch (TargetInvocationException ex)
             {

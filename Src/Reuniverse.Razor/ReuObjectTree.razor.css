@@ -1,0 +1,23 @@
+.item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    font-size: 90%;
+}
+
+.items {
+    margin-left: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+::deep input {
+    height: 25px;
+}
+
+::deep select {
+    height: 31px;
+}

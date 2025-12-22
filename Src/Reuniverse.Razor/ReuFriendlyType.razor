@@ -1,0 +1,76 @@
+﻿@if (Type.IsGenericParameter)
+{
+    <span class="generic">@Type.Name</span>
+}
+else 
+{
+    if (Type.IsNested)
+    {
+        var declaring = Type.DeclaringType!;
+        <ReuFriendlyType Type="declaring" /><span>.</span>
+    }
+
+    @if (TypeExtensions.Keywords.TryGetValue(Type, out var keyword))
+    {
+        <span class="type keyword">@keyword</span>
+    }
+    else if (Nullable.GetUnderlyingType(Type) is Type nullable)
+    {
+        <span><ReuFriendlyType Type="nullable" /><span>?</span></span>
+    }
+    else if (Type.IsArray)
+    {
+        var elementType = Type.GetElementType()!;
+        <span><ReuFriendlyType Type="elementType" />[@(new string(',', Type.GetArrayRank() - 1))]</span>
+    }
+    else if (Type.IsGenericType)
+    {
+        var genericArgs = Type.GetGenericArguments();
+        var genericTypeName = Type.Name;
+        var backtickIndex = genericTypeName.IndexOf('`');
+        if (backtickIndex > 0)
+        {
+            // Remove generic arity from name
+            genericTypeName = genericTypeName.Substring(0, backtickIndex);
+        }
+
+        <span>
+            <span class="type @GetColorClass()">@genericTypeName</span><span>&lt;</span>
+            @for (int i = 0; i < genericArgs.Length; i++)
+            {
+                <ReuFriendlyType Type="genericArgs[i]"></ReuFriendlyType>
+                @(i < genericArgs.Length - 1 ? ", " : "")
+            }
+            <span>&gt;</span>
+        </span>
+    }
+    else
+    {
+        <span class="type @GetColorClass()">@Type.Name</span>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public Type Type { get; set; }
+
+    string GetColorClass()
+    {
+        if (Type.IsEnum)
+        {
+            return "enum";
+        }
+
+        if (Type.IsValueType)
+        {
+            return "struct";
+        }
+
+        if (Type.IsInterface)
+        {
+            return "interface";
+        }
+
+        return "class";
+    }
+}
