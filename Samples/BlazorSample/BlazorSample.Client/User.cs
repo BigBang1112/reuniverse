@@ -55,7 +55,7 @@ public class User
     public Address PrimaryAddress { get; set; }
     public List<Address> PreviousAddresses { get; set; }
 
-    public UserPreferences Preferences { get; set; }
+    public UserPreferences? Preferences { get; set; }
     public List<Order> Orders { get; set; }
 
     public Dictionary<string, object> Extensions { get; set; }

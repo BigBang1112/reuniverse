@@ -1,13 +1,13 @@
 ﻿@if (ShowType && Value.Value is not null)
 {
-    <div class="reu-object-tree-box type">
+    <div class="box type">
         <ReuFriendlyType Type="Value.Value.GetType()"></ReuFriendlyType>
     </div>
 }
-<code class="reu-object-tree-box general">#@Value.Index</code>
+<code class="box general">#@Value.Index</code>
 @if (IsExpandable)
 {
-    <div @onclick="OnExpandToggle" class="reu-object-tree-box general expander">
+    <div @onclick="OnExpandToggle" class="box general expander">
         @(IsExpanded ? "▼" : "▶")
     </div>
 }

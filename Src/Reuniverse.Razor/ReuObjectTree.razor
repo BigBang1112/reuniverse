@@ -21,11 +21,11 @@
         }
         else
         {
-            <div class="reu-object-tree-box">@(DisplayName ?? Value.ToString())</div>
+            <div class="box">@(DisplayName ?? Value.ToString())</div>
 
             @if (IsExpandable)
             {
-                <div @onclick="ToggleExpanded" class="reu-object-tree-box general expander">
+                <div @onclick="ToggleExpanded" class="box general expander">
                     @(IsExpanded ? "▼" : "▶")
                 </div>
             }
