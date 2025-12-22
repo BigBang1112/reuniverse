@@ -31,6 +31,7 @@
     --color-input-border-hover: #444;
     --color-input-bg: #1A1A1A;
     --color-input-bg-hover: #222;
+    --color-input-bg-disabled: #282828;
     /* Modal Colors */
     --color-modal-bg: #111C;
 }
@@ -216,6 +217,42 @@ input[type=number] {
     input[type=number]:hover {
         border-color: var(--color-input-border-hover);
         background-color: var(--color-input-bg-hover);
+    }
+
+    input[type=text].disabled,
+    input[type=text]:disabled,
+    input.text.disabled,
+    input.text:disabled,
+    select.disabled,
+    select:disabled,
+    input[type=date].disabled,
+    input[type=date]:disabled,
+    input[type=datetime-local].disabled,
+    input[type=datetime-local]:disabled,
+    input[type=color].disabled,
+    input[type=color]:disabled,
+    input[type=time].disabled,
+    input[type=time]:disabled,
+    input[type=month].disabled,
+    input[type=month]:disabled,
+    input[type=password].disabled,
+    input[type=password]:disabled,
+    input[type=search].disabled,
+    input[type=search]:disabled,
+    input[type=week].disabled,
+    input[type=week]:disabled,
+    input[type=url].disabled,
+    input[type=url]:disabled,
+    input[type=tel].disabled,
+    input[type=tel]:disabled,
+    input[type=email].disabled,
+    input[type=email]:disabled,
+    input[type=number].disabled,
+    input[type=number]:disabled {
+        background-color: var(--color-input-bg-disabled);
+        border-color: var(--color-input-border);
+        color: var(--color-text-secondary);
+        cursor: not-allowed;
     }
 
 progress {
