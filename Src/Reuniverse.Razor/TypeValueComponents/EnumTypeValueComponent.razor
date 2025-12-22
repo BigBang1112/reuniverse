@@ -3,7 +3,7 @@
 
 @inject IJSRuntime JS
 
-<select @ref="select" disabled="@IsReadOnly" @onchange="OnChange">
+<select disabled="@IsReadOnly" @onchange="OnChange">
     @if (Type is not null)
     {
         @foreach (var enumValue in Enum.GetValues(Type))
