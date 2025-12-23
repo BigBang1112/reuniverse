@@ -1,0 +1,46 @@
+﻿@inherits LayoutComponentBase
+
+@using Reuniverse.Razor
+
+<ReuNavMenu Brand="reuniverse.net">
+    <ReuNavItem Name="Home" Href="" IconType="IconType.Home" NavLinkMatch="NavLinkMatch.All"></ReuNavItem>
+    <ReuNavItem Name="Object tree" Href="object-tree" IconType="IconType.Download"></ReuNavItem>
+    <ReuNavItem Name="About" Href="about" IconType="IconType.Info"></ReuNavItem>
+    <ReuNavItem Name="Docker" Href="https://hub.docker.com/r/bigbang1112/nations-converter-web" IconType="IconType.Docker" IsNavLink="false" IconOnly="true" IconWidth="30" IconHeight="30"></ReuNavItem>
+    <ReuNavItem Name="GitHub" Href="https://github.com/BigBang1112/nations-converter" IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" IconWidth="28" IconHeight="28"></ReuNavItem>
+    <ReuNavItem Name="Discord" Href="https://discord.nc.gbx.tools" IconType="IconType.Discord" IsNavLink="false" IconOnly="true" Title="Join the Discord server"></ReuNavItem>
+    <ReuNavItem Name="Login" Href="login" IconType="IconType.Login" IsNavLink="false" IconOnly="true" Title="Login"></ReuNavItem>
+</ReuNavMenu>
+
+<ReuMain>
+    @Body
+</ReuMain>
+
+<ReuFooter>
+    <CopyrightContent>
+        © 2025 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoňka<br />
+        <small>
+            Not affiliated with or endorsed by Nadeo or Ubisoft.
+            All relevant trademarks belong to their respective owners.
+        </small>
+    </CopyrightContent>
+    <LinkContent>
+        <a href="#">Terms of Service</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">API</a>
+    </LinkContent>
+    <ExtraContent>
+        <div class="footer-discover-more">
+            <span>Discover more:</span>
+            <a href="https://gbx.tools">gbx.tools</a>
+            <a href="https://explorer.gbx.tools">explorer.gbx.tools</a>
+            <a href="https://3d.gbx.tools">3d.gbx.tools</a>
+            <a href="https://io.gbx.tools">io.gbx.tools</a>
+            <a href="https://nc.gbx.tools">nc.gbx.tools</a>
+            <a href="https://revalidate.gbx.tools">revalidate.gbx.tools</a>
+            <a href="https://envimix.gbx.tools">envimix.gbx.tools</a>
+            <a href="https://uotd.gbx.tools">uotd.gbx.tools</a>
+            <a href="https://nuget.gbx.tools">nuget.gbx.tools</a>
+        </div>
+    </ExtraContent>
+</ReuFooter>
