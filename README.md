@@ -15,6 +15,15 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
+In Blazor WebAssembly:
+
+`wwwroot/index.html`
+
+```html
+<link rel="stylesheet" href="_content/Reuniverse.Razor/reuniverse.css" />
+<link href="[YOUR_PROJECT_NAME].styles.css" rel="stylesheet" />
+```
+
 To use the components:
 
 ```cs
