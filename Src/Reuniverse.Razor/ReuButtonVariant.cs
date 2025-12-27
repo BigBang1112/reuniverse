@@ -4,5 +4,6 @@ public enum ReuButtonVariant
 {
     Default,
     Blue,
-    Yellow
+    Yellow,
+    Red
 }
