@@ -192,6 +192,10 @@ main.reu-main {
     align-items: center;
 }
 
+.reu-overflow {
+    overflow-x: auto;
+}
+
 input[type=text],
 input.text,
 select,
