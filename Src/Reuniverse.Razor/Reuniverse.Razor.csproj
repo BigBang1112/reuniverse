@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <PackageId>Reuniverse.Razor</PackageId>
-        <Version>0.1.2</Version>
+        <Version>0.2.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Common Blazor components for BigBang1112 projects (gbx.tools).</Description>
         <Copyright>Copyright (c) 2025 Petr Pivoňka</Copyright>
