@@ -1,8 +1,14 @@
-@if (string.IsNullOrEmpty(Href))
+@if (Href is null)
 {
     <button class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass" disabled="@Disabled" @onclick="OnClick" @attributes="AdditionalAttributes">
         @ChildContent
     </button>
+}
+else if (NavLink)
+{
+    <NavLink href="@Href" class="@($"reu-button {(Enable ? "" : "disabled")} {GetVariantClass()} {CssClass}")" @attributes="AdditionalAttributes">
+        @ChildContent
+    </NavLink>
 }
 else
 {
@@ -26,6 +32,9 @@ else
 
     [Parameter]
     public bool Enable { get; set; } = true;
+
+    [Parameter]
+    public bool NavLink { get; set; }
 
     [Parameter]
     public ReuButtonVariant Variant { get; set; } = ReuButtonVariant.Default;
