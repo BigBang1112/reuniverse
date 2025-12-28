@@ -1,0 +1,26 @@
+<div class="reu-list @(Grow ? "grow" : "") @(Panel ? "panel" : "") @(Vertical ? "vertical" : "") @(Wrap ? "wrap" : "") @CssClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter]
+    public bool Grow { get; set; } = true;
+
+    [Parameter]
+    public bool Panel { get; set; }
+
+    [Parameter]
+    public bool Vertical { get; set; }
+
+    [Parameter]
+    public bool Wrap { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+}

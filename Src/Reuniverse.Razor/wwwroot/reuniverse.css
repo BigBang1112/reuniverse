@@ -196,6 +196,44 @@ main.reu-main {
     overflow-x: auto;
 }
 
+.reu-list {
+    display: flex;
+}
+
+    .reu-list .reu-list-item {
+        display: flex;
+        border-radius: 5px;
+        justify-content: center;
+    }
+
+    .reu-list.grow .reu-list-item {
+        flex: 1;
+    }
+
+        .reu-list .reu-list-item:hover {
+            background-color: #333;
+            cursor: pointer;
+        }
+
+        .reu-list .reu-list-item.active {
+            background-color: #444;
+        }
+
+    .reu-list.panel {
+        background-color: #1A1A1AAA;
+        border: 1px solid #333;
+        border-radius: 5px;
+    }
+
+    .reu-list.vertical {
+        flex-direction: column;
+        overflow: auto;
+    }
+
+    .reu-list.wrap {
+        flex-flow: wrap;
+    }
+
 input[type=text],
 input.text,
 select,
