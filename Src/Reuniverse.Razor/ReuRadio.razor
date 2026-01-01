@@ -1,10 +1,13 @@
 <label>
-    <input type="checkbox" checked="@IsChecked" @onchange="OnChange" @attributes="AdditionalAttributes">
+    <input type="radio" name="@Name" checked="@IsChecked" @onchange="OnChange" @attributes="AdditionalAttributes">
     <span class="checkmark" style="width:@(Size)px;"></span>
     @ChildContent
 </label>
 
 @code {
+    [Parameter, EditorRequired]
+    public string Name { get; set; }
+
     [Parameter]
     public bool IsChecked { get; set; }
 

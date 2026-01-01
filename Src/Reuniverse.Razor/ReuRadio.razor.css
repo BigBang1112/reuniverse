@@ -43,7 +43,7 @@ input {
     display: flex;
     aspect-ratio: 1 / 1;
     border: 1px solid var(--color-input-border);
-    border-radius: 5px;
+    border-radius: 100%;
     background-color: var(--color-input-bg);
     box-sizing: border-box;
 }
@@ -52,7 +52,7 @@ input {
         content: "";
         display: none;
         width: 100%;
-        border-radius: 3px;
+        border-radius: 100%;
         background-color: white;
         margin: 3px;
         box-sizing: border-box;
