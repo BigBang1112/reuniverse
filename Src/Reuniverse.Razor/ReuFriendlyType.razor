@@ -7,21 +7,21 @@ else
     if (Type.IsNested)
     {
         var declaring = Type.DeclaringType!;
-        <ReuFriendlyType Type="declaring" /><span>.</span>
+        <ReuFriendlyType Type="declaring" OnClick="OnClick"/><span>.</span>
     }
 
     @if (TypeExtensions.Keywords.TryGetValue(Type, out var keyword))
     {
-        <span class="type keyword">@keyword</span>
+        <span class="type keyword" @onclick="() => OnClick.InvokeAsync(Type)">@keyword</span>
     }
     else if (Nullable.GetUnderlyingType(Type) is Type nullable)
     {
-        <span><ReuFriendlyType Type="nullable" /><span>?</span></span>
+        <span><ReuFriendlyType Type="nullable" OnClick="OnClick"/><span>?</span></span>
     }
     else if (Type.IsArray)
     {
         var elementType = Type.GetElementType()!;
-        <span><ReuFriendlyType Type="elementType" />[@(new string(',', Type.GetArrayRank() - 1))]</span>
+        <span><ReuFriendlyType Type="elementType" OnClick="OnClick"/>[@(new string(',', Type.GetArrayRank() - 1))]</span>
     }
     else if (Type.IsGenericType)
     {
@@ -35,10 +35,10 @@ else
         }
 
         <span>
-            <span class="type @GetColorClass()">@genericTypeName</span><span>&lt;</span>
+            <span class="type @GetColorClass()" @onclick="() => OnClick.InvokeAsync(Type)">@genericTypeName</span><span>&lt;</span>
             @for (int i = 0; i < genericArgs.Length; i++)
             {
-                <ReuFriendlyType Type="genericArgs[i]"></ReuFriendlyType>
+                <ReuFriendlyType Type="genericArgs[i]" OnClick="OnClick"></ReuFriendlyType>
                 @(i < genericArgs.Length - 1 ? ", " : "")
             }
             <span>&gt;</span>
@@ -46,13 +46,16 @@ else
     }
     else
     {
-        <span class="type @GetColorClass()">@Type.Name</span>
+        <span class="type @GetColorClass()" @onclick="() => OnClick.InvokeAsync(Type)">@Type.Name</span>
     }
 }
 
 @code {
     [Parameter, EditorRequired]
     public Type Type { get; set; }
+
+    [Parameter]
+    public EventCallback<Type> OnClick { get; set; }
 
     string GetColorClass()
     {

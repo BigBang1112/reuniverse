@@ -1,40 +1,36 @@
 ﻿@inherits TypeComponentBase<ReuObjectTreeItem>
 
-@if (ShowType && Value.Value is not null)
+@if (!HideType && Value.Value is not null)
 {
     <div class="box type">
-        <ReuFriendlyType Type="Value.Value.GetType()"></ReuFriendlyType>
+        <ReuFriendlyType Type="Value.Value.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
     </div>
 }
 <code class="box general">#@Value.Index</code>
 @if (IsExpandable)
 {
-    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "expanded" : "")">
+    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "active" : "")">
         @(IsExpanded ? "▼" : "▶")
     </div>
 }
-<div>
-
-    @if (Value.Value is null)
+@if (Value.Value is null)
+{
+    <span class="box-value">null</span>
+}
+else if (TryGetValueComponent(out var componentType))
+{
+    var parameters = new Dictionary<string, object?>
     {
-        <span style="color: #888">null</span>
-    }
-    else if (TryGetValueComponent(out var componentType))
-    {
-        var parameters = new Dictionary<string, object?>
-        {
-            ["Item"] = Value,
-            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
-        };
+        ["Item"] = Value,
+        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+    };
 
-        <DynamicComponent Type="componentType" Parameters="parameters" />
-    }
-    else
-    {
-        <span style="color: #888; padding: 0 8px;">@Value.Value</span>
-    }
-
-</div>
+    <DynamicComponent Type="componentType" Parameters="parameters" />
+}
+else
+{
+    <span class="box-value">@Value.Value</span>
+}
 
 @code {
     private bool TryGetValueComponent(out Type? componentType)

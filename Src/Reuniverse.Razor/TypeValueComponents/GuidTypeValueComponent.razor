@@ -1,0 +1,7 @@
+﻿@inherits TypeValueComponentBase<Guid?>
+
+<input type="text" @bind="Value" disabled="@IsReadOnly" style="width:36ch" />
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}

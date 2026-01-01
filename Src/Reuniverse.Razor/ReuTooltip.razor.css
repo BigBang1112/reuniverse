@@ -1,0 +1,13 @@
+.tooltip {
+    display: flex;
+    position: fixed;
+    background: #3338;
+    pointer-events: none;
+    border-radius: 0.2rem;
+    padding: 0.2rem 0.4rem;
+    backdrop-filter: blur(10px);
+}
+
+    .tooltip.global {
+        font-size: 80%;
+    }

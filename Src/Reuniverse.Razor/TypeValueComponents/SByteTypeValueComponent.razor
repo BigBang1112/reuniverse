@@ -1,0 +1,7 @@
+﻿@inherits TypeValueComponentBase<sbyte?>
+
+<input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="4" style="width: 4ch;" />
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}

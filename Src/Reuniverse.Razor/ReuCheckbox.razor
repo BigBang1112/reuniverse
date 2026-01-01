@@ -1,4 +1,6 @@
-<label>
+<label @onmouseenter="args => ReuTooltip.ShowGlobal(args, Tooltip)"
+       @onmousemove="ReuTooltip.MoveGlobal"
+       @onmouseout="ReuTooltip.HideGlobal">
     <input type="checkbox" checked="@IsChecked" @onchange="OnChange" @attributes="AdditionalAttributes">
     <span class="checkmark" style="width:@(Size)px;"></span>
     @ChildContent
@@ -16,6 +18,9 @@
 
     [Parameter]
     public int Size { get; set; } = 28;
+
+    [Parameter]
+    public string? Tooltip { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }

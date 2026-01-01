@@ -20,7 +20,10 @@ public abstract class TypeComponentBase<T> : ComponentBase
     public bool IsExpanded { get; set; }
 
     [Parameter, EditorRequired]
-    public bool ShowType { get; set; }
+    public bool HideType { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<Type> OnTypeClick { get; set; }
 
     [Parameter, EditorRequired]
     public EventCallback ValueChanged { get; set; }

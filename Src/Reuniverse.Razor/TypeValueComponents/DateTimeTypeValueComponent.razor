@@ -2,43 +2,8 @@
 
 @inherits TypeValueComponentBase<DateTime?>
 
-<InputDate @bind-Value="Value" Type="InputDateType.DateTimeLocal" disabled="@IsReadOnly" />
-<span>(@Value)</span>
+<input type="text" @bind="Value" disabled="@IsReadOnly" />
 @if (Exception is not null)
 {
-    <div style="color: red;">@Exception.Message</div>
-}
-
-@code {
-    public override DateTime? Value
-    {
-        get
-        {
-            if (Property is not null) return (DateTime?)Property.GetValue(Parent);
-            if (Item is not null) return (DateTime?)Item.Value;
-            return null;
-        }
-        set
-        {
-            if (Property is null) return;
-
-            var oldValue = Value;
-
-            try
-            {
-                Property.SetValue(Parent, value);
-                Exception = null;
-
-                // Only invoke ValueChanged if the value actually changed
-                if (oldValue != value)
-                {
-                    ValueChanged.InvokeAsync();
-                }
-            }
-            catch (TargetInvocationException ex)
-            {
-                Exception = ex.InnerException ?? ex;
-            }
-        }
-    }
+    <div style="color: var(--color-red);">@Exception.Message</div>
 }

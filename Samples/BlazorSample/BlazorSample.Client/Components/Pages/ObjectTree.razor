@@ -1,13 +1,16 @@
 ﻿@page "/object-tree"
+@rendermode InteractiveServer
 
 @using Reuniverse.Razor
-@rendermode InteractiveServer
 
 <PageTitle>Object tree</PageTitle>
 
-<ReuContainer Overflow="true">
-    <ReuObjectTree Value="obj"></ReuObjectTree>
+<ReuContainer Overflow="true" style="display: flex; flex-direction: column; gap: 1rem">
+    <ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
+    <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true"></ReuObjectTree>
 </ReuContainer>
+
+<ReuTooltip IsGlobal="true"></ReuTooltip>
 
 @code {
     User obj = new User
@@ -92,4 +95,11 @@
             { "lastAudit", new { Auditor = "system", Passed = true } }
         }
     };
+
+    private bool showTypes = true;
+
+    private void OnTypesChanged(bool isChecked)
+    {
+        showTypes = isChecked;
+    }
 }

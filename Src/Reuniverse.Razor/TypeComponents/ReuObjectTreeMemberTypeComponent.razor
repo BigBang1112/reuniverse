@@ -1,9 +1,10 @@
 ﻿@inherits TypeComponentBase<ReuObjectTreeMember>
+@inject IJSRuntime JS
 
-@if (ShowType)
+@if (!HideType)
 {
     <div class="box type">
-        <ReuFriendlyType Type="Value.Property.PropertyType"></ReuFriendlyType>
+        <ReuFriendlyType Type="Value.Property.PropertyType" OnClick="OnTypeClick"></ReuFriendlyType>
         @if (!Value.Property.PropertyType.IsValueType && new NullabilityInfoContext().Create(Value.Property).ReadState is NullabilityState.Nullable)
         {
             <span>?</span>
@@ -13,32 +14,48 @@
 <div class="box general">@Value.Property.Name</div>
 @if (IsExpandable)
 {
-    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "expanded" : "")">
+    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "active" : "")">
         @(IsExpanded ? "▼" : "▶")
     </div>
 }
-<div style="display: flex; align-items: center; gap: 0.5rem">
-
-    @if (TryGetValueComponent(out var componentType))
+@if (Value.Value is null)
+{
+    @if (CanCreateInstance())
     {
-        var parameters = new Dictionary<string, object?>
-        {
-            ["Member"] = Value,
-            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
-        };
-
-        <DynamicComponent Type="componentType" Parameters="parameters" />
+        <span class="box-value clickable"
+              @onclick="CreateInstance"
+              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Create a new instance"))"
+              @onmousemove="ReuTooltip.MoveGlobal"
+              @onmouseout="ReuTooltip.HideGlobal">null</span>
     }
-    else if (Value.Value is null)
+    else
     {
-        <span style="color: #888">null</span>
+        <span class="box-value">null</span>
     }
-    else 
+}
+else if (TryGetValueComponent(out var componentType))
+{
+    var parameters = new Dictionary<string, object?>
     {
-        <span style="color: #888; padding: 0 8px;">@Value.Value</span>
-    }
+        ["Member"] = Value,
+        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+    };
 
-</div>
+    <DynamicComponent Type="componentType" Parameters="parameters" />
+}
+else 
+{
+    <span class="box-value">@Value.Value</span>
+}
+
+@if (CanRemoveValue())
+{
+    <span class="box-value clickable remove"
+          @onclick="RemoveValueAsync"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to null"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">✕</span>
+}
 
 @code {
     private bool TryGetValueComponent(out Type? componentType)
@@ -52,5 +69,102 @@
         }
 
         return TypeValueComponents.TryGetValue(type, out componentType);
+    }
+
+    private bool CanCreateInstance()
+    {
+        if (Value.Property.SetMethod is null)
+        {
+            return false;
+        }
+
+        var propertyType = Value.Property.PropertyType;
+
+        // Handle nullable types
+        if (Nullable.GetUnderlyingType(propertyType) is Type underlyingType)
+        {
+            propertyType = underlyingType;
+        }
+
+        // Check if it's a reference type or nullable value type and has a parameterless constructor
+        return !propertyType.IsAbstract && 
+               !propertyType.IsInterface && 
+               propertyType.GetConstructor(Type.EmptyTypes) is not null;
+    }
+
+    private async Task CreateInstance()
+    {
+        if (!CanCreateInstance() || Value.Property.SetMethod is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var propertyType = Value.Property.PropertyType;
+
+            // Handle nullable types
+            if (Nullable.GetUnderlyingType(propertyType) is Type underlyingType)
+            {
+                propertyType = underlyingType;
+            }
+
+            var newInstance = Activator.CreateInstance(propertyType);
+            Value.Property.SetValue(Value.Parent, newInstance);
+
+            await ValueChanged.InvokeAsync();
+            ReuTooltip.HideGlobal();
+        }
+        catch (Exception ex)
+        {
+            // Handle creation errors silently or add error handling as needed
+        }
+    }
+
+    private bool CanRemoveValue()
+    {
+        if (Value.Property.SetMethod is null || Value.Value is null)
+        {
+            return false;
+        }
+
+        var propertyType = Value.Property.PropertyType;
+
+        // Can remove only if it's a nullable reference type
+        if (propertyType.IsValueType)
+        {
+            // Only allow removing nullable value types (like int?, DateTime?)
+            return Nullable.GetUnderlyingType(propertyType) is not null;
+        }
+
+        // For reference types, check if it's nullable using NullabilityInfo
+        var nullabilityInfo = new NullabilityInfoContext().Create(Value.Property);
+        return nullabilityInfo.WriteState is NullabilityState.Nullable;
+    }
+
+    private async Task RemoveValueAsync()
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to set '{Value.Property.Name}' to null?");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        if (!CanRemoveValue() || Value.Property.SetMethod is null)
+        {
+            return;
+        }
+
+        try
+        {
+            Value.Property.SetValue(Value.Parent, null);
+            await ValueChanged.InvokeAsync();
+            ReuTooltip.HideGlobal();
+        }
+        catch (Exception ex)
+        {
+            // Handle removal errors silently or add error handling as needed
+        }
     }
 }

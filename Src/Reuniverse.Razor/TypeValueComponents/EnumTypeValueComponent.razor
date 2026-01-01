@@ -1,4 +1,6 @@
-﻿<select disabled="@IsReadOnly" @onchange="OnChange">
+﻿@inherits TypeValueComponentBase<object?>
+
+<select disabled="@IsReadOnly" @onchange="OnChange">
     @if (Type is not null)
     {
         @foreach (var enumValue in Enum.GetValues(Type))
@@ -10,51 +12,11 @@
 
 @if (Exception is not null)
 {
-    <div style="color: red;">@Exception.Message</div>
+    <div style="color: var(--color-red);">@Exception.Message</div>
 }
 
 @code {
-    [Parameter]
-    public ReuObjectTreeMember? Member { get; set; }
-
-    [Parameter]
-    public ReuObjectTreeItem? Item { get; set; }
-
-    [Parameter]
-    public EventCallback ValueChanged { get; set; }
-
-    public PropertyInfo? Property => Member?.Property;
-    public object? Parent => Member?.Parent ?? Item?.Parent;
-
     public Type? Type => Property?.PropertyType ?? Item?.Value?.GetType();
-
-    public object? Value
-    {
-        get
-        {
-            if (Property is not null) return Property.GetValue(Parent);
-            if (Item is not null) return Item.Value;
-            return null;
-        }
-        set
-        {
-            if (Property is null) return;
-
-            try
-            {
-                Property.SetValue(Parent, value);
-                Exception = null;
-            }
-            catch (TargetInvocationException ex)
-            {
-                Exception = ex.InnerException ?? ex;
-            }
-        }
-    }
-
-    public Exception? Exception { get; private set; }
-
-    private bool IsReadOnly => Property?.SetMethod is null;
 
     private async Task OnChange(ChangeEventArgs e)
     {

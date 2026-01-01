@@ -17,7 +17,46 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
     public PropertyInfo? Property => Member?.Property;
     public object? Parent => Member?.Parent ?? Item?.Parent;
 
-    public abstract T? Value { get; set; }
+    public virtual T? Value
+    {
+        get
+        {
+            if (Property is not null) return (T?)Property.GetValue(Parent);
+            if (Item is not null) return (T?)Item.Value;
+            return default;
+        }
+        set
+        {
+            if (Item is not null)
+            {
+                if (Item.SetValue(value))
+                {
+                    ValueChanged.InvokeAsync();
+                }
+                return;
+            }
+
+            if (Property is null) return;
+
+            var oldValue = Value;
+
+            try
+            {
+                Property.SetValue(Parent, value);
+                Exception = null;
+
+                // Only invoke ValueChanged if the value actually changed
+                if (!Equals(oldValue, value))
+                {
+                    ValueChanged.InvokeAsync();
+                }
+            }
+            catch (TargetInvocationException ex)
+            {
+                Exception = ex.InnerException ?? ex;
+            }
+        }
+    }
 
     public Exception? Exception { get; protected set; }
 
@@ -33,7 +72,7 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
                     return false;
                 }
 
-                if (Item.Parent is System.Collections.ICollection)
+                if (Item.Parent is System.Collections.IList)
                 {
                     return false;
                 }

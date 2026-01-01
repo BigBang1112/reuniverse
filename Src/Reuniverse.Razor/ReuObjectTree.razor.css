@@ -18,17 +18,17 @@
 }
 
 ::deep input {
-    height: 25px;
+    height: 30px;
 }
 
 ::deep select {
-    height: 31px;
+    height: 30px;
 }
 
 ::deep .box {
     padding: 0 10px;
     border-radius: 4px;
-    line-height: 30px;
+    line-height: 29px;
     background: #2224;
     border-bottom: 1px solid #3338;
     transition: background 0.1s ease;
@@ -43,15 +43,28 @@
         cursor: pointer;
     }
 
+    ::deep .box.general.active {
+        background: var(--color-button-bg-active);
+    }
+
     ::deep .box.general.expander {
         user-select: none;
         width: 18px;
         text-align: center;
     }
 
-        ::deep .box.general.expander.expanded {
-            background: var(--color-button-bg-active);
-        }
+::deep .box-value {
+    padding: 0 10px;
+    border-radius: 4px;
+    line-height: 30px;
+    background: #2228;
+    color: #888;
+}
+
+    ::deep .box-value.clickable:hover {
+        background: var(--color-object-tree-box-bg);
+        cursor: pointer;
+    }
 
 @keyframes fadeIn {
     from {

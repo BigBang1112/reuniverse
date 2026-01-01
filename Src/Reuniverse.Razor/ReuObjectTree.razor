@@ -2,7 +2,7 @@
     <div class="item">
         @if (Value is null)
         {
-            <span style="color: #888">null</span>
+            <span class="box-value">null</span>
         }
         else if (TypeComponents.TryGetValue(Value.GetType(), out var componentType))
         {
@@ -13,7 +13,8 @@
                 ["IsExpandable"] = IsExpandable,
                 ["IsExpanded"] = IsExpanded,
                 ["OnExpandToggle"] = EventCallback.Factory.Create(this, ToggleExpanded),
-                ["ShowType"] = ShowType,
+                ["HideType"] = HideType,
+                ["OnTypeClick"] = OnTypeClick,
                 ["ValueChanged"] = EventCallback.Factory.Create(this, StateHasChanged) // this will not update the parent object just yet, which could be affected as well
             };
 
@@ -25,7 +26,7 @@
 
             @if (IsExpandable)
             {
-                <div @onclick="ToggleExpanded" class="box general expander @(IsExpanded ? "expanded" : "")">
+                <div @onclick="ToggleExpanded" class="box general expander @(IsExpanded ? "active" : "")">
                     @(IsExpanded ? "▼" : "▶")
                 </div>
             }
@@ -33,7 +34,7 @@
 
         @if (Exception is not null)
         {
-            <div style="color: red;">@Exception.Message</div>
+            <div style="color: var(--color-red);">@Exception.Message</div>
         }
     </div>
     @if (IsExpanded && Children.Any())
@@ -41,7 +42,13 @@
         <div class="items">
             @foreach (var child in Children)
             {
-                <ReuObjectTree Parent="Value" Value="child" TypeComponents="TypeComponents" TypeValueComponents="TypeValueComponents" ChildrenProvider="ChildrenProvider"></ReuObjectTree>
+                <ReuObjectTree Parent="Value"
+                               Value="child"
+                               HideType="HideType"
+                               OnTypeClick="OnTypeClick"
+                               TypeComponents="TypeComponents"
+                               TypeValueComponents="TypeValueComponents"
+                               ChildrenProvider="ChildrenProvider"></ReuObjectTree>
             }
         </div>
     }
@@ -74,9 +81,13 @@
     [Parameter]
     public string? DisplayName { get; set; }
 
-    public Exception? Exception { get; private set; }
+    [Parameter]
+    public bool HideType { get; set; }
 
-    public bool ShowType { get; set; } = true;
+    [Parameter]
+    public EventCallback<Type> OnTypeClick { get; set; }
+
+    public Exception? Exception { get; private set; }
 
     public bool IsExpandable => Value is not null && Children.Any();
 
@@ -101,6 +112,9 @@
         }
     }
 
+    [Parameter]
+    public bool IsExpandedByDefault { get; set; }
+
     public void ToggleExpanded()
     {
         try
@@ -114,6 +128,11 @@
     }
 
     public ICollection<object?> Children => Value is null ? [] : ChildrenProvider(Value);
+
+    protected override void OnInitialized()
+    {
+        IsExpanded = IsExpandedByDefault;
+    }
 
     private static ICollection<object?> DefaultChildrenProvider(object parent)
     {
@@ -191,11 +210,23 @@
 
     public static Dictionary<Type, Type> DefaultTypeValueComponents { get; } = new()
     {
-        [typeof(int)] = typeof(Int32TypeValueComponent),
         [typeof(string)] = typeof(StringTypeValueComponent),
-        [typeof(DateTime)] = typeof(DateTimeTypeValueComponent),
+        //[typeof(DateTime)] = typeof(DateTimeTypeValueComponent), not great yet
+        [typeof(TimeSpan)] = typeof(TimeSpanTypeValueComponent),
         [typeof(Enum)] = typeof(EnumTypeValueComponent),
         [typeof(bool)] = typeof(BooleanTypeValueComponent),
+        [typeof(sbyte)] = typeof(SByteTypeValueComponent),
+        [typeof(byte)] = typeof(ByteTypeValueComponent),
+        [typeof(short)] = typeof(Int16TypeValueComponent),
+        [typeof(int)] = typeof(Int32TypeValueComponent),
+        [typeof(long)] = typeof(Int64TypeValueComponent),
+        [typeof(ushort)] = typeof(UInt16TypeValueComponent),
+        [typeof(uint)] = typeof(UInt32TypeValueComponent),
+        [typeof(ulong)] = typeof(UInt64TypeValueComponent),
+        [typeof(float)] = typeof(SingleTypeValueComponent),
+        [typeof(double)] = typeof(DoubleTypeValueComponent),
+        [typeof(decimal)] = typeof(DecimalTypeValueComponent),
+        [typeof(Guid)] = typeof(GuidTypeValueComponent),
     };
 
     // This object cannot be record type as it needs to be unique for ALL instances

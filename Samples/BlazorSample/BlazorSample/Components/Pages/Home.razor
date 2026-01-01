@@ -18,7 +18,7 @@
     <ReuRadio Name="Rad" disabled>Option 3</ReuRadio>
     <ReuRadio Name="Rad">Option 4</ReuRadio>
 
-    <ReuButton>Enabled button</ReuButton>
+    <ReuButton Tooltip="This button is enabled">Enabled button</ReuButton>
     <ReuButton Enable="false">Disabled button</ReuButton>
     <ReuButton Variant="ReuButtonVariant.Blue" Enable="false">Disabled blue button</ReuButton>
     <ReuButton Variant="ReuButtonVariant.Red">Red button</ReuButton>
@@ -68,6 +68,8 @@
     <input type="number" />
     <progress id="file" value="32" max="100"> 32% </progress>
 </ReuContainer>
+
+<ReuTooltip IsGlobal="true"></ReuTooltip>
 
 @code {
     private string assetSearchValue = "";

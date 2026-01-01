@@ -1,18 +1,34 @@
 @if (Href is null)
 {
-    <button class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass" disabled="@Disabled" @onclick="OnClick" @attributes="AdditionalAttributes">
+    <button class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass"
+            disabled="@Disabled"
+            @onclick="OnClick"
+            @onmouseenter="args => ReuTooltip.ShowGlobal(args, Tooltip)"
+            @onmousemove="ReuTooltip.MoveGlobal"
+            @onmouseout="ReuTooltip.HideGlobal"
+            @attributes="AdditionalAttributes">
         @ChildContent
     </button>
 }
 else if (NavLink)
 {
-    <NavLink href="@Href" class="@($"reu-button {(Enable ? "" : "disabled")} {GetVariantClass()} {CssClass}")" @attributes="AdditionalAttributes">
+    <NavLink href="@Href"
+             class="@($"reu-button {(Enable ? "" : "disabled")} {GetVariantClass()} {CssClass}")"
+             @onmouseenter="args => ReuTooltip.ShowGlobal(args, Tooltip)"
+             @onmousemove="ReuTooltip.MoveGlobal"
+             @onmouseout="ReuTooltip.HideGlobal"
+             @attributes="AdditionalAttributes">
         @ChildContent
     </NavLink>
 }
 else
 {
-    <a href="@Href" class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass" @attributes="AdditionalAttributes">
+    <a href="@Href"
+       class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass"
+       @onmouseenter="args => ReuTooltip.ShowGlobal(args, Tooltip)"
+       @onmousemove="ReuTooltip.MoveGlobal"
+       @onmouseout="ReuTooltip.HideGlobal"
+       @attributes="AdditionalAttributes">
         @ChildContent
     </a>
 }
@@ -41,6 +57,9 @@ else
 
     [Parameter]
     public string? CssClass { get; set; }
+
+    [Parameter]
+    public string? Tooltip { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }

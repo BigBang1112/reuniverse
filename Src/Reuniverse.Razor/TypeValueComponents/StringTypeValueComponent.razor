@@ -1,50 +1,11 @@
 ﻿@inherits TypeValueComponentBase<string>
 
 <input type="text" @bind="Value" disabled="@IsReadOnly" />
+@if (Value is not null)
+{
+    <span class="box-value">@Value.Length</span>
+}
 @if (Exception is not null)
 {
-    <div style="color: red;">@Exception.Message</div>
-}
-
-@code {
-    public override string? Value
-    {
-        get
-        {
-            if (Property is not null) return (string?)Property.GetValue(Parent);
-            if (Item is not null) return (string?)Item.Value;
-            return null;
-        }
-        set
-        {
-            if (Item is not null)
-            {
-                if (Item.SetValue(value))
-                {
-                    ValueChanged.InvokeAsync();
-                }
-                return;
-            }
-
-            if (Property is null) return;
-
-            var oldValue = Value;
-            
-            try
-            {
-                Property.SetValue(Parent, value);
-                Exception = null;
-                
-                // Only invoke ValueChanged if the value actually changed
-                if (oldValue != value)
-                {
-                    ValueChanged.InvokeAsync();
-                }
-            }
-            catch (TargetInvocationException ex)
-            {
-                Exception = ex.InnerException ?? ex;
-            }
-        }
-    }
+    <div style="color: var(--color-red);">@Exception.Message</div>
 }
