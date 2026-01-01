@@ -1,23 +1,13 @@
-﻿<input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="11" style="width: 11ch;" />
+﻿@inherits TypeValueComponentBase<int?>
+
+<input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="11" style="width: 11ch;" />
 @if (Exception is not null)
 {
     <div style="color: red;">@Exception.Message</div>
 }
 
 @code {
-    [Parameter]
-    public ReuObjectTreeMember? Member { get; set; }
-
-    [Parameter]
-    public ReuObjectTreeItem? Item { get; set; }
-
-    [Parameter]
-    public EventCallback ValueChanged { get; set; }
-
-    public PropertyInfo? Property => Member?.Property;
-    public object? Parent => Member?.Parent ?? Item?.Parent;
-
-    public int? Value
+    public override int? Value
     {
         get
         {
@@ -40,8 +30,4 @@
             }
         }
     }
-
-    public Exception? Exception { get; private set; }
-
-    private bool IsReadOnly => Property?.SetMethod is null;
 }

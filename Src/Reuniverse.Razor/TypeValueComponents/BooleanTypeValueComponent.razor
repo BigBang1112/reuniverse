@@ -1,0 +1,46 @@
+﻿@inherits TypeValueComponentBase<bool?>
+
+@if (Value.HasValue)
+{
+    <ReuCheckbox IsChecked="Value.Value" IsCheckedChanged="OnValueChanged" disabled="@IsReadOnly" />
+}
+else
+{
+    <span>null</span>
+}
+@if (Exception is not null)
+{
+    <div style="color: red;">@Exception.Message</div>
+}
+
+@code {
+    public override bool? Value
+    {
+        get
+        {
+            if (Property is not null) return (bool?)Property.GetValue(Parent);
+            if (Item is not null) return (bool?)Item.Value;
+            return null;
+        }
+        set
+        {
+            if (Property is null) return;
+
+            try
+            {
+                Property.SetValue(Parent, value);
+                Exception = null;
+            }
+            catch (TargetInvocationException ex)
+            {
+                Exception = ex.InnerException ?? ex;
+            }
+        }
+    }
+
+    private async Task OnValueChanged(bool isChecked)
+    {
+        Value = isChecked;
+        await ValueChanged.InvokeAsync();
+    }
+}

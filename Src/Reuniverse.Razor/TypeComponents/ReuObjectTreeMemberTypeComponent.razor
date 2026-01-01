@@ -1,4 +1,6 @@
-﻿@if (ShowType)
+﻿@inherits TypeComponentBase<ReuObjectTreeMember>
+
+@if (ShowType)
 {
     <div class="box type">
         <ReuFriendlyType Type="Value.Property.PropertyType"></ReuFriendlyType>
@@ -11,7 +13,7 @@
 <div class="box general">@Value.Property.Name</div>
 @if (IsExpandable)
 {
-    <div @onclick="OnExpandToggle" class="box general expander">
+    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "expanded" : "")">
         @(IsExpanded ? "▼" : "▶")
     </div>
 }
@@ -39,27 +41,6 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired]
-    public required ReuObjectTreeMember Value { get; set; }
-
-    [Parameter, EditorRequired]
-    public Dictionary<Type, Type> TypeValueComponents { get; set; }
-
-    [Parameter, EditorRequired]
-    public EventCallback OnExpandToggle { get; set; }
-
-    [Parameter, EditorRequired]
-    public bool IsExpandable { get; set; }
-
-    [Parameter, EditorRequired]
-    public bool IsExpanded { get; set; }
-
-    [Parameter, EditorRequired]
-    public bool ShowType { get; set; }
-
-    [Parameter, EditorRequired]
-    public EventCallback ValueChanged { get; set; }
-
     private bool TryGetValueComponent(out Type? componentType)
     {
         var type = Value.Value?.GetType() ?? Value.Property.PropertyType;

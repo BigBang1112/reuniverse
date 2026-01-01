@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms
 
+@inherits TypeValueComponentBase<DateTime?>
+
 <InputDate @bind-Value="Value" Type="InputDateType.DateTimeLocal" disabled="@IsReadOnly" />
 <span>(@Value)</span>
 @if (Exception is not null)
@@ -8,19 +10,7 @@
 }
 
 @code {
-    [Parameter]
-    public ReuObjectTreeMember? Member { get; set; }
-
-    [Parameter]
-    public ReuObjectTreeItem? Item { get; set; }
-
-    [Parameter]
-    public EventCallback ValueChanged { get; set; }
-
-    public PropertyInfo? Property => Member?.Property;
-    public object? Parent => Member?.Parent ?? Item?.Parent;
-
-    public DateTime? Value
+    public override DateTime? Value
     {
         get
         {
@@ -51,8 +41,4 @@
             }
         }
     }
-
-    public Exception? Exception { get; private set; }
-
-    private bool IsReadOnly => Property?.SetMethod is null;
 }
