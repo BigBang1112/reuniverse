@@ -1,0 +1,42 @@
+label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    width: fit-content;
+}
+
+    label:hover input ~ .checkmark {
+        border-color: var(--color-input-border-hover);
+        background-color: var(--color-input-bg-hover);
+    }
+
+        label input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+input {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    display: flex;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--color-input-border);
+    border-radius: 5px;
+    background-color: var(--color-input-bg);
+    box-sizing: border-box;
+}
+
+    .checkmark:after {
+        content: "";
+        display: none;
+        width: 100%;
+        border-radius: 3px;
+        background-color: white;
+        margin: 3px;
+        box-sizing: border-box;
+    }

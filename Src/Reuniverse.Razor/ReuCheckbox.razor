@@ -1,0 +1,28 @@
+<label>
+    <input type="checkbox" checked="@IsChecked" @onchange="OnChange">
+    <span class="checkmark" style="width:@(Size)px;"></span>
+    @ChildContent
+</label>
+
+@code {
+    [Parameter]
+    public bool IsChecked { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsCheckedChanged { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public int Size { get; set; } = 28;
+
+    private async Task OnChange(ChangeEventArgs e)
+    {
+        if (e.Value is bool isChecked)
+        {
+            IsChecked = isChecked;
+            await IsCheckedChanged.InvokeAsync(isChecked);
+        }
+    }
+}
