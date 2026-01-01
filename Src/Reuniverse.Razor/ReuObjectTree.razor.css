@@ -49,6 +49,10 @@
         text-align: center;
     }
 
+        ::deep .box.general.expander.expanded {
+            background: var(--color-button-bg-active);
+        }
+
 @keyframes fadeIn {
     from {
         opacity: 0;
