@@ -5,7 +5,7 @@
         <Version>0.2.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Common Blazor components for BigBang1112 projects (gbx.tools).</Description>
-        <Copyright>Copyright (c) 2025 Petr Pivoňka</Copyright>
+        <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
         <PackageProjectUrl>https://github.com/BigBang1112/reuniverse</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>reuniverse, razor, blazor, gbx</PackageTags>
