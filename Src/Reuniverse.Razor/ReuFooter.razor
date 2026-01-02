@@ -13,15 +13,27 @@
 </footer>
 
 @code {
+    /// <summary>
+    /// Content for copyright information.
+    /// </summary>
     [Parameter]
     public RenderFragment? CopyrightContent { get; set; }
 
+    /// <summary>
+    /// Content for footer links.
+    /// </summary>
     [Parameter]
     public RenderFragment? LinkContent { get; set; }
 
+    /// <summary>
+    /// Extra content to include in the footer.
+    /// </summary>
     [Parameter]
     public RenderFragment? ExtraContent { get; set; }
 
+    /// <summary>
+    /// Additional CSS classes to apply to the footer element.
+    /// </summary>
     [Parameter]
     public string? CssClass { get; set; }
 

@@ -51,9 +51,15 @@ else
 }
 
 @code {
+    /// <summary>
+    /// The .NET type to display.
+    /// </summary>
     [Parameter, EditorRequired]
     public Type Type { get; set; }
 
+    /// <summary>
+    /// Callback invoked when one of the types is clicked.
+    /// </summary>
     [Parameter]
     public EventCallback<Type> OnClick { get; set; }
 

@@ -5,18 +5,33 @@
 </label>
 
 @code {
+    /// <summary>
+    /// The name of the radio button group.
+    /// </summary>
     [Parameter, EditorRequired]
     public string Name { get; set; }
 
+    /// <summary>
+    /// Whether the radio button is checked.
+    /// </summary>
     [Parameter]
     public bool IsChecked { get; set; }
 
+    /// <summary>
+    /// Callback invoked when the checked state changes.
+    /// </summary>
     [Parameter]
     public EventCallback<bool> IsCheckedChanged { get; set; }
 
+    /// <summary>
+    /// The content to be rendered inside the radio button label.
+    /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// The size of the radio button in pixels.
+    /// </summary>
     [Parameter]
     public int Size { get; set; } = 28;
 

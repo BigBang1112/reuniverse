@@ -7,18 +7,33 @@
 </label>
 
 @code {
+    /// <summary>
+    /// Whether the checkbox is checked.
+    /// </summary>
     [Parameter]
     public bool IsChecked { get; set; }
 
+    /// <summary>
+    /// Callback invoked when the checked state changes.
+    /// </summary>
     [Parameter]
     public EventCallback<bool> IsCheckedChanged { get; set; }
 
+    /// <summary>
+    /// The content to be rendered inside the checkbox label.
+    /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// The size of the checkbox in pixels.
+    /// </summary>
     [Parameter]
     public int Size { get; set; } = 28;
 
+    /// <summary>
+    /// Tooltip text to display on hover.
+    /// </summary>
     [Parameter]
     public string? Tooltip { get; set; }
 

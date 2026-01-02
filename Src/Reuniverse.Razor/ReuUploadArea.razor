@@ -2,7 +2,7 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
-<div class="upload-area @(dragged ? "drag" : "") @CssClass" style="font-size: @(FontSize)%;" @attributes="AdditionalAttributes">
+<div class="upload-area @(dragged ? "drag" : "") @CssClass" style="font-size: @(FontSize)%;">
     @if (RendererInfo.IsInteractive)
     {
         @ChildContent
@@ -12,7 +12,8 @@
                @ondragleave="DragEnd"
                @ondragend="DragEnd"
                @ondrop="DragEnd" type="file" class="file" accept="@(Extensions is null ? "" : string.Join(',', Extensions.Select(x => "." + x)))"
-               multiple="@(MaxFileCount is null or > 1)" />
+               multiple="@(MaxFileCount is null or > 1)"
+               @attributes="AdditionalAttributes" />
     }
     else
     {
@@ -27,35 +28,59 @@
 
     private bool dragged;
 
+    /// <summary>
+    /// Callback invoked when files are uploaded.
+    /// </summary>
     [Parameter]
-    public int FontSize { get; set; } = 100;
+    public EventCallback<UploadEventArgs> OnUpload { get; set; }
 
     /// <summary>
-    /// Extensions without the dot.
+    /// Callback invoked when a file is too large.
+    /// </summary>
+    [Parameter]
+    public EventCallback<FileInfoEventArgs> OnFileTooLarge { get; set; }
+
+    /// <summary>
+    /// Callback invoked when the file count exceeds the maximum.
+    /// </summary>
+    [Parameter]
+    public EventCallback<FileInfoEventArgs> OnFileExceedCount { get; set; }
+
+    /// <summary>
+    /// Maximum number of files allowed to upload. Null means no limit. Make sure to set limits if in serverside interactivity!
+    /// </summary>
+    [Parameter]
+    public int? MaxFileCount { get; set; }
+
+    /// <summary>
+    /// Maximum file size in bytes. Null means no limit. Make sure to set limits if in serverside interactivity!
+    /// </summary>
+    [Parameter]
+    public int? MaxFileSize { get; set; }
+
+    /// <summary>
+    /// Extensions without the dot at the beginning.
     /// </summary>
     [Parameter]
     public required string[]? Extensions { get; set; }
 
+    /// <summary>
+    /// Font size percentage.
+    /// </summary>
     [Parameter]
-    public EventCallback<UploadEventArgs> OnUpload { get; set; }
+    public int FontSize { get; set; } = 100;
 
-    [Parameter]
-    public EventCallback<FileInfoEventArgs> OnFileTooLarge { get; set; }
-
-    [Parameter]
-    public EventCallback<FileInfoEventArgs> OnFileExceedCount { get; set; }
-
+    /// <summary>
+    /// The content to be rendered inside the upload area.
+    /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// Additional CSS classes to apply to the upload area.
+    /// </summary>
     [Parameter]
     public string? CssClass { get; set; }
-
-    [Parameter]
-    public int? MaxFileCount { get; set; }
-
-    [Parameter]
-    public int? MaxFileSize { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }

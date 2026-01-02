@@ -37,33 +37,60 @@ else
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// The URL the button links to. If null, renders as a button element.
+    /// </summary>
     [Parameter]
     public string? Href { get; set; }
 
+    /// <summary>
+    /// Callback invoked when the button is clicked.
+    /// </summary>
     [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
 
+    /// <summary>
+    /// Whether the button is in an active state.
+    /// </summary>
     [Parameter]
     public bool Active { get; set; }
 
+    /// <summary>
+    /// Whether the button is enabled.
+    /// </summary>
     [Parameter]
     public bool Enable { get; set; } = true;
 
+    /// <summary>
+    /// Whether to render as a NavLink when Href is provided.
+    /// </summary>
     [Parameter]
     public bool NavLink { get; set; }
 
+    /// <summary>
+    /// The variant style of the button.
+    /// </summary>
     [Parameter]
     public ReuButtonVariant Variant { get; set; } = ReuButtonVariant.Default;
 
-    [Parameter]
-    public string? CssClass { get; set; }
-
+    /// <summary>
+    /// The tooltip text to display on hover.
+    /// </summary>
     [Parameter]
     public string? Tooltip { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes to apply to the button.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
 
+    /// <summary>
+    /// Whether the button is disabled.
+    /// </summary>
     public bool Disabled => !Enable;
 
     private string GetVariantClass()

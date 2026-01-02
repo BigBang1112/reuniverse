@@ -6,9 +6,15 @@
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// Additional CSS classes to apply to the container element.
+    /// </summary>
     [Parameter]
     public string? CssClass { get; set; }
 
+    /// <summary>
+    /// Whether to enable horizontal overflow handling.
+    /// </summary>
     [Parameter]
     public bool Overflow { get; set; } = false;
 

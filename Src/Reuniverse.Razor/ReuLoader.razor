@@ -1,12 +1,21 @@
 <div class="loader @CssClass" style="width: @(Size)px; padding: @(Thickness)px;" @attributes="AdditionalAttributes"></div>
 
 @code {
+    /// <summary>
+    /// The size of the loader in pixels.
+    /// </summary>
     [Parameter]
     public int Size { get; set; } = 50;
 
+    /// <summary>
+    /// The thickness of the loader border in pixels.
+    /// </summary>
     [Parameter]
     public int Thickness { get; set; } = 8;
 
+    /// <summary>
+    /// Additional CSS classes to apply to the loader element.
+    /// </summary>
     [Parameter]
     public string? CssClass { get; set; }
 

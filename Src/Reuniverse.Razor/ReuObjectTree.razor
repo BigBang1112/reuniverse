@@ -60,6 +60,9 @@
 
     private ExpandedObject expandedObject = new();
 
+    /// <summary>
+    /// The object to display.
+    /// </summary>
     [Parameter, EditorRequired]
     public object? Value { get; set; }
 
@@ -78,12 +81,21 @@
     [Parameter]
     public Func<object, ICollection<object?>> ChildrenProvider { get; set; } = DefaultChildrenProvider;
 
+    /// <summary>
+    /// The display name for the root object.
+    /// </summary>
     [Parameter]
     public string? DisplayName { get; set; }
 
+    /// <summary>
+    /// If to hide type names in the tree.
+    /// </summary>
     [Parameter]
     public bool HideType { get; set; }
 
+    /// <summary>
+    /// Callback invoked when a type name is clicked.
+    /// </summary>
     [Parameter]
     public EventCallback<Type> OnTypeClick { get; set; }
 
@@ -112,6 +124,9 @@
         }
     }
 
+    /// <summary>
+    /// Whether the root object is expanded by default.
+    /// </summary>
     [Parameter]
     public bool IsExpandedByDefault { get; set; }
 
