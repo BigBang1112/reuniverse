@@ -26,7 +26,7 @@ In Blazor WebAssembly:
 
 To use the components:
 
-```cs
+```cshtml
 @using Reuniverse.Razor;
 
 <ReuNavMenu Brand="reuniverse.net">
@@ -55,7 +55,7 @@ A versatile button component that can render as a link or a button with various 
 
 Example:
 
-```cs
+```cshtml
 <ReuButton Href="https://example.com" Variant="ButtonVariant.Blue" Tooltip="Go to example.com">
     Click Me
 </ReuButton>
@@ -71,7 +71,7 @@ A simple component to center its child content (currently only horizontally).
 
 Example:
 
-```cs
+```cshtml
 <ReuCenter>
     <p>This content is centered.</p>
 </ReuCenter>
@@ -88,7 +88,7 @@ A page container to wrap content with padding and natural width constraints.
 
 Example:
 
-```cs
+```cshtml
 <ReuContainer Overflow="true">
     <p>This content is inside a container with overflow handling.</p>
 </ReuContainer>
@@ -106,7 +106,8 @@ A footer component for consistent page footers.
 - Additional attributes are passed to the footer element.
 
 Example:
-```cs
+
+```cshtml
 <ReuFooter>
     <CopyrightContent>
         © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoòka<br />
@@ -139,7 +140,7 @@ A component to display friendly names for .NET types.
 
 Example:
 
-```cs
+```cshtml
 <ReuFriendlyType Type="typeof(Dictionary&lt;string, List&lt;int&gt;&gt;)" />
 ```
 
@@ -156,7 +157,7 @@ A custom checkbox component with label and state management. It should also work
 
 Example:
 
-```cs
+```cshtml
 <ReuCheckbox IsChecked="@isChecked" IsCheckedChanged="OnCheckedChanged" Tooltip="Check me!">
     Accept Terms and Conditions
 </ReuCheckbox>
@@ -185,7 +186,7 @@ A loading spinner component to indicate loading states.
 
 Example:
 
-```cs
+```cshtml
 <ReuLoader Size="60" Thickness="10" />
 ```
 
@@ -214,7 +215,7 @@ A component to display object properties in a tree structure.
 
 Example:
 
-```cs
+```cshtml
 <ReuObjectTree Value="obj" IsExpandedByDefault="true"></ReuObjectTree>
 
 @code {
@@ -257,7 +258,7 @@ A custom radio button component with label and state management. It should also 
 
 Example:
 
-```cs
+```cshtml
 <ReuRadio Name="Group">Option 1</ReuRadio>
 <ReuRadio Name="Group">Option 2</ReuRadio>
 <ReuRadio Name="Group" disabled>Option 3</ReuRadio>
