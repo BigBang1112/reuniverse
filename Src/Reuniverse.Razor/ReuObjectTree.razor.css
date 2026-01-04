@@ -66,6 +66,23 @@
         cursor: pointer;
     }
 
+    ::deep .box-value.error {
+        color: var(--color-red);
+        text-shadow: 0 0 20px var(--color-red);
+        outline: 1px solid transparent;
+        transition: outline 0.1s ease;
+        cursor: help;
+    }
+
+        ::deep .box-value.error:hover {
+            outline: 1px solid var(--color-red);
+        }
+
+.exception {
+    color: var(--color-red);
+    animation: fadeIn2 0.2s ease-in forwards;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -74,6 +91,18 @@
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn2 {
+    from {
+        opacity: 0;
+        transform: translateX(2px); /* Optional: slight movement for a smoother effect */
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(8px);
     }
 }

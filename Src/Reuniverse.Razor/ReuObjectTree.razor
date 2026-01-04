@@ -34,7 +34,7 @@
 
         @if (Exception is not null)
         {
-            <div style="color: var(--color-red);">@Exception.Message</div>
+            <div class="exception">@Exception.Message</div>
         }
     </div>
     @if (IsExpanded && Children.Any())

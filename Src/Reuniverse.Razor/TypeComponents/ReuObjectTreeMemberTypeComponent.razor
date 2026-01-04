@@ -61,10 +61,14 @@
 }
 catch (Exception ex)
 {
-    <div style="color: var(--color-red);">@(ex.InnerException?.Message ?? ex.Message)</div>
+    Exception = ex.InnerException ?? ex;
+
+    <div class="box-value error">@Exception.Message</div>
 }
 
 @code {
+    public Exception? Exception { get; set; }
+
     private bool TryGetValueComponent(out Type? componentType)
     {
         var type = Value.Value?.GetType() ?? Value.Property.PropertyType;
