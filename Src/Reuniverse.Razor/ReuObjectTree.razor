@@ -153,23 +153,30 @@
     {
         Type parentType;
 
-        switch (parent)
+        try
         {
-            case ReuObjectTreeMember member:
-                var valueMember = member.Value;
-                if (valueMember is null) return [];
-                parentType = valueMember.GetType();
-                parent = valueMember;
-                break;
-            case ReuObjectTreeItem item:
-                var valueItem = item.Value;
-                if (valueItem is null) return [];
-                parentType = valueItem.GetType();
-                parent = valueItem;
-                break;
-            default:
-                parentType = parent.GetType();
-                break;
+            switch (parent)
+            {
+                case ReuObjectTreeMember member:
+                    var valueMember = member.Value;
+                    if (valueMember is null) return [];
+                    parentType = valueMember.GetType();
+                    parent = valueMember;
+                    break;
+                case ReuObjectTreeItem item:
+                    var valueItem = item.Value;
+                    if (valueItem is null) return [];
+                    parentType = valueItem.GetType();
+                    parent = valueItem;
+                    break;
+                default:
+                    parentType = parent.GetType();
+                    break;
+            }
+        }
+        catch (TargetInvocationException)
+        {
+            return [];
         }
 
         var list = new List<object?>();
@@ -199,19 +206,25 @@
 
     private bool HasCyclicReference()
     {
-        if (Value is not ReuObjectTreeMember currentMember)
+        try
         {
-            return false;
-        }
-
-        while (Parent is ReuObjectTreeMember parentMember)
-        {
-            if (Equals(currentMember.Value, parentMember.Value))
+            if (Value is not ReuObjectTreeMember currentMember)
             {
-                return true;
+                return false;
             }
 
-            Parent = parentMember.Parent;
+            while (Parent is ReuObjectTreeMember parentMember)
+            {
+                if (Equals(currentMember.Value, parentMember.Value))
+                {
+                    return true;
+                }
+
+                Parent = parentMember.Parent;
+            }
+        }
+        catch (TargetInvocationException)
+        {
         }
 
         return false;

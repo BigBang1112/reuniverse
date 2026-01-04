@@ -18,43 +18,50 @@
         @(IsExpanded ? "▼" : "▶")
     </div>
 }
-@if (Value.Value is null)
+@try
 {
-    @if (CanCreateInstance())
+    @if (Value.Value is null)
     {
-        <span class="box-value clickable"
-              @onclick="CreateInstance"
-              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Create a new instance"))"
+        @if (CanCreateInstance())
+        {
+            <span class="box-value clickable"
+                  @onclick="CreateInstance"
+                  @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Create a new instance"))"
+                  @onmousemove="ReuTooltip.MoveGlobal"
+                  @onmouseout="ReuTooltip.HideGlobal">null</span>
+        }
+        else
+        {
+            <span class="box-value">null</span>
+        }
+    }
+    else if (TryGetValueComponent(out var componentType))
+    {
+        var parameters = new Dictionary<string, object?>
+        {
+            ["Member"] = Value,
+            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+        };
+
+        <DynamicComponent Type="componentType" Parameters="parameters" />
+    }
+    else 
+    {
+        <span class="box-value">@Value.Value</span>
+    }
+
+    @if (CanRemoveValue())
+    {
+        <span class="box-value clickable remove"
+              @onclick="RemoveValueAsync"
+              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to null"))"
               @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal">null</span>
-    }
-    else
-    {
-        <span class="box-value">null</span>
+              @onmouseout="ReuTooltip.HideGlobal">✕</span>
     }
 }
-else if (TryGetValueComponent(out var componentType))
+catch (Exception ex)
 {
-    var parameters = new Dictionary<string, object?>
-    {
-        ["Member"] = Value,
-        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
-    };
-
-    <DynamicComponent Type="componentType" Parameters="parameters" />
-}
-else 
-{
-    <span class="box-value">@Value.Value</span>
-}
-
-@if (CanRemoveValue())
-{
-    <span class="box-value clickable remove"
-          @onclick="RemoveValueAsync"
-          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to null"))"
-          @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">✕</span>
+    <div style="color: var(--color-red);">@(ex.InnerException?.Message ?? ex.Message)</div>
 }
 
 @code {
