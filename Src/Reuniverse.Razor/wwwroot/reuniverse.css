@@ -39,13 +39,20 @@
     /* Validation Colors */
     --color-red: #FF4C4C;
     --color-green: #42DC54;
+    /* Fonts */
+    --font-mono: "Chivo Mono";
 }
 
-@import url('PTMono-Regular.ttf');
+@import url('CourierPrime-Regular.ttf');
 
 @font-face {
-    font-family: 'Rubik';
+    font-family: "Rubik";
     src: url('Rubik-VariableFont_wght.ttf');
+}
+
+@font-face {
+    font-family: "Chivo Mono";
+    src: url('ChivoMono-VariableFont_wght.ttf');
 }
 
 html, body {
@@ -56,6 +63,17 @@ html, body {
     padding: 0;
     font-size: 18px;
     color: var(--color-text-primary);
+}
+
+.reu-mono,
+code,
+pre,
+kbd,
+samp,
+tt,
+var,
+textarea {
+    font-family: var(--font-mono), monospace;
 }
 
 body {
