@@ -78,7 +78,20 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
                 }
             }
 
-            return Property?.SetMethod is null;
+            if (Property?.SetMethod is null) // does not consider init;
+            {
+                return true;
+            }
+
+            var parentType = Parent?.GetType();
+
+            // not sure what happens if two parents, one readonly, one non-readonly child
+            if (parentType is not null && parentType.IsValueType && !parentType.IsPrimitive && !parentType.IsEnum)
+            {
+                return Attribute.IsDefined(parentType, typeof(System.Runtime.CompilerServices.IsReadOnlyAttribute));
+            }
+
+            return false;
         }
     }
 }
