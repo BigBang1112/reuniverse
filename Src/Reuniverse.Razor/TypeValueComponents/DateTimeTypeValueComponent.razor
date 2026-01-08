@@ -2,7 +2,7 @@
 
 @inherits TypeValueComponentBase<DateTime?>
 
-<input type="text" @bind="Value" disabled="@IsReadOnly" />
+<input @bind="Value" disabled="@IsReadOnly" />
 @if (Exception is not null)
 {
     <div style="color: var(--color-red);">@Exception.Message</div>

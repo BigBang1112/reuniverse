@@ -1,6 +1,6 @@
 ﻿@inherits TypeValueComponentBase<string>
 
-<input type="text" @bind="Value" disabled="@IsReadOnly" />
+<input @bind="Value" disabled="@IsReadOnly" />
 @if (Value is not null)
 {
     <span class="box-value">@Value.Length</span>

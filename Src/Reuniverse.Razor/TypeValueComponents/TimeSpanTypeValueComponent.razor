@@ -2,7 +2,7 @@
 
 @inherits TypeValueComponentBase<TimeSpan?>
 
-<input type="text" @bind="Value" disabled="@IsReadOnly" maxlength="16" style="width: 16ch;" />
+<input @bind="Value" disabled="@IsReadOnly" maxlength="16" style="width: 16ch;" />
 @if (Exception is not null)
 {
     <div style="color: var(--color-red);">@Exception.Message</div>

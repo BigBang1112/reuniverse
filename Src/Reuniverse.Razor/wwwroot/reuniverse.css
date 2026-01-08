@@ -235,6 +235,7 @@ main.reu-main {
     }
 
 input[type=text],
+input:not([type]),
 input.text,
 select,
 input[type=date],
@@ -261,6 +262,7 @@ input[type=number] {
 }
 
     input[type=text]:hover,
+    input:not([type]):hover,
     input.text:hover,
     select:hover,
     input[type=date]:hover,
@@ -281,6 +283,8 @@ input[type=number] {
 
     input[type=text].disabled,
     input[type=text]:disabled,
+    input:not([type]).disabled,
+    input:not([type]):disabled,
     input.text.disabled,
     input.text:disabled,
     select.disabled,
