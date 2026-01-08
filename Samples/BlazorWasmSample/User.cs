@@ -51,6 +51,7 @@ public class User
     public required string Username { get; set; }
     public UserStatus Status { get; set; }
     public DateTime? LastLogin { get; set; }
+    public TmEssentials.TimeInt32 TestTime { get; set; } = new(12354);
 
     public required Address PrimaryAddress { get; set; }
     public required List<Address> PreviousAddresses { get; set; }

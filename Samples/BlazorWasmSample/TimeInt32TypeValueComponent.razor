@@ -1,0 +1,11 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using Reuniverse.Razor.TypeValueComponents
+@using TmEssentials
+
+@inherits TypeValueComponentBase<TimeInt32?>
+
+<input @bind="Value" disabled="@IsReadOnly" style="width: @((Value.HasValue ? Value.Value.ToString().Length : 0) + 1)ch;" />
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}

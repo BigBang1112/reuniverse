@@ -1,6 +1,7 @@
 ﻿@page "/object-tree"
 
 @using Reuniverse.Razor
+@using TmEssentials
 
 <PageTitle>Object tree</PageTitle>
 
@@ -10,6 +11,11 @@
 </ReuContainer>
 
 @code {
+    static ObjectTree()
+    {
+        ReuObjectTree.DefaultTypeValueComponents[typeof(TimeInt32)] = typeof(TimeInt32TypeValueComponent);
+    }
+
     User obj = new User
     {
         Id = Guid.NewGuid(),
