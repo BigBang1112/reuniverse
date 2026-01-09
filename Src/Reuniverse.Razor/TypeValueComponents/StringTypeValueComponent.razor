@@ -1,11 +1,23 @@
 ﻿@inherits TypeValueComponentBase<string>
 
-<input @bind="Value" disabled="@IsReadOnly" />
-@if (Value is not null)
+<input @bind="Value" disabled="@IsReadOnly" @oninput="OnInput" style="width:@((tempValue?.Length ?? 0) + 1)ch" />
+@if (!IsKey && Value is not null)
 {
-    <span class="box-value">@Value.Length</span>
+    <span class="box-value"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Length of the string"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal"><code>@Value.Length</code></span>
 }
 @if (Exception is not null)
 {
     <div style="color: var(--color-red);">@Exception.Message</div>
+}
+
+@code {
+    private string? tempValue;
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        tempValue = e.Value?.ToString();
+    }
 }

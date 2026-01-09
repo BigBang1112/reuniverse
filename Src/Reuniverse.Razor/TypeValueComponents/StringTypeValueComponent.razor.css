@@ -1,0 +1,5 @@
+input {
+    min-width: 20ch;
+    max-width: 64ch;
+    padding: 2px 0 2px 10px;
+}
