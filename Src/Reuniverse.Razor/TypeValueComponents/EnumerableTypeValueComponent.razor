@@ -1,0 +1,83 @@
+﻿@inherits TypeValueComponentBase<System.Collections.IEnumerable>
+
+@if (Value is null)
+{
+    <span class="box-value">null</span>
+}
+else 
+{
+    if (Value is IEnumerable<object> enumerable && enumerable.TryGetNonEnumeratedCount(out int count))
+    {
+        <span class="box-value"><code>@count</code> @(count == 1 ? "element" : "elements")</span>
+    }
+    else if (Value is System.Collections.ICollection collection)
+    {
+        <span class="box-value"><code>@collection.Count</code> @(collection.Count == 1 ? "element" : "elements")</span>
+    }
+    @if (CanAddElement())
+    {
+        <span class="box-value clickable add"
+              @onclick="AddElementAsync"
+              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Add element"))"
+              @onmousemove="ReuTooltip.MoveGlobal"
+              @onmouseout="ReuTooltip.HideGlobal">+</span>
+    }
+}
+
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}
+
+@code {
+    private bool CanAddElement()
+    {
+        if (Value is null)
+        {
+            return false;
+        }
+
+        var type = Value.GetType();
+
+        // if is list
+        if (!type.IsArray && typeof(System.Collections.IList).IsAssignableFrom(type))
+        {
+            if (!type.IsGenericType)
+            {
+                // dont add default element to non-generic lists yet, it would have to be object and thats confusing
+                return false;
+            }
+
+            var elementType = type.GetGenericArguments()[0];
+
+            // Check if it has a parameterless constructor
+            return !elementType.IsAbstract &&
+                   !elementType.IsInterface &&
+                   elementType.GetConstructor(Type.EmptyTypes) is not null;
+        }
+
+        return false;
+    }
+
+    private async Task AddElementAsync()
+    {
+        if (Value is System.Collections.IList list)
+        {
+            var type = Value.GetType();
+
+            if (!type.IsGenericType)
+            {
+                // dont add default element to non-generic lists yet, it would have to be object and thats confusing
+                return;
+            }
+
+            var elementType = type.GetGenericArguments()[0];
+
+            var newElement = Activator.CreateInstance(elementType);
+
+            list.Add(newElement);
+
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+}

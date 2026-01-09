@@ -31,6 +31,14 @@ else
 {
     <span class="box-value">@Value.Value</span>
 }
+@if (CanRemoveValue())
+{
+    <span class="box-value clickable remove"
+          @onclick="RemoveValueAsync"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Remove element"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">✕</span>
+}
 
 @code {
     private bool TryGetValueComponent(out Type? componentType)
@@ -49,6 +57,26 @@ else
             return true;
         }
 
+        if (Value.Value is IEnumerable<object>)
+        {
+            componentType = typeof(EnumerableTypeValueComponent);
+            return true;
+        }
+
         return TypeValueComponents.TryGetValue(type, out componentType);
+    }
+
+    private bool CanRemoveValue()
+    {
+        return Value.Parent is System.Collections.IList;
+    }
+
+    private async Task RemoveValueAsync()
+    {
+        if (Value.Parent is System.Collections.IList list)
+        {
+            list.RemoveAt(Value.Index);
+            await ValueChanged.InvokeAsync(Value);
+        }
     }
 }

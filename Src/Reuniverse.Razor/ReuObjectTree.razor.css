@@ -65,6 +65,16 @@
     color: #888;
 }
 
+    ::deep .box-value.type {
+        font-size: 75%;
+    }
+
+    ::deep .box-value.clickable {
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10 and IE 11 */
+        user-select: none; /* Standard syntax */
+    }
+
     ::deep .box-value.clickable:hover {
         background: var(--color-object-tree-box-bg);
         cursor: pointer;

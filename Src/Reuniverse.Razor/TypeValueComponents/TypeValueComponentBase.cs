@@ -12,7 +12,13 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
     public ReuObjectTreeItem? Item { get; set; }
 
     [Parameter]
+    public ReuObjectTreeKeyValue? KeyValue { get; set; }
+
+    [Parameter]
     public EventCallback ValueChanged { get; set; }
+
+    [Parameter]
+    public bool IsKey { get; set; }
 
     public PropertyInfo? Property => Member?.Property;
     public object? Parent => Member?.Parent ?? Item?.Parent;
@@ -23,6 +29,7 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
         {
             if (Property is not null) return (T?)Property.GetValue(Parent);
             if (Item is not null) return (T?)Item.Value;
+            if (KeyValue is not null) return IsKey ? (T?)KeyValue.Key : (T?)KeyValue.Value;
             return default;
         }
         set

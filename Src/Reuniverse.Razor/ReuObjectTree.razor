@@ -15,7 +15,7 @@
                 ["OnExpandToggle"] = EventCallback.Factory.Create(this, ToggleExpanded),
                 ["HideType"] = HideType,
                 ["OnTypeClick"] = OnTypeClick,
-                ["ValueChanged"] = EventCallback.Factory.Create(this, StateHasChanged) // this will not update the parent object just yet, which could be affected as well
+                ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange)
             };
 
             <DynamicComponent Type="componentType" Parameters="parameters" />
@@ -43,6 +43,7 @@
             @foreach (var child in Children)
             {
                 <ReuObjectTree Parent="Value"
+                               ParentTree="this"
                                Value="child"
                                HideType="HideType"
                                OnTypeClick="OnTypeClick"
@@ -72,12 +73,27 @@
     [Parameter]
     public object? Parent { get; set; }
 
+    /// <summary>
+    /// Tracks the parent ReuObjectTree, used to reliably send state changes. Do not set unless you know what you are doing.
+    /// </summary>
+    [Parameter]
+    public ReuObjectTree? ParentTree { get; set; }
+
+    /// <summary>
+    /// Any type to component type mapping to provide tree items. By default it uses <see cref="DefaultTypeComponents"/>, but you can override or extend it.
+    /// </summary>
     [Parameter]
     public Dictionary<Type, Type> TypeComponents { get; set; } = DefaultTypeComponents;
 
+    /// <summary>
+    /// Any type to component type mapping to provide value rendering/editing. By default it uses <see cref="DefaultTypeValueComponents"/>, but you can override or extend it.
+    /// </summary>
     [Parameter]
     public Dictionary<Type, Type> TypeValueComponents { get; set; } = DefaultTypeValueComponents;
 
+    /// <summary>
+    /// A function that provides the children of a given object. By default it uses <see cref="DefaultChildrenProvider"/>, but you can override it.
+    /// </summary>
     [Parameter]
     public Func<object, ICollection<object?>> ChildrenProvider { get; set; } = DefaultChildrenProvider;
 
@@ -169,6 +185,12 @@
                     parentType = valueItem.GetType();
                     parent = valueItem;
                     break;
+                case ReuObjectTreeKeyValue keyValue:
+                    var valueKeyValue = keyValue.Value;
+                    if (valueKeyValue is null) return [];
+                    parentType = valueKeyValue.GetType();
+                    parent = valueKeyValue;
+                    break;
                 default:
                     parentType = parent.GetType();
                     break;
@@ -179,26 +201,68 @@
             return [];
         }
 
-        var list = new List<object?>();
-
-        foreach (var prop in parentType.GetProperties().OrderBy(x => x.Name))
+        if (parent is string)
         {
-            if (prop.GetIndexParameters().Length > 0)
-            {
-                continue;
-            }
-
-            list.Add(new ReuObjectTreeMember(parent, prop));
+            return [];
         }
 
-        if (parent is IEnumerable<object?> enumerable)
+        var isCollection = parent is System.Collections.ICollection or IReadOnlyCollection<object?>;
+
+        var hasCapacity = false;
+        if (parentType.IsGenericType)
         {
-            var index = 0;
-            foreach (var item in enumerable)
+            var genericDef = parentType.GetGenericTypeDefinition();
+            hasCapacity = genericDef == typeof(List<>) || genericDef == typeof(Dictionary<,>);
+        }
+
+        var isDictionary = parent is System.Collections.IDictionary;
+
+        var list = new List<object?>();
+
+        if (!parentType.IsArray)
+        {
+            foreach (var prop in parentType.GetProperties().OrderBy(x => x.Name))
             {
-                list.Add(new ReuObjectTreeItem(parent, index, item));
-                index++;
+                if (prop.GetIndexParameters().Length > 0)
+                {
+                    continue;
+                }
+
+                if (isDictionary && prop.Name is "Keys" or "Values" or "Comparer")
+                {
+                    continue;
+                }
+
+                if (isCollection && prop.Name == "Count")
+                {
+                    continue;
+                }
+
+                if (hasCapacity && prop.Name == "Capacity")
+                {
+                    continue;
+                }
+
+                list.Add(new ReuObjectTreeMember(parent, prop));
             }
+        }
+
+        switch (parent)
+        {
+            case System.Collections.IDictionary dictionary:
+                foreach (var key in dictionary.Keys)
+                {
+                    list.Add(new ReuObjectTreeKeyValue(parent, key, dictionary[key]));
+                }
+                break;
+            case IEnumerable<object?> enumerable:
+                var index = 0;
+                foreach (var item in enumerable)
+                {
+                    list.Add(new ReuObjectTreeItem(parent, index, item));
+                    index++;
+                }
+                break;
         }
 
         return list;
@@ -230,10 +294,29 @@
         return false;
     }
 
+    private async Task OnValueChange(object? newValue)
+    {
+        // this ensures the parent object is also updated (only 1 layer up to maintain performance, but in most cases it is ok)
+        if (ParentTree is null)
+        {
+            Update();
+        }
+        else
+        {
+            ParentTree.Update();
+        }
+    }
+
+    private void Update()
+    {
+        StateHasChanged();
+    }
+
     public static Dictionary<Type, Type> DefaultTypeComponents { get; } = new()
     {
         [typeof(ReuObjectTreeMember)] = typeof(ReuObjectTreeMemberTypeComponent),
         [typeof(ReuObjectTreeItem)] = typeof(ReuObjectTreeItemTypeComponent),
+        [typeof(ReuObjectTreeKeyValue)] = typeof(ReuObjectTreeKeyValueTypeComponent),
     };
 
     public static Dictionary<Type, Type> DefaultTypeValueComponents { get; } = new()

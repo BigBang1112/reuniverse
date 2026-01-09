@@ -79,6 +79,12 @@ catch (Exception ex)
             return true;
         }
 
+        if (Value.Value is IEnumerable<object> or System.Collections.ICollection)
+        {
+            componentType = typeof(EnumerableTypeValueComponent);
+            return true;
+        }
+
         return TypeValueComponents.TryGetValue(type, out componentType);
     }
 
@@ -97,7 +103,7 @@ catch (Exception ex)
             propertyType = underlyingType;
         }
 
-        // Check if it's a reference type or nullable value type and has a parameterless constructor
+        // Check if it has a parameterless constructor
         return !propertyType.IsAbstract && 
                !propertyType.IsInterface && 
                propertyType.GetConstructor(Type.EmptyTypes) is not null;

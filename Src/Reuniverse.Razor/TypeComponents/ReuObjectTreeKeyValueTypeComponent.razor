@@ -1,0 +1,75 @@
+﻿@inherits TypeComponentBase<ReuObjectTreeKeyValue>
+
+@if (TryGetValueComponent(Value.Key, out var keyComponentType))
+{
+    var parameters = new Dictionary<string, object?>
+    {
+        ["KeyValue"] = Value,
+        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged),
+        ["IsKey"] = true
+    };
+
+    <DynamicComponent Type="keyComponentType" Parameters="parameters" />
+}
+else
+{
+    <span class="box-value">@Value.Key</span>
+}
+@if (IsExpandable)
+{
+    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "active" : "")">
+        @(IsExpanded ? "▼" : "▶")
+    </div>
+}
+@if (Value.Value is null)
+{
+    <span class="box-value">null</span>
+}
+else if (TryGetValueComponent(Value.Value, out var valueComponentType))
+{
+    var parameters = new Dictionary<string, object?>
+    {
+        ["KeyValue"] = Value,
+        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+    };
+
+    <DynamicComponent Type="valueComponentType" Parameters="parameters" />
+}
+else
+{
+    <span class="box-value">@Value.Value</span>
+}
+
+@if (!HideType && Value.Value is not null)
+{
+    <div class="box-value type">
+        <ReuFriendlyType Type="Value.Value.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
+    </div>
+}
+
+@code {
+    private bool TryGetValueComponent(object? value, out Type? componentType)
+    {
+        if (value is null)
+        {
+            componentType = null;
+            return false;
+        }
+
+        var type = value.GetType();
+
+        if (type.IsEnum)
+        {
+            componentType = typeof(EnumTypeValueComponent);
+            return true;
+        }
+
+        if (value is IEnumerable<object>)
+        {
+            componentType = typeof(EnumerableTypeValueComponent);
+            return true;
+        }
+
+        return TypeValueComponents.TryGetValue(type, out componentType);
+    }
+}
