@@ -30,7 +30,8 @@
 ::deep .box {
     padding: 0 10px;
     border-radius: 4px;
-    line-height: 29px;
+    line-height: 28px;
+    padding-top: 1px;
     background: #2224;
     border-bottom: 1px solid #3338;
     transition: background 0.1s ease;
@@ -58,7 +59,8 @@
 ::deep .box-value {
     padding: 0 10px;
     border-radius: 4px;
-    line-height: 30px;
+    line-height: 29px;
+    padding-top: 1px;
     background: #2228;
     color: #888;
 }
