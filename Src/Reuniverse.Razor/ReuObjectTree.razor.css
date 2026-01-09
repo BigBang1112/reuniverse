@@ -18,7 +18,9 @@
 }
 
 ::deep input {
-    height: 30px;
+    height: 24px;
+    font-family: var(--font-mono), monospace;
+    font-variant-ligatures: no-common-ligatures;
 }
 
 ::deep select {
