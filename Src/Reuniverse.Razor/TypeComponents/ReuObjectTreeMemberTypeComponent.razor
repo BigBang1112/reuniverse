@@ -65,6 +65,10 @@ catch (Exception ex)
 
     <div class="box-value error">@Exception.Message</div>
 }
+@if (!HideType && IsDifferentType(out var actualType))
+{
+    <span class="box-value type"><ReuFriendlyType Type="actualType" OnClick="OnTypeClick"></ReuFriendlyType></span>
+}
 
 @code {
     public Exception? Exception { get; set; }
@@ -183,5 +187,27 @@ catch (Exception ex)
         {
             // Handle removal errors silently or add error handling as needed
         }
+    }
+
+    private bool IsDifferentType([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Type? actualType)
+    {
+        if (Value.Value is null)
+        {
+            actualType = null;
+            return false;
+        }
+
+        var propertyType = Value.Property.PropertyType;
+        actualType = Value.Value.GetType();
+
+        // Check if property type is nullable and actual type is the underlying type
+        var underlyingType = Nullable.GetUnderlyingType(propertyType);
+
+        if (underlyingType is not null && underlyingType == actualType)
+        {
+            return false;
+        }
+
+        return propertyType != actualType;
     }
 }
