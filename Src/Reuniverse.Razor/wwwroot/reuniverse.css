@@ -74,6 +74,7 @@ tt,
 var,
 textarea {
     font-family: var(--font-mono), monospace;
+    font-variant-ligatures: no-common-ligatures;
 }
 
 body {
