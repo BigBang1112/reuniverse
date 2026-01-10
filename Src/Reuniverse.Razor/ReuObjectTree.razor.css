@@ -6,14 +6,17 @@
     font-size: 90%;
 }
 
+    .item:not(.root) {
+        opacity: 0; /* Ensure they're invisible initially */
+        animation: fadeIn 0.2s ease-in forwards;
+    }
+
 .items {
     margin-left: 1rem;
     display: flex;
     flex-direction: column;
     gap: 5px;
     margin-top: 5px;
-    opacity: 0; /* Ensure they're invisible initially */
-    animation: fadeIn 0.2s ease-in forwards;
     width: min-content;
 }
 

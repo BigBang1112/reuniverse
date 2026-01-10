@@ -1,5 +1,5 @@
 ﻿<div>
-    <div class="item">
+    <div class="item @(ParentTree is null ? "root" : "")">
         @if (Value is null)
         {
             <span class="box-value">null</span>
