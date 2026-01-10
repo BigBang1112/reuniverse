@@ -1,11 +1,23 @@
 @using System.Threading.Tasks
 @implements IDisposable
 
-@if (IsGlobalVisible)
+@if (IsGlobal)
 {
-    <div class="tooltip @(IsGlobal ? "global" : "")" style="left:@(GlobalX)px;top:@(GlobalY + 20)px;">
-        @GlobalText
-    </div>
+    @if (IsGlobalVisible)
+    {
+        <div class="tooltip global" style="left:@(GlobalX)px;top:@(GlobalY + 20)px;">
+            @GlobalText
+        </div>
+    }
+}
+else
+{
+    @if (IsVisible)
+    {
+        <div class="tooltip" style="left:calc(100% + 5px);top:0;max-width: 100%">
+            @ChildContent
+        </div>
+    }
 }
 
 @code {
@@ -14,6 +26,8 @@
 
     internal static bool IsGlobalVisible { get; private set; }
     internal static string GlobalText { get; private set; } = string.Empty;
+
+    private bool IsVisible { get; set; }
 
     private static event Action? OnShow;
     private static event Action? OnMove;
@@ -26,6 +40,9 @@
     [Parameter]
     public bool IsGlobal { get; set; }
 
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
     protected override void OnInitialized()
     {
         if (IsGlobal)
@@ -35,6 +52,24 @@
             OnHide += StateHasChanged;
             OnUpdate += StateHasChanged;
         }
+    }
+
+    public void Show(MouseEventArgs args)
+    {
+        if (IsGlobal) return;
+
+        IsVisible = true;
+
+        StateHasChanged();
+    }
+
+    public void Hide()
+    {
+        if (IsGlobal) return;
+
+        IsVisible = false;
+
+        StateHasChanged();
     }
 
     internal static void ShowGlobal(MouseEventArgs args, string? text)
