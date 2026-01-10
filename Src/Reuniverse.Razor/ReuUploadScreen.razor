@@ -1,0 +1,122 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@if (IsVisible)
+{
+    <div class="upload-screen @CssClass">
+        <ReuUploadArea OnUpload="OnUpload"
+                       OnFileTooLarge="OnFileTooLarge"
+                       OnFileExceedCount="OnFileExceedCount"
+                       MaxFileCount="MaxFileCount"
+                       MaxFileSize="MaxFileSize"
+                       Extensions="Extensions"
+                       CssClass="@CssClassArea">
+            @ChildContent
+        </ReuUploadArea>
+    </div>
+}
+
+@code {
+    private IJSObjectReference? module;
+    private DotNetObjectReference<ReuUploadScreen>? objRef;
+
+    /// <summary>
+    /// Callback invoked when files are uploaded.
+    /// </summary>
+    [Parameter]
+    public EventCallback<UploadEventArgs> OnUpload { get; set; }
+
+    /// <summary>
+    /// Callback invoked when a file is too large.
+    /// </summary>
+    [Parameter]
+    public EventCallback<FileInfoEventArgs> OnFileTooLarge { get; set; }
+
+    /// <summary>
+    /// Callback invoked when the file count exceeds the maximum.
+    /// </summary>
+    [Parameter]
+    public EventCallback<FileInfoEventArgs> OnFileExceedCount { get; set; }
+
+    /// <summary>
+    /// Maximum number of files allowed to upload. Null means no limit. Make sure to set limits if in serverside interactivity!
+    /// </summary>
+    [Parameter]
+    public int? MaxFileCount { get; set; }
+
+    /// <summary>
+    /// Maximum file size in bytes. Null means no limit. Make sure to set limits if in serverside interactivity!
+    /// </summary>
+    [Parameter]
+    public int? MaxFileSize { get; set; }
+
+    /// <summary>
+    /// Extensions without the dot at the beginning.
+    /// </summary>
+    [Parameter]
+    public required string[]? Extensions { get; set; }
+
+    /// <summary>
+    /// The content to be rendered inside the upload area.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes to apply to the upload screen.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes to apply to the upload area.
+    /// </summary>
+    [Parameter]
+    public string? CssClassArea { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    protected override void OnInitialized() =>
+        objRef = DotNetObjectReference.Create(this);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadScreen.razor.js");
+            await module.InvokeVoidAsync("addHandlers", objRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task SetVisible(bool visible)
+    {
+        if (IsVisible != visible)
+        {
+            IsVisible = visible;
+            await IsVisibleChanged.InvokeAsync(IsVisible);
+            StateHasChanged();
+        }
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            try
+            {
+                await module.InvokeVoidAsync("removeHandlers");
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+
+        objRef?.Dispose();
+    }
+}

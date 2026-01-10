@@ -1,0 +1,21 @@
+.upload-screen {
+    position: fixed;
+    z-index: 9999;
+    width: 100vw;
+    height: 100vh;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.upload-screen ::deep .upload-area {
+    height: 100%;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
