@@ -15,14 +15,22 @@
                 ["OnExpandToggle"] = EventCallback.Factory.Create(this, ToggleExpanded),
                 ["HideType"] = HideType,
                 ["OnTypeClick"] = OnTypeClick,
-                ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange)
+                ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange),
+                ["OnSelect"] = EventCallback.Factory.Create(this, Select),
+                ["Selected"] = SelectedObject?.Equals(Value) ?? false,
             };
 
             <DynamicComponent Type="componentType" Parameters="parameters" />
         }
         else
         {
-            <div class="box">@(DisplayName ?? Value.ToString())</div>
+            @if (!HideType)
+            {
+                <div class="box type">
+                    <ReuFriendlyType Type="Value.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
+                </div>
+            }
+            <div class="box general @(SelectedObject?.Equals(Value) == true ? "active" : "")" @onclick="() => Select(Value)">@(DisplayName ?? Value.ToString())</div>
 
             @if (IsExpandable)
             {
@@ -145,6 +153,24 @@
     /// </summary>
     [Parameter]
     public bool IsExpandedByDefault { get; set; }
+
+    private object? selectedObject;
+
+    public object? SelectedObject 
+    {
+        get => ParentTree?.SelectedObject ?? selectedObject;
+        private set
+        {
+            if (ParentTree is not null)
+            {
+                ParentTree.SelectedObject = value;
+            }
+            else
+            {
+                selectedObject = value;
+            }
+        }
+    }
 
     public void ToggleExpanded()
     {
@@ -307,9 +333,44 @@
         }
     }
 
-    private void Update()
+    /// <summary>
+    /// Updates the state of the tree and its children (not the parent trees).
+    /// </summary>
+    public void Update()
     {
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Updates the state of the root tree and all its children.
+    /// </summary>
+    public void UpdateAll()
+    {
+        if (ParentTree is null)
+        {
+            Update();
+            return;
+        }
+
+        var rootTree = ParentTree;
+        while (rootTree.ParentTree is not null)
+        {
+            rootTree = rootTree.ParentTree;
+        }
+        rootTree.Update();
+    }
+
+    private void Select(object? obj)
+    {
+        if (SelectedObject?.Equals(obj) == true)
+        {
+            SelectedObject = null;
+        }
+        else
+        {
+            SelectedObject = obj;
+        }
+        UpdateAll();
     }
 
     public static Dictionary<Type, Type> DefaultTypeComponents { get; } = new()

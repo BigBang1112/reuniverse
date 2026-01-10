@@ -7,7 +7,7 @@
         <ReuFriendlyType Type="Value.Value.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
     </div>
 }
-<code class="box general">#@Value.Index</code>
+<code class="box general @(Selected ? "active" : "")" @onclick="() => OnSelect.InvokeAsync(Value)">#@Value.Index</code>
 @if (IsExpandable)
 {
     <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "active" : "")">

@@ -1,5 +1,12 @@
 ﻿@inherits TypeComponentBase<ReuObjectTreeKeyValue>
 
+@if (!HideType)
+{
+    <div class="box type">
+        <ReuFriendlyType Type="Value.Key.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
+    </div>
+}
+<div class="box general @(Selected ? "active" : "")" @onclick="() => OnSelect.InvokeAsync(Value)">&nbsp;</div>
 @if (TryGetValueComponent(Value.Key, out var keyComponentType))
 {
     var parameters = new Dictionary<string, object?>

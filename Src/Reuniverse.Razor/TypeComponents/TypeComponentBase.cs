@@ -27,4 +27,10 @@ public abstract class TypeComponentBase<T> : ComponentBase
 
     [Parameter, EditorRequired]
     public EventCallback ValueChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnSelect { get; set; }
+
+    [Parameter, EditorRequired]
+    public bool Selected { get; set; }
 }

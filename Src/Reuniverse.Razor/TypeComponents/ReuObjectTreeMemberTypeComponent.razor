@@ -11,7 +11,7 @@
         }
     </div>
 }
-<div class="box general">@Value.Property.Name</div>
+<div class="box general @(Selected ? "active" : "")" @onclick="() => OnSelect.InvokeAsync(Value)">@Value.Property.Name</div>
 @if (IsExpandable)
 {
     <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "active" : "")">
