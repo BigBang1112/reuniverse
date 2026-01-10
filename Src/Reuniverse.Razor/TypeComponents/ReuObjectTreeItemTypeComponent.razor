@@ -98,6 +98,7 @@ else
         {
             list.RemoveAt(Value.Index);
             await ValueChanged.InvokeAsync(Value);
+            ReuTooltip.HideGlobal();
         }
         catch (Exception ex)
         {
