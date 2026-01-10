@@ -16,7 +16,7 @@
                 ["HideType"] = HideType,
                 ["OnTypeClick"] = OnTypeClick,
                 ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange),
-                ["OnSelect"] = EventCallback.Factory.Create(this, Select),
+                ["OnSelect"] = EventCallback.Factory.Create(this, SelectAsync),
                 ["Selected"] = SelectedObject?.Equals(Value) ?? false,
             };
 
@@ -30,7 +30,7 @@
                     <ReuFriendlyType Type="Value.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
                 </div>
             }
-            <div class="box general @(SelectedObject?.Equals(Value) == true ? "active" : "")" @onclick="() => Select(Value)">@(DisplayName ?? Value.ToString())</div>
+            <div class="box general @(SelectedObject?.Equals(Value) == true ? "active" : "")" @onclick="() => SelectAsync(Value)">@(DisplayName ?? Value.ToString())</div>
 
             @if (IsExpandable)
             {
@@ -171,6 +171,9 @@
             }
         }
     }
+
+    [Parameter]
+    public EventCallback<object?> SelectedObjectChanged { get; set; }
 
     public void ToggleExpanded()
     {
@@ -360,7 +363,7 @@
         rootTree.Update();
     }
 
-    private void Select(object? obj)
+    private async Task SelectAsync(object? obj)
     {
         if (SelectedObject?.Equals(obj) == true)
         {
@@ -370,7 +373,10 @@
         {
             SelectedObject = obj;
         }
+
         UpdateAll();
+
+        await SelectedObjectChanged.InvokeAsync(SelectedObject);
     }
 
     public static Dictionary<Type, Type> DefaultTypeComponents { get; } = new()
