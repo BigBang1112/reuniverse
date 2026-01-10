@@ -2,7 +2,7 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
-<div class="upload-area @(dragged ? "drag" : "") @CssClass" style="font-size: @(FontSize)%;">
+<div class="upload-area @(dragged ? "drag" : "") @CssClass">
     @if (RendererInfo.IsInteractive)
     {
         @ChildContent
@@ -63,12 +63,6 @@
     /// </summary>
     [Parameter]
     public required string[]? Extensions { get; set; }
-
-    /// <summary>
-    /// Font size percentage.
-    /// </summary>
-    [Parameter]
-    public int FontSize { get; set; } = 100;
 
     /// <summary>
     /// The content to be rendered inside the upload area.
