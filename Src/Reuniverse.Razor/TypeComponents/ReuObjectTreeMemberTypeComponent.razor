@@ -58,19 +58,30 @@
               @onmousemove="ReuTooltip.MoveGlobal"
               @onmouseout="ReuTooltip.HideGlobal">✕</span>
     }
+
+    @if (prevValue is not null)
+    {
+        <span class="box-value clickable" @onclick="RevertValueAsync">Revert</span>
+    }
 }
 catch (Exception ex)
 {
     Exception = ex.InnerException ?? ex;
-
+}
+@if (Exception is not null)
+{
     <div class="box-value error">@Exception.Message</div>
 }
+
 @if (!HideType && IsDifferentType(out var actualType))
 {
     <span class="box-value type"><ReuFriendlyType Type="actualType" OnClick="OnTypeClick"></ReuFriendlyType></span>
 }
 
 @code {
+    // this prevValue will be forgotten after the component is recreated, prefer storing it in separate class (not ReuObjectTreeMember as that one recreates too)
+    private object? prevValue;
+
     public Exception? Exception { get; set; }
 
     private bool TryGetValueComponent(out Type? componentType)
@@ -138,7 +149,7 @@ catch (Exception ex)
         }
         catch (Exception ex)
         {
-            // Handle creation errors silently or add error handling as needed
+            Exception = ex;
         }
     }
 
@@ -172,21 +183,12 @@ catch (Exception ex)
             return;
         }
 
-        if (!CanRemoveValue() || Value.Property.SetMethod is null)
+        if (!CanRemoveValue())
         {
             return;
         }
 
-        try
-        {
-            Value.Property.SetValue(Value.Parent, null);
-            await ValueChanged.InvokeAsync();
-            ReuTooltip.HideGlobal();
-        }
-        catch (Exception ex)
-        {
-            // Handle removal errors silently or add error handling as needed
-        }
+        await SetValueAsync(null);
     }
 
     private bool IsDifferentType([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Type? actualType)
@@ -209,5 +211,38 @@ catch (Exception ex)
         }
 
         return propertyType != actualType;
+    }
+
+    private async Task RevertValueAsync()
+    {
+        if (prevValue is null)
+        {
+            return;
+        }
+        
+        await SetValueAsync(prevValue);
+    }
+
+    private async Task SetValueAsync(object? value)
+    {
+        if (Value.Property.SetMethod is null)
+        {
+            return;
+        }
+
+        var prevPrevValue = prevValue;
+        prevValue = Value.Value;
+
+        try
+        {
+            Value.Property.SetValue(Value.Parent, value);
+            await ValueChanged.InvokeAsync();
+            ReuTooltip.HideGlobal();
+        }
+        catch (TargetInvocationException ex)
+        {
+            Exception = ex;
+            prevValue = prevPrevValue;
+        }
     }
 }
