@@ -1,4 +1,5 @@
 ﻿@inherits TypeComponentBase<ReuObjectTreeItem>
+@inject IJSRuntime JS
 
 @if (!HideType && Value.Value is not null)
 {
@@ -73,10 +74,19 @@ else
 
     private async Task RemoveValueAsync()
     {
-        if (Value.Parent is System.Collections.IList list)
+        if (Value.Parent is not System.Collections.IList list)
         {
-            list.RemoveAt(Value.Index);
-            await ValueChanged.InvokeAsync(Value);
+            return;
         }
+
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to remove #{Value.Index}?");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        list.RemoveAt(Value.Index);
+        await ValueChanged.InvokeAsync(Value);
     }
 }
