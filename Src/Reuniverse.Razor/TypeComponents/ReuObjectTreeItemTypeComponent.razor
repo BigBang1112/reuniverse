@@ -40,8 +40,16 @@ else
           @onmousemove="ReuTooltip.MoveGlobal"
           @onmouseout="ReuTooltip.HideGlobal">✕</span>
 }
+@if (Exception is not null)
+{
+    <div class="box-value error">
+        @Exception.Message
+    </div>
+}
 
 @code {
+    public Exception? Exception { get; set; }
+
     private bool TryGetValueComponent(out Type? componentType)
     {
         if (Value.Value is null)
@@ -69,7 +77,7 @@ else
 
     private bool CanRemoveValue()
     {
-        return Value.Parent is System.Collections.IList;
+        return Value.Parent is System.Collections.IList and not Array;
     }
 
     private async Task RemoveValueAsync()
@@ -86,7 +94,14 @@ else
             return;
         }
 
-        list.RemoveAt(Value.Index);
-        await ValueChanged.InvokeAsync(Value);
+        try
+        {
+            list.RemoveAt(Value.Index);
+            await ValueChanged.InvokeAsync(Value);
+        }
+        catch (Exception ex)
+        {
+            Exception = ex;
+        }
     }
 }
