@@ -37,11 +37,10 @@ else
             return false;
         }
 
-        var type = Value.GetType();
-
-        // if is list
-        if (!type.IsArray && typeof(System.Collections.IList).IsAssignableFrom(type))
+        if (Value is System.Collections.IList and not Array)
         {
+            var type = Value.GetType();
+
             if (!type.IsGenericType)
             {
                 // dont add default element to non-generic lists yet, it would have to be object and thats confusing
@@ -61,23 +60,36 @@ else
 
     private async Task AddElementAsync()
     {
-        if (Value is System.Collections.IList list)
+        if (Value is not System.Collections.IList list)
         {
-            var type = Value.GetType();
+            return;
+        }
 
-            if (!type.IsGenericType)
-            {
-                // dont add default element to non-generic lists yet, it would have to be object and thats confusing
-                return;
-            }
+        var type = Value.GetType();
 
-            var elementType = type.GetGenericArguments()[0];
+        if (!type.IsGenericType)
+        {
+            // dont add default element to non-generic lists yet, it would have to be object and thats confusing
+            return;
+        }
 
+        var elementType = type.GetGenericArguments()[0];
+
+        try
+        {
             var newElement = Activator.CreateInstance(elementType);
 
             list.Add(newElement);
 
             await ValueChanged.InvokeAsync(Value);
+        }
+        catch (TargetInvocationException tex)
+        {
+            Exception = tex.InnerException ?? tex;
+        }
+        catch (Exception ex)
+        {
+            Exception = ex;
         }
     }
 }
