@@ -11,7 +11,7 @@
                @ondragenter="DragEnter"
                @ondragleave="DragEnd"
                @ondragend="DragEnd"
-               @ondrop="DragEnd" type="file" class="file" accept="@(Extensions is null ? "" : string.Join(',', Extensions.Select(x => "." + x)))"
+               @ondrop="DragEnd" type="file" class="file" accept="@Accept"
                multiple="@(MaxFileCount is null or > 1)"
                @attributes="AdditionalAttributes" />
     }
@@ -47,22 +47,22 @@
     public EventCallback<FileInfoEventArgs> OnFileExceedCount { get; set; }
 
     /// <summary>
-    /// Maximum number of files allowed to upload. Null means no limit. Make sure to set limits if in serverside interactivity!
+    /// Maximum number of files allowed to upload. Null is the default which means no limit. Make sure to set limits if in serverside interactivity!
     /// </summary>
     [Parameter]
     public int? MaxFileCount { get; set; }
 
     /// <summary>
-    /// Maximum file size in bytes. Null means no limit. Make sure to set limits if in serverside interactivity!
+    /// Maximum file size in bytes. Null is the default which means no limit. Make sure to set limits if in serverside interactivity!
     /// </summary>
     [Parameter]
     public int? MaxFileSize { get; set; }
 
     /// <summary>
-    /// Extensions without the dot at the beginning.
+    /// A comma-separated list of one or more file types, or unique file type specifiers, describing which file types to allow.
     /// </summary>
     [Parameter]
-    public required string[]? Extensions { get; set; }
+    public string? Accept { get; set; }
 
     /// <summary>
     /// The content to be rendered inside the upload area.
