@@ -28,11 +28,7 @@ else
         @(IsExpanded ? "▼" : "▶")
     </div>
 }
-@if (Value.Value is null)
-{
-    <span class="box-value">null</span>
-}
-else if (TryGetValueComponent(Value.Value, out var valueComponentType))
+@if (TryGetValueComponent(Value.Value, out var valueComponentType))
 {
     var parameters = new Dictionary<string, object?>
     {
@@ -41,6 +37,10 @@ else if (TryGetValueComponent(Value.Value, out var valueComponentType))
     };
 
     <DynamicComponent Type="valueComponentType" Parameters="parameters" />
+}
+else if (Value.Value is null)
+{
+    <span class="box-value">null</span>
 }
 else
 {

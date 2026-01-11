@@ -2,7 +2,18 @@
 
 @inherits TypeValueComponentBase<TimeSpan?>
 
-<input @bind="Value" disabled="@IsReadOnly" maxlength="16" style="width: 16ch;" />
+@if (Value.HasValue)
+{
+    <input @bind="Value" disabled="@IsReadOnly" maxlength="16" style="width: 16ch;" />
+}
+else
+{
+    <span class="box-value clickable"
+          @onclick="() => Value = default(TimeSpan)"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">null</span>
+}
 @if (Exception is not null)
 {
     <div style="color: var(--color-red);">@Exception.Message</div>

@@ -8,7 +8,11 @@
 }
 else
 {
-    <span>null</span>
+    <span class="box-value clickable"
+          @onclick="() => Value = default(bool)"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">null</span>
 }
 @if (Exception is not null)
 {

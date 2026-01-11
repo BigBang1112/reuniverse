@@ -1,14 +1,32 @@
 ﻿@inherits TypeValueComponentBase<object?>
 
-<select disabled="@IsReadOnly" @onchange="OnChange">
-    @if (Type is not null)
+@if (Value is null)
+{
+    @if (Type is null)
     {
-        @foreach (var enumValue in Enum.GetValues(Type))
-        {
-            <option value="@((int)enumValue)" selected="@enumValue.Equals(Value)">@enumValue</option>
-        }
+        <span class="box-value">null</span>
     }
-</select>
+    else
+    {
+        <span class="box-value clickable"
+              @onclick="() => Value = Enum.GetValues(Type).GetValue(0)"
+              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
+              @onmousemove="ReuTooltip.MoveGlobal"
+              @onmouseout="ReuTooltip.HideGlobal">null</span>
+    }
+}
+else
+{
+    <select disabled="@IsReadOnly" @onchange="OnChange">
+        @if (Type is not null)
+        {
+            @foreach (var enumValue in Enum.GetValues(Type))
+            {
+                <option value="@((int)enumValue)" selected="@enumValue.Equals(Value)">@enumValue</option>
+            }
+        }
+    </select>
+}
 
 @if (Exception is not null)
 {

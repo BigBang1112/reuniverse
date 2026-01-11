@@ -1,6 +1,17 @@
 ﻿@inherits TypeValueComponentBase<ulong?>
 
-<input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="19" style="width: 19ch;" />
+@if (Value.HasValue)
+{
+    <input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="19" style="width: 19ch;" />
+}
+else
+{
+    <span class="box-value clickable"
+          @onclick="() => Value = default(ulong)"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">null</span>
+}
 @if (Exception is not null)
 {
     <div style="color: var(--color-red);">@Exception.Message</div>

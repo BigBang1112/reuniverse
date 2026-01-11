@@ -1,6 +1,17 @@
 ﻿@inherits TypeValueComponentBase<short?>
 
-<input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="6" style="width: 6ch;" />
+@if (Value.HasValue)
+{
+    <input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="6" style="width: 6ch;" />
+}
+else
+{
+    <span class="box-value clickable"
+          @onclick="() => Value = default(short)"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">null</span>
+}
 @if (Exception is not null)
 {
     <div style="color: var(--color-red);">@Exception.Message</div>

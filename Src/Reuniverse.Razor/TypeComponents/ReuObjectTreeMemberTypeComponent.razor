@@ -20,7 +20,17 @@
 }
 @try
 {
-    @if (Value.Value is null)
+    @if (TryGetValueComponent(out var componentType))
+    {
+        var parameters = new Dictionary<string, object?>
+        {
+            ["Member"] = Value,
+            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+        };
+
+        <DynamicComponent Type="componentType" Parameters="parameters" />
+    }
+    else if (Value.Value is null)
     {
         @if (CanCreateInstance())
         {
@@ -35,17 +45,7 @@
             <span class="box-value">null</span>
         }
     }
-    else if (TryGetValueComponent(out var componentType))
-    {
-        var parameters = new Dictionary<string, object?>
-        {
-            ["Member"] = Value,
-            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
-        };
-
-        <DynamicComponent Type="componentType" Parameters="parameters" />
-    }
-    else 
+    else
     {
         <span class="box-value">@Value.Value</span>
     }
