@@ -1,0 +1,29 @@
+.reu-menubar-item-container {
+    position: relative;
+}
+
+.reu-menubar-item {
+    display: block;
+    color: inherit;
+    padding: 0.3rem 1rem;
+    font-size: 80%;
+    cursor: pointer;
+}
+
+    .reu-menubar-item:hover {
+        background: var(--color-input-bg-hover);
+    }
+
+    .reu-menubar-item.active {
+        background: var(--color-button-bg-active);
+    }
+
+.reu-menubar-dropdown {
+    position: absolute;
+    background: var(--color-input-bg);
+}
+
+    .reu-menubar-dropdown.nested {
+        top: 0;
+        left: 100%;
+    }

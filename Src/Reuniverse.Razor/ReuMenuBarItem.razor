@@ -1,0 +1,99 @@
+@using System.Threading.Tasks
+<div class="reu-menubar-item-container">
+    @if (Data.Href is null)
+    {
+        <div class="reu-menubar-item @(Data.Items.Count > 0 && IsOpen ? "active" : "")" @onclick="OnClickAsync" @onmouseenter="OnMouseEnterAsync" @onmouseleave="OnMouseLeaveAsync">
+            @if (TemplateContent is null)
+            {
+                <span>@Data.Name</span>
+                @if (Nested && Data.Items.Count > 0)
+                {
+                    <span>&nbsp;&gt;</span>
+                }
+            }
+            else
+            {
+                <span>@TemplateContent(Data)</span>
+            }
+        </div>
+    }
+    else
+    {
+        <a href="@Data.Href" class="reu-menubar-item @(Data.Items.Count > 0 && IsOpen ? "active" : "")" @onclick="OnClickAsync" @onmouseenter="OnMouseEnterAsync" @onmouseleave="OnMouseLeaveAsync">
+            @if (TemplateContent is null)
+            {
+                <span>@Data.Name</span>
+                @if (Nested && Data.Items.Count > 0)
+                {
+                    <span>&nbsp;&gt;</span>
+                }
+            }
+            else
+            {
+                <span>@TemplateContent(Data)</span>
+            }
+        </a>
+    }
+    @if (Data.Items.Count > 0 && IsOpen)
+    {
+        <div class="reu-menubar-dropdown @(Nested ? "nested" : "")" @onmouseenter="OnMouseEnter">
+            @foreach (var item in Data.Items)
+            {
+                <ReuMenuBarItem TemplateContent="TemplateContent" Data="item" Nested="true" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public RenderFragment<ReuMenuBarItemData>? TemplateContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required ReuMenuBarItemData Data { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback OnMouseEnter { get; set; }
+
+    [Parameter]
+    public bool Nested { get; set; }
+
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    private async Task OnClickAsync()
+    {
+        if (!Nested && Data.Items.Count > 0)
+        {
+            IsOpen = !IsOpen;
+        }
+
+        if (Data.Action is not null)
+        {
+            await Data.Action.Invoke();
+        }
+
+        await OnClick.InvokeAsync();
+    }
+
+    private async Task OnMouseEnterAsync()
+    {
+        if (Nested && Data.Items.Count > 0)
+        {
+            IsOpen = true;
+        }
+
+        await OnMouseEnter.InvokeAsync();
+    }
+
+    private async Task OnMouseLeaveAsync()
+    {
+        /*if (Nested && Data.Items.Count > 0)
+        {
+            IsOpen = false;
+        }*/
+    }
+}

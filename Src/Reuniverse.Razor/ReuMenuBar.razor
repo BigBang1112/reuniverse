@@ -1,0 +1,42 @@
+<div class="reu-menubar reu-mono">
+    @foreach (var item in Items)
+    {
+        <ReuMenuBarItem TemplateContent="TemplateContent" Data="item" IsOpen="SelectedItem == item" OnClick="() => Click(item)" OnMouseEnter="() => MouseEnter(item)" />
+    }
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment<ReuMenuBarItemData>? TemplateContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required IEnumerable<ReuMenuBarItemData> Items { get; set; }
+
+    public ReuMenuBarItemData? SelectedItem { get; set; }
+
+    private async Task Click(ReuMenuBarItemData item)
+    {
+        if (SelectedItem == item)
+        {
+            SelectedItem = null;
+        }
+        else if (item.Items.Count > 0)
+        {
+            SelectedItem = item;
+        }
+
+        if (item.Action is not null)
+        {
+            await item.Action.Invoke();
+            SelectedItem = null;
+        }
+    }
+
+    private void MouseEnter(ReuMenuBarItemData item)
+    {
+        if (SelectedItem is not null)
+        {
+            SelectedItem = item;
+        }
+    }
+}
