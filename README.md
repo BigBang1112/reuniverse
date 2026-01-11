@@ -15,13 +15,13 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
-In Blazor WebAssembly:
+In Blazor WebAssembly or Photino Blazor:
 
 `wwwroot/index.html`
 
 ```html
 <link rel="stylesheet" href="_content/Reuniverse.Razor/reuniverse.css" />
-<link href="[YOUR_PROJECT_NAME].styles.css" rel="stylesheet" />
+<link rel="stylesheet" href="[YOUR_PROJECT_NAME].styles.css" />
 ```
 
 To use the components:
@@ -110,7 +110,7 @@ Example:
 ```cshtml
 <ReuFooter>
     <CopyrightContent>
-        © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoòka<br />
+        Â© 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' PivoÃ²ka<br />
         <small>
             Not affiliated with or endorsed by Nadeo or Ubisoft.
             All relevant trademarks belong to their respective owners.
