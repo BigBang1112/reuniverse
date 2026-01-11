@@ -88,19 +88,7 @@ catch (Exception ex)
     {
         var type = Value.Value?.GetType() ?? Value.Property.PropertyType;
 
-        if (type.IsEnum)
-        {
-            componentType = typeof(EnumTypeValueComponent);
-            return true;
-        }
-
-        if (Value.Value is IEnumerable<object> or System.Collections.ICollection)
-        {
-            componentType = typeof(EnumerableTypeValueComponent);
-            return true;
-        }
-
-        return TypeValueComponents.TryGetValue(type, out componentType);
+        return ReuObjectTree.TryGetValueComponent(Value.Value, type, TypeValueComponents, out componentType);
     }
 
     private bool CanCreateInstance()

@@ -38,6 +38,16 @@
                     @(IsExpanded ? "▼" : "▶")
                 </div>
             }
+            @if (TryGetValueComponent(out var valueComponentType))
+            {
+                var parameters = new Dictionary<string, object?>
+                {
+                    ["ReadOnlyValue"] = Value,
+                    ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange)
+                };
+
+                <DynamicComponent Type="valueComponentType" Parameters="parameters" />
+            }
         }
 
         @if (Exception is not null)
@@ -192,6 +202,34 @@
     protected override void OnInitialized()
     {
         IsExpanded = IsExpandedByDefault;
+    }
+
+    private bool TryGetValueComponent(out Type? componentType)
+    {
+        if (Value is null)
+        {
+            componentType = null;
+            return false;
+        }
+
+        return TryGetValueComponent(Value, Value.GetType(), TypeValueComponents, out componentType);
+    }
+
+    internal static bool TryGetValueComponent(object? value, Type type, IReadOnlyDictionary<Type, Type> typeValueComponents, out Type? componentType)
+    {
+        if (type.IsEnum)
+        {
+            componentType = typeof(EnumTypeValueComponent);
+            return true;
+        }
+
+        if (value is IEnumerable<object> or System.Collections.ICollection)
+        {
+            componentType = typeof(EnumerableTypeValueComponent);
+            return true;
+        }
+
+        return typeValueComponents.TryGetValue(type, out componentType);
     }
 
     private static ICollection<object?> DefaultChildrenProvider(object parent)

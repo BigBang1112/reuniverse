@@ -20,6 +20,12 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
     [Parameter]
     public bool IsKey { get; set; }
 
+    /// <summary>
+    /// Value to use instead of getting/setting from Member/Item/KeyValue.
+    /// </summary>
+    [Parameter]
+    public T? ReadOnlyValue { get; set; }
+
     public PropertyInfo? Property => Member?.Property;
     public object? Parent => Member?.Parent ?? Item?.Parent;
 
@@ -27,6 +33,7 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
     {
         get
         {
+            if (ReadOnlyValue is not null) return ReadOnlyValue;
             if (Property is not null) return (T?)Property.GetValue(Parent);
             if (Item is not null) return (T?)Item.Value;
             if (KeyValue is not null) return IsKey ? (T?)KeyValue.Key : (T?)KeyValue.Value;

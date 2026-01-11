@@ -60,19 +60,7 @@ else
 
         var type = Value.Value.GetType();
 
-        if (type.IsEnum)
-        {
-            componentType = typeof(EnumTypeValueComponent);
-            return true;
-        }
-
-        if (Value.Value is IEnumerable<object>)
-        {
-            componentType = typeof(EnumerableTypeValueComponent);
-            return true;
-        }
-
-        return TypeValueComponents.TryGetValue(type, out componentType);
+        return ReuObjectTree.TryGetValueComponent(Value.Value, type, TypeValueComponents, out componentType);
     }
 
     private bool CanRemoveValue()

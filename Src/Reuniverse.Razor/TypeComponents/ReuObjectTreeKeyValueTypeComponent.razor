@@ -65,18 +65,6 @@ else
 
         var type = value.GetType();
 
-        if (type.IsEnum)
-        {
-            componentType = typeof(EnumTypeValueComponent);
-            return true;
-        }
-
-        if (value is IEnumerable<object>)
-        {
-            componentType = typeof(EnumerableTypeValueComponent);
-            return true;
-        }
-
-        return TypeValueComponents.TryGetValue(type, out componentType);
+        return ReuObjectTree.TryGetValueComponent(value, type, TypeValueComponents, out componentType);
     }
 }
