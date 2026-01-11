@@ -17,7 +17,7 @@
     }
     else
     {
-        <ReuLoader></ReuLoader>
+        <ReuLoader Size="LoaderSize" Thickness="LoaderThickness"></ReuLoader>
     }
 </div>
 
@@ -75,6 +75,18 @@
     /// </summary>
     [Parameter]
     public string? CssClass { get; set; }
+
+    /// <summary>
+    /// The size of the loader in pixels.
+    /// </summary>
+    [Parameter]
+    public int LoaderSize { get; set; } = 50;
+
+    /// <summary>
+    /// The thickness of the loader border in pixels.
+    /// </summary>
+    [Parameter]
+    public int LoaderThickness { get; set; } = 8;
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }

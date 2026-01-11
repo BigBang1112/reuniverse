@@ -2,16 +2,24 @@
 @implements IAsyncDisposable
 
 <ReuButton CssClass="@($"reu-upload-button {CssClass}")" Enable="Enable" Variant="Variant" Tooltip="@Tooltip" Active="dragged">
-    @ChildContent
-    <input type="file" 
-        @ref="inputFile" 
-        @ondragenter="DragEnter"
-        @ondragleave="DragEnd"
-        @ondragend="DragEnd"
-        @ondrop="DragEnd"
-        accept="@Accept"
-        multiple="@(MaxFileCount is null or > 1)"
-        @attributes="AdditionalAttributes" />
+    @if (RendererInfo.IsInteractive)
+    {
+        @ChildContent
+
+        <input type="file"
+               @ref="inputFile"
+               @ondragenter="DragEnter"
+               @ondragleave="DragEnd"
+               @ondragend="DragEnd"
+               @ondrop="DragEnd"
+               accept="@Accept"
+               multiple="@(MaxFileCount is null or > 1)"
+               @attributes="AdditionalAttributes" />
+    }
+    else
+    {
+        <ReuLoader Size="LoaderSize" Thickness="LoaderThickness"></ReuLoader>
+    }
 </ReuButton>
 
 @code {
@@ -91,6 +99,18 @@
     /// </summary>
     [Parameter]
     public string? Accept { get; set; }
+
+    /// <summary>
+    /// The size of the loader in pixels.
+    /// </summary>
+    [Parameter]
+    public int LoaderSize { get; set; } = 50;
+
+    /// <summary>
+    /// The thickness of the loader border in pixels.
+    /// </summary>
+    [Parameter]
+    public int LoaderThickness { get; set; } = 8;
 
     protected override void OnInitialized() =>
         objRef = DotNetObjectReference.Create(this);
