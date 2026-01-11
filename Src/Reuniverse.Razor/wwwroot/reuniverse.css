@@ -205,6 +205,10 @@ main.reu-main {
         background-color: #FF7777DD;
     }
 
+.reu-upload-button {
+    position: relative;
+}
+
 .reu-center {
     display: flex;
     flex-direction: column;

@@ -1,0 +1,8 @@
+input {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: calc(100% + 3px);
+    cursor: pointer;
+    opacity: 0;
+}
