@@ -27,8 +27,8 @@
 
         if (item.Action is not null)
         {
-            await item.Action.Invoke();
             SelectedItem = null;
+            await item.Action.Invoke();
         }
     }
 
