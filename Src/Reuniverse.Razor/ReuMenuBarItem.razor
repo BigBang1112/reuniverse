@@ -19,7 +19,7 @@
     }
     else
     {
-        <a href="@Data.Href" class="reu-menubar-item @(Data.Items.Count > 0 && IsOpen ? "active" : "")" @onclick="OnClickAsync" @onmouseenter="OnMouseEnterAsync" @onmouseleave="OnMouseLeaveAsync">
+        <a href="@Data.Href" target="@Data.Target" class="reu-menubar-item @(Data.Items.Count > 0 && IsOpen ? "active" : "")" @onclick="OnClickAsync" @onmouseenter="OnMouseEnterAsync" @onmouseleave="OnMouseLeaveAsync">
             @if (TemplateContent is null)
             {
                 <span>@Data.Name</span>

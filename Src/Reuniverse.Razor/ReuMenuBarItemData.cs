@@ -7,4 +7,5 @@ public sealed class ReuMenuBarItemData
     public List<ReuMenuBarItemData> Items { get; init; } = [];
     public Func<Task>? Action { get; init; }
     public string? Href { get; init; }
+    public string? Target { get; init; }
 }
