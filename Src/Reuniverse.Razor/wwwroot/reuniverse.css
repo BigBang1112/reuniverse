@@ -382,12 +382,13 @@ footer.reu-footer {
 
     .footer-discover-more code {
         flex: 1;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: right;
         font-size: 80%;
         color: var(--color-text-secondary);
         white-space: nowrap;
+        gap: 0.2rem;
     }
 
 .invalid {

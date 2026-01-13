@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @using Reuniverse.Razor
+@using SimplestGitSourceGenerator
 
 <ReuNavMenu Brand="reuniverse.net">
     <ReuNavItem Name="Home" Href="" IconType="IconType.Home" NavLinkMatch="NavLinkMatch.All"></ReuNavItem>
@@ -41,7 +42,13 @@
             <a href="https://envimix.gbx.tools">envimix.gbx.tools</a>
             <a href="https://uotd.gbx.tools">uotd.gbx.tools</a>
             <a href="https://nuget.gbx.tools">nuget.gbx.tools</a>
-            <code>@SimplestGitSourceGenerator.SimplestGit.CommitHash.Substring(0, 7) (@SimplestGitSourceGenerator.SimplestGit.CommitDate)</code>
+            <code>
+                <a href="@(SimplestGit.RemoteUrl)/commit/@SimplestGit.CommitHash" title="@DateTimeOffset.Parse(SimplestGit.CommitDate)" target="_blank">
+                    @SimplestGit.CommitHash.Substring(0, 7)
+                </a>
+                -
+                <a href="@(SimplestGit.RemoteUrl)/tree/@SimplestGit.Branch" target="_blank">@SimplestGit.Branch</a>
+            </code>
         </div>
     </ExtraContent>
 </ReuFooter>
