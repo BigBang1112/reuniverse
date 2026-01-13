@@ -16,7 +16,7 @@
     }
     else
     {
-        <a class="nav-link @(IconOnly ? "" : "wide") @(IconType == IconType.Discord ? "reu-discord" : "")" href="@Href">
+        <a class="nav-link @(IconOnly ? "" : "wide") @(IconType == IconType.Discord ? "reu-discord" : "")" href="@Href" target="_blank">
             @if (!string.IsNullOrEmpty(IconSrcFromType))
             {
                 <img src="@IconSrcFromType" alt="@(AltName ?? Name)" class="@(IconOnly ? "" : " icon")" width="@IconWidth" height="@IconHeight" />
