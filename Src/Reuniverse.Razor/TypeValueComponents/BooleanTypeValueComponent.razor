@@ -2,7 +2,7 @@
 
 @if (Value.HasValue)
 {
-    <ReuCheckbox IsChecked="Value.Value" IsCheckedChanged="OnValueChanged" disabled="@IsReadOnly">
+    <ReuCheckbox IsChecked="Value.Value" IsCheckedChanged="OnValueChanged" readonly="@IsReadOnly">
         @Value
     </ReuCheckbox>
 }

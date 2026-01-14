@@ -2,7 +2,7 @@
 
 @if (Value.HasValue)
 {
-    <input @bind="Value" disabled="@IsReadOnly" style="width:36ch" />
+    <input @bind="Value" readonly="@IsReadOnly" style="width:36ch" />
 }
 else
 {

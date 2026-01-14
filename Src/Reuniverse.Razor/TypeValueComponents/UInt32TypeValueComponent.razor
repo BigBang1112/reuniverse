@@ -2,7 +2,7 @@
 
 @if (Value.HasValue)
 {
-    <input type="number" @bind="Value" disabled="@IsReadOnly" maxlength="10" style="width: 10ch;" />
+    <input type="number" @bind="Value" readonly="@IsReadOnly" maxlength="10" style="width: 10ch;" />
 }
 else
 {

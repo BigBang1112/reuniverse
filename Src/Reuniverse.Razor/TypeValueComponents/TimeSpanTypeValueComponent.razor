@@ -4,7 +4,7 @@
 
 @if (Value.HasValue)
 {
-    <input @bind="Value" disabled="@IsReadOnly" maxlength="16" style="width: 16ch;" />
+    <input @bind="Value" readonly="@IsReadOnly" maxlength="16" style="width: 16ch;" />
 }
 else
 {
