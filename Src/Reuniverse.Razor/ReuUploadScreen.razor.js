@@ -9,12 +9,11 @@ export function addHandlers(helper) {
     document.addEventListener('dragenter', handleDragEnter, true);
     document.addEventListener('dragleave', handleDragLeave, true);
     document.addEventListener('dragover', handleDragOver, true);
-    document.addEventListener('drop', handleDrop, true);
 }
 
 function handleDragEnter(e) {
-    e.preventDefault();
-    e.stopPropagation();
+    //e.preventDefault();
+    //e.stopPropagation();
     
     // Only handle file drags
     if (hasFiles(e)) {
@@ -27,8 +26,8 @@ function handleDragEnter(e) {
 }
 
 function handleDragLeave(e) {
-    e.preventDefault();
-    e.stopPropagation();
+    //e.preventDefault();
+    //e.stopPropagation();
     
     if (hasFiles(e)) {
         dragCounter--;
@@ -41,22 +40,11 @@ function handleDragLeave(e) {
 }
 
 function handleDragOver(e) {
-    e.preventDefault();
-    e.stopPropagation();
+    //e.preventDefault();
+    //e.stopPropagation();
     
     if (hasFiles(e)) {
         e.dataTransfer.dropEffect = 'copy';
-    }
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    dragCounter = 0;
-    if (dotNetHelper) {
-        // Hide the upload screen after drop
-        dotNetHelper.invokeMethodAsync('SetVisible', false);
     }
 }
 
@@ -74,7 +62,6 @@ export function removeHandlers() {
         document.removeEventListener('dragenter', handleDragEnter, true);
         document.removeEventListener('dragleave', handleDragLeave, true);
         document.removeEventListener('dragover', handleDragOver, true);
-        document.removeEventListener('drop', handleDrop, true);
 
         dotNetHelper = null;
         dragCounter = 0;
