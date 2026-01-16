@@ -13,10 +13,10 @@ else
     <input @bind="Value" readonly="@IsReadOnly" @oninput="OnInput" style="width:@((tempValue?.Length ?? 0) + 1)ch" />
     @if (!IsKey)
     {
-        <span class="box-value"
-              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Length of the string"))"
-              @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal"><code>@Value.Length</code></span>
+        <span class="box-value"><code
+            @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Length of the string"))"
+            @onmousemove="ReuTooltip.MoveGlobal"
+            @onmouseout="ReuTooltip.HideGlobal">@Value.Length</code></span>
     }
 }
 @if (Exception is not null)
