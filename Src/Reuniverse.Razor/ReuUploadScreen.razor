@@ -4,7 +4,7 @@
 @if (IsVisible)
 {
     <div class="upload-screen @CssClass">
-        <ReuUploadArea OnUpload="OnUpload"
+        <ReuUploadArea OnUpload="Upload"
                        OnFileTooLarge="OnFileTooLarge"
                        OnFileExceedCount="OnFileExceedCount"
                        MaxFileCount="MaxFileCount"
@@ -101,6 +101,12 @@
             await IsVisibleChanged.InvokeAsync(IsVisible);
             StateHasChanged();
         }
+    }
+
+    private async Task Upload(UploadEventArgs args)
+    {
+        await OnUpload.InvokeAsync(args);
+        await SetVisible(false);
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
