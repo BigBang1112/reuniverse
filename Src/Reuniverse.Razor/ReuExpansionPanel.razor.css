@@ -1,0 +1,46 @@
+.reu-expansion-panel {
+    display: flex;
+    flex-direction: column;
+    color: var(--color-text-primary);
+    background: var(--color-button-bg);
+    border-bottom: 2px solid var(--color-button-border);
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.05s ease;
+}
+
+.expandable {
+    display: flex;
+    width: 100%;
+    border-radius: 4px;
+    padding: 10px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+    .expandable:hover {
+        background: var(--color-button-bg-hover);
+    }
+
+.content-container {
+    display: grid;
+    transition: grid-template-rows 0.5s ease, padding 0.5s ease;
+    overflow: hidden;
+    padding: 0 10px;
+}
+
+    .content-container.expanded {
+        padding: 10px;
+    }
+
+.content-container.collapsed {
+    grid-template-rows: 0fr;
+}
+
+.content-container.expanded {
+    grid-template-rows: 1fr;
+}
+
+.content {
+    min-height: 0;
+}
