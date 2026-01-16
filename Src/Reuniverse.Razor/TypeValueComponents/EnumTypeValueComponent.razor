@@ -22,7 +22,7 @@ else
         {
             @foreach (var enumValue in Enum.GetValues(Type))
             {
-                <option value="@((int)enumValue)" selected="@enumValue.Equals(Value)">@enumValue</option>
+                <option value="@(Convert.ToInt32(enumValue))" selected="@enumValue.Equals(Value)">@enumValue</option>
             }
         }
     </select>
