@@ -9,6 +9,7 @@ export function addHandlers(helper) {
     document.addEventListener('dragenter', handleDragEnter, true);
     document.addEventListener('dragleave', handleDragLeave, true);
     document.addEventListener('dragover', handleDragOver, true);
+    document.addEventListener('drop', handleDrop, true);
 }
 
 function handleDragEnter(e) {
@@ -48,6 +49,10 @@ function handleDragOver(e) {
     }
 }
 
+function handleDrop(e) {
+    dragCounter = 0;
+}
+
 function hasFiles(e) {
     if (!e.dataTransfer || !e.dataTransfer.types) {
         return false;
@@ -62,6 +67,7 @@ export function removeHandlers() {
         document.removeEventListener('dragenter', handleDragEnter, true);
         document.removeEventListener('dragleave', handleDragLeave, true);
         document.removeEventListener('dragover', handleDragOver, true);
+        document.removeEventListener('drop', handleDrop, true);
 
         dotNetHelper = null;
         dragCounter = 0;
