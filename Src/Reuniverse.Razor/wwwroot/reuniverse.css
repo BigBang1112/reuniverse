@@ -345,9 +345,39 @@ input[type=number] {
         cursor: not-allowed;
     }
 
-input:read-only:hover {
-    background-color: var(--color-input-bg);
-}
+    input[type=text]:read-only,
+    input:not([type]):read-only,
+    input.text:read-only,
+    input[type=date]:read-only,
+    input[type=datetime-local]:read-only,
+    input[type=time]:read-only,
+    input[type=month]:read-only,
+    input[type=password]:read-only,
+    input[type=search]:read-only,
+    input[type=week]:read-only,
+    input[type=url]:read-only,
+    input[type=tel]:read-only,
+    input[type=email]:read-only,
+    input[type=number]:read-only {
+        background-color: var(--color-input-bg-hover);
+    }
+
+        input[type=text]:read-only:hover,
+        input:not([type]):read-only:hover,
+        input.text:read-only:hover,
+        input[type=date]:read-only:hover,
+        input[type=datetime-local]:read-only:hover,
+        input[type=time]:read-only:hover,
+        input[type=month]:read-only:hover,
+        input[type=password]:read-only:hover,
+        input[type=search]:read-only:hover,
+        input[type=week]:read-only:hover,
+        input[type=url]:read-only:hover,
+        input[type=tel]:read-only:hover,
+        input[type=email]:read-only:hover,
+        input[type=number]:read-only:hover {
+            border-color: var(--color-input-border);
+        }
 
 progress {
     border: 1px solid var(--color-input-border);
