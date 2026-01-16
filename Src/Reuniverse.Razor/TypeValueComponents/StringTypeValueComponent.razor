@@ -10,7 +10,7 @@
 }
 else
 {
-    <input @bind="Value" readonly="@IsReadOnly" @oninput="OnInput" style="width:@((tempValue?.Length ?? Value.Length ?? 0) + 1)ch" />
+    <input @bind="Value" readonly="@IsReadOnly" @oninput="OnInput" style="width:@((tempValue?.Length ?? Value?.Length ?? 0) + 1)ch" />
     @if (!IsKey)
     {
         <span class="box-value"><code
