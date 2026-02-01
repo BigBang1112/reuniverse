@@ -1,46 +1,30 @@
-# Na https://aka.ms/customizecontainer se dozvíte, jak si přizpůsobit kontejner ladění a jak Visual Studio používá tento dokument Dockerfile k sestavení vašich imagí pro rychlejší ladění.
-
-# Tyto argumenty umožňují při ladění z VS vyměnit bázi použitou k vytvoření konečné image za jinou.
-ARG LAUNCHING_FROM_VS
-# Nastaví image báze na konečnou image, ale jenom v případě, že je definovaná možnost LAUNCHING_FROM_VS.
-ARG FINAL_BASE_IMAGE=${LAUNCHING_FROM_VS:+aotdebug}
-
-# Tato fáze se používá při spuštění z VS v rychlém režimu (výchozí pro konfiguraci ladění).
-FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/runtime:10.0-alpine AS base
 USER $APP_UID
 WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
 
 
-# Tato fáze slouží k sestavení projektu služby.
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-# Nainstalovat závislosti clang/zlib1g-dev pro publikování do nativního prostředí
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    clang zlib1g-dev
-ARG BUILD_CONFIGURATION=Release
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+
+RUN apk add --no-cache clang build-base zlib-dev
+
 WORKDIR /src
-COPY ["Templates/GenericHost/MyGenericHost/MyGenericHost.csproj", "Templates/GenericHost/MyGenericHost/"]
-RUN dotnet restore "./Templates/GenericHost/MyGenericHost/MyGenericHost.csproj"
 COPY . .
-WORKDIR "/src/Templates/GenericHost/MyGenericHost"
-RUN dotnet build "./MyGenericHost.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Tato fáze slouží k publikování projektu služby, který se má zkopírovat do konečné fáze.
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./MyGenericHost.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=true
+WORKDIR /src/MyGenericHost/
 
-# Tato fáze se používá jako báze pro konečnou fázi při spouštění z VS pro podporu ladění v běžném režimu (výchozí, když se nepoužívá konfigurace ladění).
-FROM base AS aotdebug
-USER root
-# Nainstalovat GDB pro podporu nativního ladění
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    gdb
-USER app
+ARG TARGETARCH
 
-# Tato fáze se používá v produkčním prostředí nebo při spuštění z VS v běžném režimu (výchozí, když se nepoužívá konfigurace ladění).
-FROM ${FINAL_BASE_IMAGE:-mcr.microsoft.com/dotnet/runtime-deps:9.0} AS final
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet publish -a ${TARGETARCH/amd64/x64} -o /app
+
+
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+COPY --from=build /app .
+
+USER $APP_UID
+RUN mkdir -p /home/app/.aspnet/DataProtection-Keys && chown -R $APP_UID /home/app/.aspnet
 ENTRYPOINT ["./MyGenericHost"]

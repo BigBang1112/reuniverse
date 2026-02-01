@@ -1,38 +1,28 @@
-# Debug phase
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS base
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
 
-# Publish phase
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS publish
-ARG TARGETARCH
-ARG APPNAME=MyWebApi
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+
 WORKDIR /src
+COPY . .
 
-# Copy project file and restore as distinct layers
-COPY --link $APPNAME/*.csproj $APPNAME/
-# COPY --link $APPNAME.MySubProject/*.csproj $APPNAME.MySubProject/
-RUN dotnet restore -a $TARGETARCH $APPNAME/$APPNAME.csproj
+WORKDIR /src/MyWebApi/
 
-# Copy source code and publish app
-COPY --link $APPNAME/ $APPNAME/
-# COPY --link $APPNAME.MySubProject/ $APPNAME.MySubProject/
+ARG TARGETARCH
 
-WORKDIR /src/$APPNAME
-RUN dotnet publish -a $TARGETARCH --no-restore -o /app
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet publish -a ${TARGETARCH/amd64/x64} -o /app
 
 
-# Final phase
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine
-EXPOSE 8080
-EXPOSE 8081
-
-# RUN apk add --no-cache tzdata
-
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
 WORKDIR /app
-COPY --link --from=publish /app .
+
+COPY --from=build /app .
+
 USER $APP_UID
-ENTRYPOINT ["./MyWebApi"]
+RUN mkdir -p /home/app/.aspnet/DataProtection-Keys && chown -R $APP_UID /home/app/.aspnet
+ENTRYPOINT ["dotnet", "MyWebApi.dll"]
