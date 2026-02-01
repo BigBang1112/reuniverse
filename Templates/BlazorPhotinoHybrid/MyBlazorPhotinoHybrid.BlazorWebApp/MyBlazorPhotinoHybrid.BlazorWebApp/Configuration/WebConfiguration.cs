@@ -22,6 +22,8 @@ internal static class WebConfiguration
             options.Providers.Add<GzipCompressionProvider>();
         });
 
+        services.AddSingleton(TimeProvider.System);
+
         // Figures out HTTPS behind proxies
         services.Configure<ForwardedHeadersOptions>(options =>
         {

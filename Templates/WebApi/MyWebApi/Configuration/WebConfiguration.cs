@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.ResponseCompression;
+﻿using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
 using MyWebApi.Services;
+using System.Net;
 
 namespace MyWebApi.Configuration;
 
@@ -37,5 +39,26 @@ public static class WebConfiguration
         });
 
         services.AddSingleton(TimeProvider.System);
+
+        // Figures out HTTPS behind proxies
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+            foreach (var knownProxy in config.GetSection("KnownProxies").Get<string[]>() ?? [])
+            {
+                if (IPAddress.TryParse(knownProxy, out var ipAddress))
+                {
+                    options.KnownProxies.Add(ipAddress);
+                    continue;
+                }
+
+                foreach (var hostIpAddress in Dns.GetHostAddresses(knownProxy))
+                {
+                    options.KnownProxies.Add(hostIpAddress);
+                }
+            }
+        });
     }
 }
