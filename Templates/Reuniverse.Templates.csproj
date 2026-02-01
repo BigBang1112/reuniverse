@@ -3,7 +3,7 @@
     <PropertyGroup>
         <PackageId>Reuniverse.Templates</PackageId>
         <PackageType>Template</PackageType>
-        <VersionPrefix>0.0.7</VersionPrefix>
+        <VersionPrefix>0.1.0</VersionPrefix>
         <Authors>BigBang1112</Authors>
         <Title>Reuniverse Templates</Title>
         <Description>Various templates for opinionated development by BigBang1112.</Description>
