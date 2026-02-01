@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="@Assets["MyBlazorPhotinoHybrid.BlazorWebApp.styles.css"]" />
     <!-- <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/reuniverse.css"]" /> -->
     <!-- <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" /> -->
-    <link rel="stylesheet" href="@Assets["_content/MyBlazorPhotinoHybrid/MyBlazorPhotinoHybrid.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/MyBlazorPhotinoHybrid/css/MyBlazorPhotinoHybrid.css"]" />
     <ImportMap />
     <HeadOutlet />
 </head>
@@ -18,7 +18,31 @@
 <body>
     <Routes />
     <ReconnectModal />
-    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="@Assets["_framework/blazor.web.js"]" autostart="false"></script>
+    <script type="module">
+        import { BrotliDecode } from './decode.min.js';
+        Blazor.start({
+          webAssembly: {
+            loadBootResource: function (type, name, defaultUri, integrity) {
+              if (type !== 'dotnetjs' && location.hostname !== 'localhost' && type !== 'configuration' && type !== 'manifest') {
+                return (async function () {
+                  const response = await fetch(defaultUri + '.br', { cache: 'no-cache' });
+                  if (!response.ok) {
+                    throw new Error(response.statusText);
+                  }
+                  const originalResponseBuffer = await response.arrayBuffer();
+                  const originalResponseArray = new Int8Array(originalResponseBuffer);
+                  const decompressedResponseArray = BrotliDecode(originalResponseArray);
+                  const contentType = type ===
+                    'dotnetwasm' ? 'application/wasm' : 'application/octet-stream';
+                  return new Response(decompressedResponseArray,
+                    { headers: { 'content-type': contentType } });
+                })();
+              }
+            }
+          }
+        });
+    </script>
 </body>
 
 </html>

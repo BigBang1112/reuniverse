@@ -9,6 +9,11 @@
         <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <InvariantTimezone>true</InvariantTimezone>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\..\MyBlazorPhotinoHybrid\MyBlazorPhotinoHybrid.csproj" />
     </ItemGroup>
