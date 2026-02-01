@@ -14,6 +14,13 @@
   <Folder Name="/Templates/">
     <Project Path="Templates/Reuniverse.Templates.csproj" />
   </Folder>
+  <Folder Name="/Templates/BlazorPhotinoHybrid/">
+    <Project Path="Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWasm/MyBlazorPhotinoHybrid.BlazorWasm.csproj" Id="d407ead4-16e0-4ada-bcab-9c6a5cdf6873" />
+    <Project Path="Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWebApp/MyBlazorPhotinoHybrid.BlazorWebApp.Client/MyBlazorPhotinoHybrid.BlazorWebApp.Client.csproj" Id="2e12a37d-ebdb-4fd7-80af-ea1b581ff318" />
+    <Project Path="Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWebApp/MyBlazorPhotinoHybrid.BlazorWebApp/MyBlazorPhotinoHybrid.BlazorWebApp.csproj" Id="89909ebb-347d-4da4-a2d2-08a1a3e6d23b" />
+    <Project Path="Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.Photino/MyBlazorPhotinoHybrid.Photino.csproj" />
+    <Project Path="Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid/MyBlazorPhotinoHybrid.csproj" />
+  </Folder>
   <Folder Name="/Templates/DiscordBot/">
     <Project Path="Templates/DiscordBot/MyDiscordBot/MyDiscordBot.csproj" />
   </Folder>
