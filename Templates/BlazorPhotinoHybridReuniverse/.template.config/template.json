@@ -1,0 +1,20 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "BigBang1112",
+    "classifications": [
+        "Web",
+        "Blazor",
+        "Photino",
+        "Hybrid",
+        "WebAssembly"
+    ],
+    "identity": "Reuniverse.Templates.BlazorPhotinoHybridReuniverse",
+    "name": "Reuniverse: Blazor Web App + WebAssembly + Photino (Reuniverse)",
+    "shortName": "reu-blazor-photino-hybrid-reu",
+    "sourceName": "MyBlazorPhotinoHybridReuniverse",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "description": "Provides a Blazor Web App + WebAssembly + Photino app with Reuniverse styling."
+}

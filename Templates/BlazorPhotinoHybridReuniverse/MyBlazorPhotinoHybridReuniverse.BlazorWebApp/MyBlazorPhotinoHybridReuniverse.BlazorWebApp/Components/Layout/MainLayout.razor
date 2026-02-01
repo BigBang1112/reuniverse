@@ -1,0 +1,49 @@
+﻿@inherits LayoutComponentBase
+
+<ReuNavMenu Brand="reuniverse.net">
+    <ReuNavItem Name="Explorer" Href="" IconType="IconType.Home" NavLinkMatch="NavLinkMatch.All"></ReuNavItem>
+    <ReuNavItem Name="Downloads" Href="downloads" IconType="IconType.Download"></ReuNavItem>
+    <ReuNavItem Name="About" Href="about" IconType="IconType.Info"></ReuNavItem>
+    <ReuNavItem Name="GitHub" Href="https://github.com/BigBang1112/gbx-net" IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" IconWidth="28" IconHeight="28"></ReuNavItem>
+    <ReuNavItem Name="Discord" Href="https://discord.gbx.tools" IconType="IconType.Discord" IsNavLink="false" IconOnly="true" Title="Join the Discord server"></ReuNavItem>
+</ReuNavMenu>
+@Body
+<ReuFooter>
+    <CopyrightContent>
+        © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoňka<br />
+        <small>
+            Not affiliated with or endorsed by Nadeo or Ubisoft.
+            All relevant trademarks belong to their respective owners.
+        </small>
+    </CopyrightContent>
+    <LinkContent>
+        <a href="/terms">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+        <AuthorizeView>
+            <Authorized>
+                <a href="logout">Logout</a>
+            </Authorized>
+        </AuthorizeView>
+    </LinkContent>
+    <ExtraContent>
+        <div class="footer-discover-more">
+            <span>Discover more:</span>
+            <a href="https://gbx.tools">gbx.tools</a>
+            <span>explorer.gbx.tools</span>
+            <a href="https://3d.gbx.tools">3d.gbx.tools</a>
+            <a href="https://io.gbx.tools">io.gbx.tools</a>
+            <a href="https://nc.gbx.tools">nc.gbx.tools</a>
+            <a href="https://revalidate.gbx.tools">revalidate.gbx.tools</a>
+            <a href="https://envimix.gbx.tools">envimix.gbx.tools</a>
+            <a href="https://uotd.gbx.tools">uotd.gbx.tools</a>
+            <a href="https://identity.gbx.tools">identity.gbx.tools</a>
+            <a href="https://nuget.gbx.tools">nuget.gbx.tools</a>
+        </div>
+    </ExtraContent>
+</ReuFooter>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

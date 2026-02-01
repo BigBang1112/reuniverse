@@ -21,6 +21,13 @@
     <Project Path="Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.Photino/MyBlazorPhotinoHybrid.Photino.csproj" />
     <Project Path="Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid/MyBlazorPhotinoHybrid.csproj" />
   </Folder>
+  <Folder Name="/Templates/BlazorPhotinoHybridReuniverse/">
+    <Project Path="Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWasm/MyBlazorPhotinoHybridReuniverse.BlazorWasm.csproj" />
+    <Project Path="Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/MyBlazorPhotinoHybridReuniverse.BlazorWebApp.Client/MyBlazorPhotinoHybridReuniverse.BlazorWebApp.Client.csproj" />
+    <Project Path="Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/MyBlazorPhotinoHybridReuniverse.BlazorWebApp.csproj" />
+    <Project Path="Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.Photino/MyBlazorPhotinoHybridReuniverse.Photino.csproj" />
+    <Project Path="Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.csproj" />
+  </Folder>
   <Folder Name="/Templates/DiscordBot/">
     <Project Path="Templates/DiscordBot/MyDiscordBot/MyDiscordBot.csproj" />
   </Folder>

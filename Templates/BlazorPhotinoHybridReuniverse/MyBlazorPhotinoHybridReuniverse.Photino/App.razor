@@ -1,0 +1,33 @@
+<ReuMenuBar Items="menu"></ReuMenuBar>
+<Component1></Component1>
+
+@code {
+    IEnumerable<ReuMenuBarItemData> menu = new ReuMenuBarItemData[]
+    {
+        new()
+        {
+            Name = "File",
+            Items = new List<ReuMenuBarItemData>
+            {
+                new() { Name = "New" },
+                new() { Name = "Open" },
+                new() { Name = "Save" },
+                new() { Name = "Save As" },
+                new() { Name = "Exit" },
+            }
+        },
+        new()
+        {
+            Name = "Edit",
+            Items = new List<ReuMenuBarItemData>
+            {
+                new() { Name = "Undo" },
+                new() { Name = "Redo" },
+                new() { Name = "Cut" },
+                new() { Name = "Copy" },
+                new() { Name = "Paste" },
+            }
+        },
+        new() { Name = "Help", Href = "https://explorer.gbx.tools", Target="_blank" }
+    };
+}
