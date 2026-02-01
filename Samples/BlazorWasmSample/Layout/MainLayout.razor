@@ -54,4 +54,11 @@
 </ReuFooter>
 
 <ReuTooltip IsGlobal="true"></ReuTooltip>
-<ReuUploadScreen></ReuUploadScreen>
+<ReuUploadScreen Streamed="true" OnStream="Stream"></ReuUploadScreen>
+
+@code{
+    private void Stream(StreamEventArgs args)
+    {
+        
+    }
+}

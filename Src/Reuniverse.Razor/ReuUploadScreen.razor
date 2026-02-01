@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Forms
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
@@ -10,6 +11,8 @@
                        MaxFileCount="MaxFileCount"
                        MaxFileSize="MaxFileSize"
                        Accept="@Accept"
+                       Streamed="Streamed"
+                       OnStream="Stream"
                        CssClass="@CssClassArea">
             @ChildContent
         </ReuUploadArea>
@@ -80,6 +83,12 @@
     [Parameter]
     public EventCallback<bool> IsVisibleChanged { get; set; }
 
+    [Parameter]
+    public bool Streamed { get; set; }
+
+    [Parameter]
+    public EventCallback<StreamEventArgs> OnStream { get; set; }
+
     protected override void OnInitialized() =>
         objRef = DotNetObjectReference.Create(this);
 
@@ -106,6 +115,12 @@
     private async Task Upload(UploadEventArgs args)
     {
         await OnUpload.InvokeAsync(args);
+        await SetVisible(false);
+    }
+
+    private async Task Stream(StreamEventArgs args)
+    {
+        await OnStream.InvokeAsync(args);
         await SetVisible(false);
     }
 

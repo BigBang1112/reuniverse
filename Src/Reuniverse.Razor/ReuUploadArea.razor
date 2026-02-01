@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IJSRuntime JS
@@ -6,14 +7,27 @@
     @if (RendererInfo.IsInteractive)
     {
         @ChildContent
-        
-        <input @ref="inputFile"
-               @ondragenter="DragEnter"
-               @ondragleave="DragEnd"
-               @ondragend="DragEnd"
-               @ondrop="DragEnd" type="file" class="file" accept="@Accept"
-               multiple="@(MaxFileCount is null or > 1)"
-               @attributes="AdditionalAttributes" />
+
+        @if (Streamed)
+        {
+            <InputFile OnChange="ChangeAsync"
+                       @ondragenter="DragEnter"
+                       @ondragleave="DragEnd"
+                       @ondragend="DragEnd"
+                       @ondrop="DragEnd" class="file" accept="@Accept"
+                       multiple="@(MaxFileCount is null or > 1)"
+                       @attributes="AdditionalAttributes" />
+        }
+        else
+        {
+            <input @ref="inputFile"
+                   @ondragenter="DragEnter"
+                   @ondragleave="DragEnd"
+                   @ondragend="DragEnd"
+                   @ondrop="DragEnd" type="file" class="file" accept="@Accept"
+                   multiple="@(MaxFileCount is null or > 1)"
+                   @attributes="AdditionalAttributes" />
+        }
     }
     else
     {
@@ -88,6 +102,12 @@
     [Parameter]
     public int LoaderThickness { get; set; } = 8;
 
+    [Parameter]
+    public bool Streamed { get; set; }
+
+    [Parameter]
+    public EventCallback<StreamEventArgs> OnStream { get; set; }
+
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
 
@@ -96,7 +116,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender && !Streamed)
         {
             module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadArea.razor.js");
             await module.InvokeVoidAsync("addHandlers", inputFile, objRef);
@@ -135,6 +155,15 @@
     private void DragEnd()
     {
         dragged = false;
+    }
+
+    private async Task ChangeAsync(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(MaxFileCount ?? int.MaxValue))
+        {
+            var stream = file.OpenReadStream(MaxFileSize ?? long.MaxValue);
+            await OnStream.InvokeAsync(new StreamEventArgs(file.Name, file.Size, stream, file.LastModified));
+        }
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
