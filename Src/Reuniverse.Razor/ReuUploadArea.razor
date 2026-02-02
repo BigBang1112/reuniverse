@@ -11,6 +11,7 @@
         @if (Streamed)
         {
             <InputFile OnChange="ChangeAsync"
+                       @ref="inputFileStreamed"
                        @ondragenter="DragEnter"
                        @ondragleave="DragEnd"
                        @ondragend="DragEnd"
@@ -20,11 +21,12 @@
         }
         else
         {
-            <input @ref="inputFile"
+            <input class="file"
+                   @ref="inputFileUpload"
                    @ondragenter="DragEnter"
                    @ondragleave="DragEnd"
                    @ondragend="DragEnd"
-                   @ondrop="DragEnd" type="file" class="file" accept="@Accept"
+                   @ondrop="DragEnd" type="file" accept="@Accept"
                    multiple="@(MaxFileCount is null or > 1)"
                    @attributes="AdditionalAttributes" />
         }
@@ -36,7 +38,8 @@
 </div>
 
 @code {
-    private ElementReference inputFile;
+    private InputFile? inputFileStreamed;
+    private ElementReference inputFileUpload;
     private IJSObjectReference? module;
     private DotNetObjectReference<ReuUploadArea>? objRef;
 
@@ -116,10 +119,10 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !Streamed)
+        if (firstRender)
         {
             module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadArea.razor.js");
-            await module.InvokeVoidAsync("addHandlers", inputFile, objRef);
+            await module.InvokeVoidAsync("addHandlers", inputFileStreamed?.Element ?? inputFileUpload, objRef, Streamed);
         }
     }
 
