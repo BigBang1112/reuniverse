@@ -425,6 +425,15 @@ footer.reu-footer {
         gap: 0.2rem;
     }
 
+.reu-upload-button input {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: calc(100% + 3px);
+    cursor: pointer;
+    opacity: 0;
+}
+
 .invalid {
     outline: 1px solid var(--color-red);
 }
