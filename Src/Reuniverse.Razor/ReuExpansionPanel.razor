@@ -10,6 +10,9 @@
 </div>
 
 @code {
+    [CascadingParameter]
+    private ReuExpansionPanels? Parent { get; set; }
+
     [Parameter]
     public RenderFragment? TitleContent { get; set; }
 
@@ -31,9 +34,25 @@
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
 
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        Parent?.Register(this);
+    }
+
     private async Task ToggleExpanded()
     {
+        if (Parent?.SingleExpansion == true)
+        {
+            Parent?.CollapseAll();
+        }
+
         Expanded = !Expanded;
         await ExpandedChanged.InvokeAsync(Expanded);
+    }
+
+    internal void Collapse()
+    {
+        Expanded = false;
     }
 }

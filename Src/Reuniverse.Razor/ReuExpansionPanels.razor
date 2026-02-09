@@ -5,6 +5,8 @@
 </div>
 
 @code {
+    internal List<ReuExpansionPanel> Panels { get; } = new();
+
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
@@ -14,6 +16,24 @@
     [Parameter]
     public string? CssClass { get; set; }
 
+    [Parameter]
+    public bool SingleExpansion { get; set; }
+
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    internal void Register(ReuExpansionPanel panel)
+    {
+        Panels.Add(panel);
+        StateHasChanged();
+    }
+
+    public void CollapseAll()
+    {
+        foreach (var panel in Panels)
+        {
+            panel.Collapse();
+        }
+        StateHasChanged();
+    }
 }
