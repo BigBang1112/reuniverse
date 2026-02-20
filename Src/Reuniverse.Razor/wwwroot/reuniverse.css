@@ -360,6 +360,7 @@ input[type=number] {
     input[type=email]:read-only,
     input[type=number]:read-only {
         background-color: var(--color-input-bg-hover);
+        border: 1px solid var(--color-input-bg-disabled);
     }
 
         input[type=text]:read-only:hover,
@@ -377,6 +378,7 @@ input[type=number] {
         input[type=email]:read-only:hover,
         input[type=number]:read-only:hover {
             border-color: var(--color-input-border);
+            border: 1px solid var(--color-input-bg-disabled);
         }
 
 textarea {
