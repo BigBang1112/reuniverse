@@ -24,6 +24,7 @@
     height: 24px;
     font-family: var(--font-mono), monospace;
     font-variant-ligatures: no-common-ligatures;
+    font-size: 85%;
 }
 
 ::deep select {
