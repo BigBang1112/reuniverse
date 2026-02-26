@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "BigBang1112",
+    "classifications": [
+        "Web",
+        "Blazor",
+        "GitHub Pages",
+        "GitHub",
+        "Pages",
+        "WebAssembly"
+    ],
+    "identity": "Reuniverse.Templates.BlazorWasmPages",
+    "name": "Reuniverse: Blazor WebAssembly on GitHub Pages (barebone)",
+    "shortName": "reu-blazor-wasm-pages",
+    "sourceName": "MyBlazorWasmPages",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "description": "Provides a Blazor WebAssembly app hosted on GitHub Pages with no styling."
+}

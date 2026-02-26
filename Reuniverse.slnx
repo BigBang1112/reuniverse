@@ -28,6 +28,10 @@
     <Project Path="Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.Photino/MyBlazorPhotinoHybridReuniverse.Photino.csproj" />
     <Project Path="Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.csproj" />
   </Folder>
+  <Folder Name="/Templates/BlazorWasmPages/">
+    <Project Path="Templates/BlazorWasmPages/MyBlazorWasmPages/MyBlazorWasmPages.csproj" Id="2c7b5758-d185-4c41-9889-67a22aaafaeb" />
+  </Folder>
+  <Folder Name="/Templates/BlazorWasmPagesReuniverse/" />
   <Folder Name="/Templates/DiscordBot/">
     <Project Path="Templates/DiscordBot/MyDiscordBot/MyDiscordBot.csproj" />
   </Folder>
