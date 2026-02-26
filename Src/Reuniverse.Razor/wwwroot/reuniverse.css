@@ -75,6 +75,7 @@ var,
 textarea {
     font-family: var(--font-mono), monospace;
     font-variant-ligatures: no-common-ligatures;
+    font-weight: 200;
 }
 
 body {
