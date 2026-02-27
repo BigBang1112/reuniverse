@@ -2,6 +2,10 @@ body {
     background-color: #111;
 }
 
+h1 {
+    outline: none;
+}
+
 #app {
     min-height: 100vh;
     display: flex;

@@ -2,40 +2,33 @@
 
 <ReuNavMenu Brand="reuniverse">
     <ReuNavItem Name="Home" Href="" IconType="IconType.Home" NavLinkMatch="NavLinkMatch.All"></ReuNavItem>
+    <ReuNavItem Name="Components" Href="components"></ReuNavItem>
     <ReuNavItem Name="About" Href="about" IconType="IconType.Info"></ReuNavItem>
     <ReuNavItem Name="GitHub" Href="https://github.com/BigBang1112/reuniverse" IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" IconWidth="28" IconHeight="28"></ReuNavItem>
-    <ReuNavItem Name="Discord" Href="https://discord.gbx.tools" IconType="IconType.Discord" IsNavLink="false" IconOnly="true" Title="Join the Discord server"></ReuNavItem>
-    <ReuNavItem Name="Login" Href="login" IconType="IconType.Login" IsNavLink="false" IconOnly="true" Title="Login"></ReuNavItem>
 </ReuNavMenu>
 
 <ReuMain>
-    @Body
+    <ReuContainer>
+        @Body
+    </ReuContainer>
 </ReuMain>
 
 <ReuFooter>
     <CopyrightContent>
-        © 2026 Copyright<br />
-        <small>
-            All relevant trademarks belong to their respective owners.
-        </small>
+        © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoňka<br />
     </CopyrightContent>
     <LinkContent>
-        <a href="#">Terms of Service</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">API</a>
+        <a href="/terms">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
     </LinkContent>
     <ExtraContent>
         <div class="footer-discover-more">
-            <span>Discover more:</span>
+            <span>More examples:</span>
             <a href="https://gbx.tools">gbx.tools</a>
-            <a href="https://explorer.gbx.tools">explorer.gbx.tools</a>
             <a href="https://3d.gbx.tools">3d.gbx.tools</a>
-            <a href="https://io.gbx.tools">io.gbx.tools</a>
             <a href="https://nc.gbx.tools">nc.gbx.tools</a>
             <a href="https://revalidate.gbx.tools">revalidate.gbx.tools</a>
             <a href="https://envimix.gbx.tools">envimix.gbx.tools</a>
-            <a href="https://uotd.gbx.tools">uotd.gbx.tools</a>
-            <a href="https://nuget.gbx.tools">nuget.gbx.tools</a>
         </div>
     </ExtraContent>
 </ReuFooter>

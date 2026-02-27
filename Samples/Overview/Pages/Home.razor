@@ -1,9 +1,75 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Home - Reuniverse</PageTitle>
 
-<ReuContainer>
-    <h1>Hello, world!</h1>
+<ReuCenter>
+    <h1 class="title">REUNIVERSE</h1>
+    <p class="punchline">Templates, components, and styling not only for your Blazor ecosystem.</p>
+    <div class="package-grid">
+        <h2>Reuniverse.Templates</h2>
+        <input class="install reu-mono" value="dotnet new install Reuniverse.Templates" readonly />
+        <ReuButton CssClass="nuget" Href="https://www.nuget.org/packages/Reuniverse.Templates" Variant="ReuButtonVariant.Blue">
+            <img src="_content/Reuniverse.Razor/icons/nuget.svg" width="48" height="48" />
+            NuGet
+        </ReuButton>
+        <h2>Reuniverse.Razor</h2>
+        <input class="install reu-mono" value="dotnet add package Reuniverse.Razor" readonly />
+        <ReuButton CssClass="nuget" Href="https://www.nuget.org/packages/Reuniverse.Razor" Variant="ReuButtonVariant.Blue">
+            <img src="_content/Reuniverse.Razor/icons/nuget.svg" width="48" height="48" />
+            NuGet
+        </ReuButton>
+    </div>
+</ReuCenter>
 
-    Welcome to your new app. <code>Mono test 0123</code>
-</ReuContainer>
+<h1>Styling</h1>
+
+<textarea placeholder="This is a textarea."></textarea>
+<InputText type="text" readonly @bind-Value="AssetSearchValue" @oninput="OnAssetSearchInput" placeholder="Search..." />
+<InputSelect @bind-Value="selected">
+    <option value="a">AAAA AAA AAAAAAA AAAAAA</option>
+    <option value="b">BBB BBBBBBB BB BBBBB</option>
+    <option value="c">CCCCCCCC CCCCCC CCC</option>
+</InputSelect>
+<InputDate @bind-Value="selectedDate" />
+<InputDate Type="InputDateType.DateTimeLocal" @bind-Value="selectedDate" />
+<InputDate Type="InputDateType.Time" @bind-Value="selectedDate" />
+<InputDate Type="InputDateType.Month" @bind-Value="selectedDate" />
+<input type="color" @bind="selectedColor" />
+<input type="password" />
+<input type="search" />
+<input type="submit" />
+<input type="week" />
+<input type="url" />
+<input type="tel" />
+<input type="email" />
+<input type="button" value="Test" />
+<input type="number" />
+<progress id="file" value="32" max="100"> 32% </progress>
+
+
+@code {
+    private string assetSearchValue = "";
+    private DateTime selectedDate = DateTime.Today;
+    private string selectedColor = "#FF0000";
+
+    public string AssetSearchValue
+    {
+        get => assetSearchValue;
+        set
+        {
+            if (assetSearchValue == value)
+            {
+                return;
+            }
+
+            assetSearchValue = value;
+        }
+    }
+
+    private void OnAssetSearchInput(ChangeEventArgs e)
+    {
+        AssetSearchValue = e.Value?.ToString() ?? "";
+    }
+
+    private string selected = "a";
+}
