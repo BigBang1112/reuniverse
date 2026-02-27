@@ -37,10 +37,12 @@ jobs:
         run: dotnet workload install wasm-tools
 
       - name: Publish
-        run: dotnet publish Samples/BlazorWasmSample -c Release -o publish
+        run: dotnet publish Samples/Overview -c Release -o publish
 
-      - name: Change base href to repository name
-        run: sed -i 's/<base href="\/" \/>/<base href="\/${{ github.event.repository.name }}\/" \/>/g' publish/wwwroot/index.html
+      - name: Change base in index.html and service-worker.js to repository name
+        run: |
+          sed -i 's/<base href="\/" \/>/<base href="\/${{ github.event.repository.name }}\/" \/>/g' publish/wwwroot/index.html
+          sed -i 's/const base = "\/";/const base = "\/${{ github.event.repository.name }}\/";/g' publish/wwwroot/service-worker.js
         
       - name: Setup Pages
         uses: actions/configure-pages@v5
