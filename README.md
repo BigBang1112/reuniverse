@@ -33,8 +33,8 @@ To use the components:
     <ReuNavItem Name="Home" Href="" IconType="IconType.Home" NavLinkMatch="NavLinkMatch.All"></ReuNavItem>
     <ReuNavItem Name="Downloads" Href="downloads" IconType="IconType.Download"></ReuNavItem>
     <ReuNavItem Name="About" Href="about" IconType="IconType.Info"></ReuNavItem>
-    <ReuNavItem Name="GitHub" Href="https://github.com/BigBang1112/nations-converter" IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" IconWidth="28" IconHeight="28"></ReuNavItem>
-    <ReuNavItem Name="Discord" Href="https://discord.nc.gbx.tools" IconType="IconType.Discord" IsNavLink="false" IconOnly="true" Title="Join the Discord server"></ReuNavItem>
+    <ReuNavItem Name="GitHub" Href="https://github.com/BigBang1112/reuniverse" IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" IconWidth="28" IconHeight="28"></ReuNavItem>
+    <ReuNavItem Name="Discord" Href="https://discord.gbx.tools" IconType="IconType.Discord" IsNavLink="false" IconOnly="true" Title="Join the Discord server"></ReuNavItem>
 </ReuNavMenu>
 ```
 
