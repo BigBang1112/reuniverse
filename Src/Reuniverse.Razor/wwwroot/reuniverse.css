@@ -65,19 +65,6 @@ html, body {
     color: var(--color-text-primary);
 }
 
-.reu-mono,
-code,
-pre,
-kbd,
-samp,
-tt,
-var,
-textarea {
-    font-family: var(--font-mono), monospace;
-    font-variant-ligatures: no-common-ligatures;
-    font-weight: 200;
-}
-
 body {
     overflow-x: hidden;
     min-height: 100vh;
@@ -258,6 +245,34 @@ main.reu-main {
         flex-flow: wrap;
     }
 
+.reu-document {
+    max-width: 800px;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+    .reu-document .last-updated {
+        font-style: italic;
+        font-size: 0.9em;
+        margin-bottom: 2rem;
+        border-left: 3px solid #ddd;
+        padding-left: 1rem;
+    }
+
+    .reu-document h2 {
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .reu-document ul {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+    }
+
+    .reu-document li {
+        margin-bottom: 0.5rem;
+    }
+
 select {
     cursor: pointer;
 }
@@ -381,6 +396,19 @@ input[type=number] {
             border-color: var(--color-input-border);
             border: 1px solid var(--color-input-bg-disabled);
         }
+
+.reu-mono,
+code,
+pre,
+kbd,
+samp,
+tt,
+var,
+textarea {
+    font-family: var(--font-mono), monospace !important;
+    font-variant-ligatures: no-common-ligatures;
+    font-weight: 200;
+}
 
 textarea {
     padding: 5px;
