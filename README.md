@@ -141,7 +141,7 @@ A component to display friendly names for .NET types.
 Example:
 
 ```cshtml
-<ReuFriendlyType Type="typeof(Dictionary&lt;string, List&lt;int&gt;&gt;)" />
+<ReuFriendlyType Type="typeof(Dictionary<string, List<int>>)" />
 ```
 
 ### `<ReuCheckbox>`
