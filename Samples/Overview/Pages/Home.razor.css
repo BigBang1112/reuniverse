@@ -48,5 +48,9 @@ input.install {
     display: grid;
     grid-template-columns: auto 1fr;
     align-items: center;
-    gap: 0 2rem;
+    gap: 1rem 2rem;
+}
+
+pre {
+    margin: 0.5rem;
 }

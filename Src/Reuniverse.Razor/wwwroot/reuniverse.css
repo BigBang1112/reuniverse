@@ -418,6 +418,18 @@ textarea {
     border: 1px solid #333;
 }
 
+    textarea:read-only {
+        background-color: var(--color-input-bg-hover);
+        border: 1px solid var(--color-input-bg-disabled);
+    }
+
+    textarea:disabled {
+        background-color: var(--color-input-bg-disabled);
+        border-color: var(--color-input-border);
+        color: var(--color-text-secondary);
+        cursor: not-allowed;
+    }
+
 progress {
     border: 1px solid var(--color-input-border);
     border-radius: 5px;

@@ -27,10 +27,14 @@
     <pre>&lt;input type="text"&gt;</pre>
     <div>
         <input type="text" value="Some value" />
+        <input type="text" value="Some value" readonly />
+        <input type="text" value="Some value" disabled />
     </div>
     <pre>&lt;textarea&gt;</pre>
     <div>
-        <textarea placeholder="This is a textarea."></textarea>
+        <textarea placeholder="Placeholder...">Some value</textarea>
+        <textarea placeholder="Placeholder..." readonly>Some value</textarea>
+        <textarea placeholder="Placeholder..." disabled>Some value</textarea>
     </div>
     <pre>&lt;select&gt;</pre>
     <div>
@@ -39,62 +43,92 @@
             <option value="b">BBB BBBBBBB BB BBBBB</option>
             <option value="c">CCCCCCCC CCCCCC CCC</option>
         </InputSelect>
+        <InputSelect @bind-Value="selected" disabled>
+            <option value="a">AAAA AAA AAAAAAA AAAAAA</option>
+            <option value="b">BBB BBBBBBB BB BBBBB</option>
+            <option value="c">CCCCCCCC CCCCCC CCC</option>
+        </InputSelect>
     </div>
     <pre>&lt;input type="date"&gt;</pre>
     <div>
         <InputDate @bind-Value="selectedDate" />
+        <InputDate @bind-Value="selectedDate" readonly />
+        <InputDate @bind-Value="selectedDate" disabled />
     </div>
     <pre>&lt;input type="datetime-local"&gt;</pre>
     <div>
         <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="selectedDate" />
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="selectedDate" readonly />
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="selectedDate" disabled />
     </div>
     <pre>&lt;input type="time"&gt;</pre>
     <div>
         <InputDate Type="InputDateType.Time" @bind-Value="selectedDate" />
+        <InputDate Type="InputDateType.Time" @bind-Value="selectedDate" readonly />
+        <InputDate Type="InputDateType.Time" @bind-Value="selectedDate" disabled />
     </div>
     <pre>&lt;input type="month"&gt;</pre>
     <div>
         <InputDate Type="InputDateType.Month" @bind-Value="selectedDate" />
+        <InputDate Type="InputDateType.Month" @bind-Value="selectedDate" readonly />
+        <InputDate Type="InputDateType.Month" @bind-Value="selectedDate" disabled />
     </div>
     <pre>&lt;input type="color"&gt;</pre>
     <div>
         <input type="color" @bind="selectedColor" />
+        <input type="color" @bind="selectedColor" disabled />
     </div>
     <pre>&lt;input type="password"&gt;</pre>
     <div>
         <input type="password" />
+        <input type="password" value="superpassword" readonly />
+        <input type="password" value="superpassword" disabled />
     </div>
     <pre>&lt;input type="search"&gt;</pre>
     <div>
         <input type="search" placeholder="Search..." />
+        <input type="search" placeholder="Search..." readonly />
+        <input type="search" placeholder="Search..." disabled />
     </div>
     <pre>&lt;input type="submit"&gt;</pre>
-    <div>
+    <div style="display:flex;gap:0.5rem">
         <input type="submit" />
+        <input type="submit" disabled />
     </div>
     <pre>&lt;input type="week"&gt;</pre>
     <div>
         <input type="week" />
+        <input type="week" readonly />
+        <input type="week" disabled />
     </div>
     <pre>&lt;input type="url"&gt;</pre>
     <div>
         <input type="url" />
+        <input type="url" readonly />
+        <input type="url" disabled />
     </div>
     <pre>&lt;input type="tel"&gt;</pre>
     <div>
         <input type="tel" />
+        <input type="tel" readonly />
+        <input type="tel" disabled />
     </div>
     <pre>&lt;input type="email"&gt;</pre>
     <div>
         <input type="email" />
+        <input type="email" readonly />
+        <input type="email" disabled />
     </div>
     <pre>&lt;input type="button"&gt;</pre>
-    <div>
+    <div style="display:flex;gap:0.5rem">
         <input type="button" value="Test" />
+        <input type="button" value="Test" disabled />
     </div>
     <pre>&lt;input type="number"&gt;</pre>
     <div>
         <input type="number" />
+        <input type="number" readonly />
+        <input type="number" disabled />
     </div>
     <pre>&lt;progress&gt;</pre>
     <div>
