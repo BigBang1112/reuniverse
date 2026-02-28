@@ -31,10 +31,6 @@ p.punchline {
     }
 }
 
-@media (max-width: 800px) {
-    
-}
-
 input.install {
     padding: 0.3rem 0.5rem;
     border-radius: 0.5rem;
@@ -46,4 +42,11 @@ input.install {
     gap: 1rem;
     font-size: 130%;
     font-weight: bold;
+}
+
+.styling {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0 2rem;
 }

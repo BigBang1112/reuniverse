@@ -23,28 +23,84 @@
 
 <h1>Styling</h1>
 
-<textarea placeholder="This is a textarea."></textarea>
-<InputText type="text" readonly @bind-Value="AssetSearchValue" @oninput="OnAssetSearchInput" placeholder="Search..." />
-<InputSelect @bind-Value="selected">
-    <option value="a">AAAA AAA AAAAAAA AAAAAA</option>
-    <option value="b">BBB BBBBBBB BB BBBBB</option>
-    <option value="c">CCCCCCCC CCCCCC CCC</option>
-</InputSelect>
-<InputDate @bind-Value="selectedDate" />
-<InputDate Type="InputDateType.DateTimeLocal" @bind-Value="selectedDate" />
-<InputDate Type="InputDateType.Time" @bind-Value="selectedDate" />
-<InputDate Type="InputDateType.Month" @bind-Value="selectedDate" />
-<input type="color" @bind="selectedColor" />
-<input type="password" />
-<input type="search" />
-<input type="submit" />
-<input type="week" />
-<input type="url" />
-<input type="tel" />
-<input type="email" />
-<input type="button" value="Test" />
-<input type="number" />
-<progress id="file" value="32" max="100"> 32% </progress>
+<div class="styling">
+    <pre>&lt;input type="text"&gt;</pre>
+    <div>
+        <input type="text" value="Some value" />
+    </div>
+    <pre>&lt;textarea&gt;</pre>
+    <div>
+        <textarea placeholder="This is a textarea."></textarea>
+    </div>
+    <pre>&lt;select&gt;</pre>
+    <div>
+        <InputSelect @bind-Value="selected">
+            <option value="a">AAAA AAA AAAAAAA AAAAAA</option>
+            <option value="b">BBB BBBBBBB BB BBBBB</option>
+            <option value="c">CCCCCCCC CCCCCC CCC</option>
+        </InputSelect>
+    </div>
+    <pre>&lt;input type="date"&gt;</pre>
+    <div>
+        <InputDate @bind-Value="selectedDate" />
+    </div>
+    <pre>&lt;input type="datetime-local"&gt;</pre>
+    <div>
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="selectedDate" />
+    </div>
+    <pre>&lt;input type="time"&gt;</pre>
+    <div>
+        <InputDate Type="InputDateType.Time" @bind-Value="selectedDate" />
+    </div>
+    <pre>&lt;input type="month"&gt;</pre>
+    <div>
+        <InputDate Type="InputDateType.Month" @bind-Value="selectedDate" />
+    </div>
+    <pre>&lt;input type="color"&gt;</pre>
+    <div>
+        <input type="color" @bind="selectedColor" />
+    </div>
+    <pre>&lt;input type="password"&gt;</pre>
+    <div>
+        <input type="password" />
+    </div>
+    <pre>&lt;input type="search"&gt;</pre>
+    <div>
+        <input type="search" placeholder="Search..." />
+    </div>
+    <pre>&lt;input type="submit"&gt;</pre>
+    <div>
+        <input type="submit" />
+    </div>
+    <pre>&lt;input type="week"&gt;</pre>
+    <div>
+        <input type="week" />
+    </div>
+    <pre>&lt;input type="url"&gt;</pre>
+    <div>
+        <input type="url" />
+    </div>
+    <pre>&lt;input type="tel"&gt;</pre>
+    <div>
+        <input type="tel" />
+    </div>
+    <pre>&lt;input type="email"&gt;</pre>
+    <div>
+        <input type="email" />
+    </div>
+    <pre>&lt;input type="button"&gt;</pre>
+    <div>
+        <input type="button" value="Test" />
+    </div>
+    <pre>&lt;input type="number"&gt;</pre>
+    <div>
+        <input type="number" />
+    </div>
+    <pre>&lt;progress&gt;</pre>
+    <div>
+        <progress id="file" value="32" max="100"> 32% </progress>
+    </div>
+</div>
 
 
 @code {
