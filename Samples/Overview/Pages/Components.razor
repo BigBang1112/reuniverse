@@ -4,3 +4,339 @@
 <PageTitle>Components - Reuniverse</PageTitle>
 
 <h1>Components</h1>
+
+<div class="components">
+    <div>
+        <h2>&lt;ReuCheckbox&gt;</h2>
+    </div>
+    <div>
+        <ReuCheckbox>Should do this?</ReuCheckbox>
+        <ReuCheckbox disabled>Should do this?</ReuCheckbox>
+    </div>
+    <div>
+        <h2>&lt;ReuRadio&gt;</h2>
+    </div>
+    <div>
+        <ReuRadio Name="Rad">Option 1</ReuRadio>
+        <ReuRadio Name="Rad">Option 2</ReuRadio>
+        <ReuRadio Name="Rad" disabled>Option 3</ReuRadio>
+        <ReuRadio Name="Rad">Option 4</ReuRadio>
+    </div>
+    <div>
+        <h2>&lt;ReuButton&gt;</h2>
+    </div>
+    <div>
+        <ReuButton Tooltip="This button is enabled">Enabled button</ReuButton>
+        <ReuButton Enable="false">Disabled button</ReuButton>
+        <ReuButton Variant="ReuButtonVariant.Blue" Enable="false">Disabled blue button</ReuButton>
+        <ReuButton Variant="ReuButtonVariant.Red">Red button</ReuButton>
+
+        <ReuButton Href="https://gbx.tools" Variant="ReuButtonVariant.Yellow">Enabled link</ReuButton>
+        <ReuButton Href="https://gbx.tools" Variant="ReuButtonVariant.Yellow" Enable="false">Disabled link</ReuButton>
+    </div>
+    <div>
+        <h2>&lt;ReuExpansionPanels&gt;</h2>
+    </div>
+    <div>
+        <ReuExpansionPanels>
+            <ReuExpansionPanel>
+                <TitleContent>
+                    Expansion Panel 1
+                </TitleContent>
+                <ChildContent>
+                    This is the content of Expansion Panel 1.
+                </ChildContent>
+            </ReuExpansionPanel>
+            <ReuExpansionPanel>
+                <TitleContent>
+                    Expansion Panel 2
+                </TitleContent>
+                <ChildContent>
+                    This is the content of Expansion Panel 2.
+                </ChildContent>
+            </ReuExpansionPanel>
+            <ReuExpansionPanel>
+                <TitleContent>
+                    Expansion Panel 3
+                </TitleContent>
+                <ChildContent>
+                    This is the content of Expansion Panel 3.
+                </ChildContent>
+            </ReuExpansionPanel>
+        </ReuExpansionPanels>
+    </div>
+    <div>
+        <h2>&lt;ReuTabs&gt;</h2>
+    </div>
+    <div>
+        <ReuTabs>
+            <ReuTab>
+                <TitleContent>
+                    Tab 1
+                </TitleContent>
+                <ChildContent>
+                    This is the content of Tab 1.
+                </ChildContent>
+            </ReuTab>
+            <ReuTab>
+                <TitleContent>
+                    Tab 2
+                </TitleContent>
+                <ChildContent>
+                    This is the content of Tab 2.
+                </ChildContent>
+            </ReuTab>
+            <ReuTab>
+                <TitleContent>
+                    Tab 3
+                </TitleContent>
+                <ChildContent>
+                    This is the content of Tab 3.
+                </ChildContent>
+            </ReuTab>
+        </ReuTabs>
+    </div>
+    <div>
+        <h2>&lt;ReuList&gt;</h2>
+    </div>
+    <div>
+        <ReuList Panel="true" Wrap="true">
+            <ReuListItem><img alt="TMSX" width="48" height="48" /></ReuListItem>
+            <ReuListItem><img alt="TMNESWC" width="48" height="48" /></ReuListItem>
+            <ReuListItem><img alt="TMUF" width="48" height="48" /></ReuListItem>
+            <ReuListItem><img alt="TMT" width="48" height="48" /></ReuListItem>
+            <ReuListItem><img alt="MP4" width="48" height="48" /></ReuListItem>
+            <ReuListItem><img alt="TM2020" width="48" height="48" /></ReuListItem>
+        </ReuList>
+        <ReuList Panel="true" Vertical="true" Grow="false" style="height: 50px">
+            <ReuListItem>A</ReuListItem>
+            <ReuListItem>B</ReuListItem>
+            <ReuListItem>C</ReuListItem>
+            <ReuListItem>D</ReuListItem>
+            <ReuListItem>E</ReuListItem>
+            <ReuListItem>F</ReuListItem>
+        </ReuList>
+    </div>
+    <div>
+        <h2>&lt;ReuUploadButton&gt;</h2>
+    </div>
+    <div>
+        <ReuUploadButton>Open files...</ReuUploadButton>
+    </div>
+    <div>
+        <h2>&lt;ReuUploadArea&gt;</h2>
+    </div>
+    <div>
+        <ReuUploadArea></ReuUploadArea>
+    </div>
+    <div>
+        <h2>&lt;ReuLoader&gt;</h2>
+    </div>
+    <div>
+        <ReuLoader></ReuLoader>
+    </div>
+    <div>
+        <h2>&lt;ReuFriendlyType&gt;</h2>
+    </div>
+    <div>
+        <ReuFriendlyType Type="typeof(Dictionary<string, List<int>>)"></ReuFriendlyType>
+    </div>
+    <div>
+        <h2>&lt;ReuNavMenu&gt;</h2>
+    </div>
+    <div>
+        <ReuMenuBar Items="items"></ReuMenuBar>
+    </div>
+    <div>
+        <h2>&lt;ReuObjectTree&gt;</h2>
+        <ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
+    </div>
+    <div style="overflow: auto">
+        <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true"></ReuObjectTree>
+    </div>
+</div>
+
+@code {
+    User obj = new User
+    {
+        Id = Guid.NewGuid(),
+        Username = "jane.doe",
+        Status = UserStatus.Active,
+        LastLogin = DateTime.UtcNow.AddDays(-2),
+
+        PrimaryAddress = new Address
+        {
+            Street = "123 Main St",
+            City = "Berlin",
+            Country = "Germany",
+            Location = new GeoLocation
+            {
+                Latitude = 52.5200,
+                Longitude = 13.4050
+            }
+        },
+
+        PreviousAddresses = new List<Address>
+        {
+            new Address
+            {
+                Street = "45 Old Road",
+                City = "Munich",
+                Country = "Germany",
+                Location = null
+            }
+        },
+
+        Preferences = new UserPreferences
+        {
+            ReceiveNewsletter = true,
+            CustomSettings = new Dictionary<string, string>
+            {
+                { "theme", "dark" },
+                { "language", "en-US" }
+            }
+        },
+
+        Orders = new List<Order>
+        {
+            new Order
+            {
+                OrderId = Guid.NewGuid(),
+                CreatedAt = DateTime.UtcNow.AddDays(-10),
+                TotalAmount = 149.97m,
+                Items = new List<OrderItem>
+                {
+                    new OrderItem
+                    {
+                        Sku = "ABC-123",
+                        Name = "Mechanical Keyboard",
+                        Quantity = 1,
+                        UnitPrice = 99.99m,
+                        Tags = new List<string> { "electronics", "keyboard" }
+                    },
+                    new OrderItem
+                    {
+                        Sku = "XYZ-456",
+                        Name = "Mouse Pad",
+                        Quantity = 2,
+                        UnitPrice = 24.99m,
+                        Tags = new List<string> { "accessories" }
+                    }
+                },
+                Metadata = new Dictionary<string, object?>
+                {
+                    { "couponUsed", true },
+                    { "deliveryEstimateDays", 3 },
+                    { "giftMessage", null }
+                }
+            }
+        },
+
+        Extensions = new Dictionary<string, object>
+        {
+            { "internalScore", 87.5 },
+            { "flags", new[] { "beta-user", "priority-support" } },
+            { "lastAudit", new { Auditor = "system", Passed = true } }
+        }
+    };
+
+    IEnumerable<ReuMenuBarItemData> items = new List<ReuMenuBarItemData>
+    {
+        new()
+        {
+            Name = "File",
+            Items = new()
+            {
+                new() { Name = "New" },
+                new() { Name = "Open" },
+                new()
+                {
+                    Name = "Save",
+                    Items = new()
+                    {
+                        new() { Name = "Save As..." },
+                        new() { Name = "Save All" }
+                    }
+                }
+            }
+        },
+        new()
+        {
+            Name = "Edit",
+            Items = new()
+            {
+                new() { Name = "Undo" },
+                new() { Name = "Redo" }
+            }
+        },
+        new() { Name = "Help", Href = "help" }
+    };
+
+    private bool showTypes = true;
+
+    private void OnTypesChanged(bool isChecked)
+    {
+        showTypes = isChecked;
+    }
+
+    public enum UserStatus
+    {
+        Active,
+        Suspended,
+        Deleted
+    }
+
+    public class Address
+    {
+        public required string Street { get; set; }
+        public required string City { get; set; }
+        public required string Country { get; set; }
+        public required GeoLocation? Location { get; set; }
+    }
+
+    public class GeoLocation
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+
+    public class UserPreferences
+    {
+        public bool ReceiveNewsletter { get; set; }
+        public required Dictionary<string, string> CustomSettings { get; set; }
+    }
+
+    public class Order
+    {
+        public Guid OrderId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public required List<OrderItem> Items { get; set; }
+        public decimal TotalAmount { get; set; }
+        public required Dictionary<string, object?> Metadata { get; set; }
+    }
+
+    public class OrderItem
+    {
+        public required string Sku { get; set; }
+        public required string Name { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public required List<string> Tags { get; set; }
+    }
+
+    public class User
+    {
+        public Guid Id { get; set; }
+        public required string Username { get; set; }
+        public UserStatus Status { get; set; }
+        public DateTime? LastLogin { get; set; }
+
+        public required Address PrimaryAddress { get; set; }
+        public required List<Address> PreviousAddresses { get; set; }
+
+        public UserPreferences? Preferences { get; set; }
+        public required List<Order> Orders { get; set; }
+
+        public required Dictionary<string, object> Extensions { get; set; }
+    }
+}

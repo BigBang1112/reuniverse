@@ -1,0 +1,31 @@
+@if (Selected)
+{
+    <div class="content">
+        @ChildContent
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    private ReuTabs? Parent { get; set; }
+
+    [Parameter]
+    public RenderFragment? TitleContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes to apply to the tab header.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    public bool Selected { get; internal set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        Parent?.Register(this);
+    }
+}
