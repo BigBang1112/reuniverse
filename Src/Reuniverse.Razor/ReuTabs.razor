@@ -3,7 +3,7 @@
         <div class="header">
             @foreach (var tab in Tabs)
             {
-                <span @onclick="() => SelectTabAsync(tab)">@tab.TitleContent</span>
+                <div class="tab @(tab.Selected ? "selected" : "")" @onclick="() => SelectTabAsync(tab)">@tab.TitleContent</div>
             }
         </div>
         <div class="content">
@@ -24,17 +24,19 @@
     [Parameter]
     public string? CssClass { get; set; }
 
-    /// <summary>
-    /// Index of the tab that should be selected by default.
-    /// </summary>
-    [Parameter]
-    public int DefaultTab { get; set; } = 0;
+    public ReuTab? SelectedTab { get; private set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
 
     internal void Register(ReuTab tab)
     {
+        if (SelectedTab is null)
+        {
+            tab.Selected = true;
+            SelectedTab = tab;
+        }
+
         Tabs.Add(tab);
         StateHasChanged();
     }
@@ -47,6 +49,7 @@
         }
 
         tab.Selected = true;
+        SelectedTab = tab;
         await InvokeAsync(StateHasChanged);
     }
 }

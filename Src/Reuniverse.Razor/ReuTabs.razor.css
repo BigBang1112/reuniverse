@@ -1,0 +1,41 @@
+.reu-tabs {
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: inline-flex;
+    color: var(--color-text-primary);
+    width: max-content;
+}
+
+.tab {
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid var(--color-button-border);
+    background: #222;
+    padding: 10px;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+}
+
+    .tab:hover {
+        background: #333;
+    }
+
+    .tab.selected {
+        background: var(--color-button-bg);
+        border-bottom: none;
+        border-top: 2px solid var(--color-button-border);
+        border-left: 2px solid var(--color-button-border);
+        border-right: 2px solid var(--color-button-border);
+    }
+
+.content {
+    display: inline-flex;
+    color: var(--color-text-primary);
+    background: var(--color-button-bg);
+    border-bottom: 2px solid var(--color-button-border);
+    border-left: 2px solid var(--color-button-border);
+    border-radius: 0 4px 4px 4px;
+    padding: 10px;
+}
