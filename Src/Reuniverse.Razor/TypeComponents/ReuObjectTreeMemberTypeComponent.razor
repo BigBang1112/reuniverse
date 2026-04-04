@@ -63,6 +63,11 @@
     {
         <span class="box-value clickable" @onclick="RevertValueAsync">Revert</span>
     }
+
+    @if (!HideType && IsDifferentType(out var actualType))
+    {
+        <span class="box-value type"><ReuFriendlyType Type="actualType" OnClick="OnTypeClick"></ReuFriendlyType></span>
+    }
 }
 catch (Exception ex)
 {
@@ -71,11 +76,6 @@ catch (Exception ex)
 @if (Exception is not null)
 {
     <div class="box-value error">@Exception.Message</div>
-}
-
-@if (!HideType && IsDifferentType(out var actualType))
-{
-    <span class="box-value type"><ReuFriendlyType Type="actualType" OnClick="OnTypeClick"></ReuFriendlyType></span>
 }
 
 @code {
