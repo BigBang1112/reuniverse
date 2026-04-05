@@ -58,7 +58,39 @@
     @if (IsExpanded && Children.Any())
     {
         <div class="items">
-            @foreach (var child in Children)
+            @{
+                var enumerable = (Value as ReuObjectTreeMember)?.Value as IEnumerable<object>;
+                var totalCount = Children.Count;
+                var isPaged = enumerable is not null && totalCount > PageSize;
+                var renderedChildren = enumerable is not null && totalCount <= PageSize ? Children : Children.Skip(CurrentPage * PageSize).Take(PageSize);
+            }
+
+            @if (isPaged)
+            {
+                var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
+
+                <div class="pagination-info">
+                    <div class="pagination-controls">
+                        <button class="page-btn" @onclick="() => GoToFirstPage()" disabled="@(CurrentPage == 0)">⏮</button>
+                        <button class="page-btn" @onclick="() => GoToPreviousPage()" disabled="@(CurrentPage == 0)">◀</button>
+                        <code class="page-info">@(CurrentPage + 1)/@totalPages</code>
+                        <button class="page-btn" @onclick="() => GoToNextPage()" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
+                        <button class="page-btn" @onclick="() => GoToLastPage()" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
+                        <label class="page-goto">
+                            <span class="pagination-text">Go to page:</span>
+                            <input type="number" min="1" max="@totalPages" @onchange="(e) =>
+                            {
+                                if (int.TryParse(e.Value?.ToString(), out int page))
+                                {
+                                    CurrentPage = Math.Clamp(page - 1, 0, totalPages - 1);
+                                }
+                            }" class="page-input" />
+                        </label>
+                    </div>
+                    <div class="pagination-text">Showing @(CurrentPage* PageSize +1)-@(Math.Min((CurrentPage + 1) * PageSize, totalCount)) of @totalCount elements</div>
+                </div>
+            }
+            @foreach (var child in renderedChildren)
             {
                 <ReuObjectTree Parent="Value"
                                ParentTree="this"
@@ -69,6 +101,26 @@
                                TypeValueComponents="TypeValueComponents"
                                ChildrenProvider="ChildrenProvider"></ReuObjectTree>
             }
+            @if (isPaged)
+            {
+                var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
+                var hasMoreItems = CurrentPage < totalPages - 1;
+                
+                @if (hasMoreItems)
+                {
+                    var itemsLeft = totalCount - (CurrentPage + 1) * PageSize;
+
+                    <div class="more-items-indicator">
+                        @(itemsLeft) more @(itemsLeft == 1 ? "item" : "items")
+                    </div>
+                }
+                else
+                {
+                    <div class="more-items-indicator">
+                        No more items
+                    </div>
+                }
+            }
         </div>
     }
 </div>
@@ -76,8 +128,10 @@
 @code {
     private static HashSet<ExpandedObject> expandedObjects = new();
     private static HashSet<object> expansionPath = new();
+    private static Dictionary<ExpandedObject, int> objectPages = new();
 
     private ExpandedObject expandedObject = new();
+    private const int PageSize = 10;
 
     /// <summary>
     /// The object to display.
@@ -185,6 +239,12 @@
     [Parameter]
     public EventCallback<object?> SelectedObjectChanged { get; set; }
 
+    private int CurrentPage
+    {
+        get => objectPages.GetValueOrDefault(expandedObject, 0);
+        set => objectPages[expandedObject] = value;
+    }
+
     public void ToggleExpanded()
     {
         try
@@ -268,7 +328,7 @@
             return [];
         }
 
-        if (parent is string)
+        if (parent is string or Guid)
         {
             return [];
         }
@@ -399,6 +459,34 @@
             rootTree = rootTree.ParentTree;
         }
         rootTree.Update();
+    }
+
+    private void GoToFirstPage()
+    {
+        CurrentPage = 0;
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (CurrentPage > 0)
+        {
+            CurrentPage--;
+        }
+    }
+
+    private void GoToNextPage()
+    {
+        var totalPages = (int)Math.Ceiling((double)Children.Count / PageSize);
+        if (CurrentPage < totalPages - 1)
+        {
+            CurrentPage++;
+        }
+    }
+
+    private void GoToLastPage()
+    {
+        var totalPages = (int)Math.Ceiling((double)Children.Count / PageSize);
+        CurrentPage = Math.Max(0, totalPages - 1);
     }
 
     private async Task SelectAsync(object? obj)
