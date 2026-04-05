@@ -1,0 +1,34 @@
+﻿@page "/gbx"
+@layout MainLayout
+
+@inject EventService EventService
+
+<PageTitle>Gbx - Reuniverse</PageTitle>
+
+<ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
+<div style="overflow: auto; margin-top: 1rem">
+    <ReuObjectTree Value="gbx" HideType="!showTypes" IsExpandedByDefault="true"></ReuObjectTree>
+</div>
+
+@code {
+    private GBX.NET.Gbx? gbx;
+
+    private bool showTypes = true;
+
+    private void OnTypesChanged(bool isChecked)
+    {
+        showTypes = isChecked;
+    }
+
+    protected override void OnInitialized()
+    {
+        GBX.NET.Gbx.LZO = new GBX.NET.LZO.MiniLZO();
+
+        EventService.OnUpload += data =>
+        {
+            using var ms = new MemoryStream(data);
+            gbx = GBX.NET.Gbx.Parse(ms);
+            StateHasChanged();
+        };
+    }
+}

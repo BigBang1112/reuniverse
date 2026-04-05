@@ -1,0 +1,18 @@
+﻿.components {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 1rem 2rem;
+}
+
+    .components > :nth-child(2n) {
+        min-width: 0;
+    }
+
+@media (max-width: 700px) {
+    .components {
+        grid-template-columns: auto;
+        gap: 0.5rem 0;
+        text-align: center;
+    }
+}
