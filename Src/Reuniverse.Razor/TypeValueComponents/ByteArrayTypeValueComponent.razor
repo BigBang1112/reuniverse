@@ -1,0 +1,15 @@
+﻿@inherits TypeValueComponentBase<byte[]>
+
+@if (Value is null)
+{
+    <span class="box-value">null</span>
+}
+else 
+{
+    <span class="box-value"><code>@ByteHelper.ToByteSize(Value.Length)</code></span>
+}
+
+@if (Exception is not null)
+{
+    <div class="exception">@Exception.Message</div>
+}

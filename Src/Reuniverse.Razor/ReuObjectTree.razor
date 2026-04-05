@@ -293,13 +293,18 @@
             return true;
         }
 
+        if (typeValueComponents.TryGetValue(type, out componentType))
+        {
+            return true;
+        }
+
         if (value is IEnumerable<object> or System.Collections.ICollection)
         {
             componentType = typeof(EnumerableTypeValueComponent);
             return true;
         }
 
-        return typeValueComponents.TryGetValue(type, out componentType);
+        return false;
     }
 
     private static IEnumerable<object?> DefaultChildrenProvider(object parent)
@@ -528,6 +533,7 @@
 
     public static Dictionary<Type, Type> DefaultTypeValueComponents { get; } = new()
     {
+        [typeof(byte[])] = typeof(ByteArrayTypeValueComponent),
         [typeof(string)] = typeof(StringTypeValueComponent),
         [typeof(DateTime)] = typeof(DateTimeTypeValueComponent),
         [typeof(TimeSpan)] = typeof(TimeSpanTypeValueComponent),
