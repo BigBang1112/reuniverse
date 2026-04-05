@@ -396,6 +396,14 @@
                     index++;
                 }
                 break;
+            case System.Collections.ICollection collection: // generic covariance only works for reference types
+                var idx = 0;
+                foreach (var item in collection)
+                {
+                    list.Add(new ReuObjectTreeItem(parent, idx, item));
+                    idx++;
+                }
+                break;
         }
 
         return list;
