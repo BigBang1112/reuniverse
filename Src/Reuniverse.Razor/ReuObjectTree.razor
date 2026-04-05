@@ -62,7 +62,7 @@
                 var enumerable = (Value as ReuObjectTreeMember)?.Value as IEnumerable<object>;
                 var totalCount = Children.Count;
                 var isPaged = enumerable is not null && totalCount > PageSize;
-                var renderedChildren = enumerable is not null && totalCount <= PageSize ? Children : Children.Skip(CurrentPage * PageSize).Take(PageSize);
+                var renderedChildren = enumerable is not null && totalCount > PageSize ? Children.Skip(CurrentPage * PageSize).Take(PageSize) : Children;
             }
 
             @if (isPaged)
