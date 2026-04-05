@@ -40,17 +40,17 @@
                   @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Create a new instance"))"
                   @onmousemove="ReuTooltip.MoveGlobal"
                   @onmouseout="ReuTooltip.HideGlobal">
-                @(Value.Property.CanRead ? "null" : "unobtainable")
+                @(Value.Property.CanRead ? "null" : "(cannot get)")
             </span>
         }
         else
         {
-            <span class="box-value">@(Value.Property.CanRead ? "null" : "unobtainable")</span>
+            <span class="box-value">@(Value.Property.CanRead ? "null" : "(cannot get)")</span>
         }
     }
     else
     {
-        <span class="box-value">@(Value.Property.CanRead ? Value.Value : "unobtainable")</span>
+        <span class="box-value">@(Value.Property.CanRead ? Value.Value : "(cannot get)")</span>
     }
 
     @if (CanRemoveValue())
@@ -96,7 +96,7 @@ catch (Exception ex)
 
     private bool CanCreateInstance()
     {
-        if (Value.Property.SetMethod is null)
+        if (!Value.Property.CanWrite)
         {
             return false;
         }
@@ -117,7 +117,7 @@ catch (Exception ex)
 
     private async Task CreateInstance()
     {
-        if (!CanCreateInstance() || Value.Property.SetMethod is null)
+        if (!CanCreateInstance() || !Value.Property.CanWrite)
         {
             return;
         }
@@ -216,7 +216,7 @@ catch (Exception ex)
 
     private async Task SetValueAsync(object? value)
     {
-        if (Value.Property.SetMethod is null)
+        if (!Value.Property.CanWrite)
         {
             return;
         }

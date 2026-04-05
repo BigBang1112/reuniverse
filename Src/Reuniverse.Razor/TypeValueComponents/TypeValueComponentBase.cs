@@ -116,7 +116,7 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
 
             if (Property is not null)
             {
-                if (Property.SetMethod is null) // does not consider init;
+                if (!Property.CanWrite) // does not consider init;
                 {
                     return true;
                 }
