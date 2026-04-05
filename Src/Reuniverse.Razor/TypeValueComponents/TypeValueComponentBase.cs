@@ -50,7 +50,7 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
         get
         {
             if (ReadOnlyValue is not null) return ReadOnlyValue;
-            if (Property is not null) return (T?)Property.GetValue(Parent);
+            if (Property is not null) return Property.CanRead ? (T?)Property.GetValue(Parent) : default;
             if (Item is not null) return (T?)Item.Value;
             if (KeyValue is not null) return IsKey ? (T?)KeyValue.Key : (T?)KeyValue.Value;
             return tempValue ?? DefaultValue;

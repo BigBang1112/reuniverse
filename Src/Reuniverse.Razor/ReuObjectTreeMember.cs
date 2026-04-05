@@ -6,10 +6,10 @@ public sealed record ReuObjectTreeMember(object Parent, PropertyInfo Property)
 {
     public object? Value
     {
-        get => Property.GetMethod is null ? null : Property.GetValue(Parent);
+        get => Property.CanRead ? Property.GetValue(Parent) : null;
         set
         {
-            if (Property.SetMethod is not null)
+            if (Property.CanWrite)
             {
                 Property.SetValue(Parent, value);
             }
