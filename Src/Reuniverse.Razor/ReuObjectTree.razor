@@ -521,7 +521,7 @@
     public static Dictionary<Type, Type> DefaultTypeValueComponents { get; } = new()
     {
         [typeof(string)] = typeof(StringTypeValueComponent),
-        //[typeof(DateTime)] = typeof(DateTimeTypeValueComponent), not great yet
+        [typeof(DateTime)] = typeof(DateTimeTypeValueComponent),
         [typeof(TimeSpan)] = typeof(TimeSpanTypeValueComponent),
         [typeof(Enum)] = typeof(EnumTypeValueComponent),
         [typeof(bool)] = typeof(BooleanTypeValueComponent),
