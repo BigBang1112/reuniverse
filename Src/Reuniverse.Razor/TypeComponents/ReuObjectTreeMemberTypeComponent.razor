@@ -31,6 +31,10 @@
 
         <DynamicComponent Type="componentType" Parameters="parameters" />
     }
+    else if (Value.Property.GetMethod is null)
+    {
+        
+    }
     else if (Value.Value is null)
     {
         @if (CanCreateInstance())
@@ -144,7 +148,7 @@ catch (Exception ex)
 
     private bool CanRemoveValue()
     {
-        if (Value.Property.SetMethod is null || Value.Value is null)
+        if (Value.Property.SetMethod is null || (Value.Property.GetMethod is not null && Value.Value is null))
         {
             return false;
         }
