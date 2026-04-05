@@ -39,16 +39,18 @@
                   @onclick="CreateInstance"
                   @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Create a new instance"))"
                   @onmousemove="ReuTooltip.MoveGlobal"
-                  @onmouseout="ReuTooltip.HideGlobal">null</span>
+                  @onmouseout="ReuTooltip.HideGlobal">
+                @(Value.Property.CanRead ? "null" : "unobtainable")
+            </span>
         }
         else
         {
-            <span class="box-value">null</span>
+            <span class="box-value">@(Value.Property.CanRead ? "null" : "unobtainable")</span>
         }
     }
     else
     {
-        <span class="box-value">@Value.Value</span>
+        <span class="box-value">@(Value.Property.CanRead ? Value.Value : "unobtainable")</span>
     }
 
     @if (CanRemoveValue())
