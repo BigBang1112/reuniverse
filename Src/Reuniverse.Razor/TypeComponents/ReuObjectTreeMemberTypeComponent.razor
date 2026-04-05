@@ -25,6 +25,7 @@
         var parameters = new Dictionary<string, object?>
         {
             ["Member"] = Value,
+            ["TypeValueComponents"] = TypeValueComponents,
             ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
         };
 

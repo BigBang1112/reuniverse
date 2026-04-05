@@ -1,0 +1,123 @@
+﻿@using System.Diagnostics.CodeAnalysis
+
+@inherits TypeValueComponentBase<System.Collections.IDictionary>
+
+@if (Value is null)
+{
+    <span class="box-value">null</span>
+}
+else 
+{
+    if (Value is System.Collections.IDictionary dictionary)
+    {
+        <span class="box-value"><code>@dictionary.Count</code> @(dictionary.Count == 1 ? "element" : "elements")</span>
+    }
+
+    @if (CanAddElement())
+    {
+        @if (TryGetValueComponent(out var keyType, out var componentType))
+        {
+            var parameters = new Dictionary<string, object?>
+            {
+                ["DefaultValue"] = keyType == typeof(string) ? "" : keyType.GetConstructor(Type.EmptyTypes)?.Invoke(null),
+                ["Placeholder"] = "Key to add...",
+                ["TypeValueComponents"] = TypeValueComponents,
+                ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+            };
+
+            <DynamicComponent Type="componentType" Parameters="parameters" @ref="keyDynamicComponent" />
+
+            <span class="box-value clickable add"
+                  @onclick="AddElementAsync"
+                  @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Add element"))"
+                  @onmousemove="ReuTooltip.MoveGlobal"
+                  @onmouseout="ReuTooltip.HideGlobal">+</span>
+        }
+    }
+}
+
+@if (Exception is not null)
+{
+    <div class="exception">@Exception.Message</div>
+}
+
+@code {
+    private DynamicComponent? keyDynamicComponent;
+
+    private bool TryGetValueComponent([NotNullWhen(true)] out Type? keyType, [NotNullWhen(true)] out Type? componentType)
+    {
+        keyType = Value?.GetType().GetGenericArguments()[0];
+
+        if (keyType is null)
+        {
+            componentType = null;
+            return false;
+        }
+
+        return ReuObjectTree.TryGetValueComponent(value: null, keyType, TypeValueComponents, out componentType);
+    }
+
+    private bool CanAddElement()
+    {
+        if (Value is null)
+        {
+            return false;
+        }
+
+        if (Value is System.Collections.IDictionary)
+        {
+            var type = Value.GetType();
+
+            if (!type.IsGenericType)
+            {
+                // dont add default element to non-generic lists yet, it would have to be object and thats confusing
+                return false;
+            }
+
+            var keyType = type.GetGenericArguments()[0];
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task AddElementAsync()
+    {
+        if (keyDynamicComponent?.Instance is not ITypeValueComponent { Value: not null } keyComponent)
+        {
+            return;
+        }
+
+        if (Value is not System.Collections.IDictionary dict)
+        {
+            return;
+        }
+
+        var type = Value.GetType();
+
+        if (!type.IsGenericType)
+        {
+            // dont add default element to non-generic lists yet, it would have to be object and thats confusing
+            return;
+        }
+
+        try
+        {
+            dict.Add(keyComponent.Value, null);
+            keyComponent.Value = null;
+
+            await ValueChanged.InvokeAsync(Value);
+
+            Exception = null;
+        }
+        catch (TargetInvocationException tex)
+        {
+            Exception = tex.InnerException ?? tex;
+        }
+        catch (Exception ex)
+        {
+            Exception = ex;
+        }
+    }
+}

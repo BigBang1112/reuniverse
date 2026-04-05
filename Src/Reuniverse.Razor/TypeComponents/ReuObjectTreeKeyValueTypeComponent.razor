@@ -1,4 +1,5 @@
 ﻿@inherits TypeComponentBase<ReuObjectTreeKeyValue>
+@inject IJSRuntime JS
 
 @if (!HideType)
 {
@@ -12,6 +13,7 @@
     var parameters = new Dictionary<string, object?>
     {
         ["KeyValue"] = Value,
+        ["TypeValueComponents"] = TypeValueComponents,
         ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged),
         ["IsKey"] = true
     };
@@ -53,8 +55,24 @@ else
         <ReuFriendlyType Type="Value.Value.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
     </div>
 }
+@if (CanRemoveValue())
+{
+    <span class="box-value clickable remove"
+          @onclick="RemoveValueAsync"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Remove element"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">✕</span>
+}
+@if (Exception is not null)
+{
+    <div class="box-value error">
+        @Exception.Message
+    </div>
+}
 
 @code {
+    public Exception? Exception { get; set; }
+
     private bool TryGetValueComponent(object? value, out Type? componentType)
     {
         if (value is null)
@@ -66,5 +84,36 @@ else
         var type = value.GetType();
 
         return ReuObjectTree.TryGetValueComponent(value, type, TypeValueComponents, out componentType);
+    }
+
+    private bool CanRemoveValue()
+    {
+        return Value.Parent is System.Collections.IDictionary;
+    }
+
+    private async Task RemoveValueAsync()
+    {
+        if (Value.Parent is not System.Collections.IDictionary dict)
+        {
+            return;
+        }
+
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to remove key {Value.Key}?");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        try
+        {
+            dict.Remove(Value.Key);
+            await ValueChanged.InvokeAsync(Value);
+            ReuTooltip.HideGlobal();
+        }
+        catch (Exception ex)
+        {
+            Exception = ex;
+        }
     }
 }

@@ -26,7 +26,7 @@ else
 
 @if (Exception is not null)
 {
-    <div style="color: var(--color-red);">@Exception.Message</div>
+    <div class="exception">@Exception.Message</div>
 }
 
 @code {
@@ -82,6 +82,8 @@ else
             list.Add(newElement);
 
             await ValueChanged.InvokeAsync(Value);
+
+            Exception = null;
         }
         catch (TargetInvocationException tex)
         {

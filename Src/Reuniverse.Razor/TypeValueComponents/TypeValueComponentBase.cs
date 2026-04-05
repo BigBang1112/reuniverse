@@ -3,8 +3,15 @@ using System.Reflection;
 
 namespace Reuniverse.Razor.TypeValueComponents;
 
-public abstract class TypeValueComponentBase<T> : ComponentBase
+public interface ITypeValueComponent
 {
+    object? Value { get; set; }
+}
+
+public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueComponent
+{
+    private T? tempValue;
+
     [Parameter]
     public ReuObjectTreeMember? Member { get; set; }
 
@@ -17,6 +24,9 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
     [Parameter]
     public EventCallback ValueChanged { get; set; }
 
+    [Parameter, EditorRequired]
+    public Dictionary<Type, Type> TypeValueComponents { get; set; }
+
     [Parameter]
     public bool IsKey { get; set; }
 
@@ -25,6 +35,12 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
     /// </summary>
     [Parameter]
     public T? ReadOnlyValue { get; set; }
+
+    [Parameter]
+    public T? DefaultValue { get; set; }
+
+    [Parameter]
+    public string? Placeholder { get; set; }
 
     public PropertyInfo? Property => Member?.Property;
     public object? Parent => Member?.Parent ?? Item?.Parent;
@@ -37,7 +53,7 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
             if (Property is not null) return (T?)Property.GetValue(Parent);
             if (Item is not null) return (T?)Item.Value;
             if (KeyValue is not null) return IsKey ? (T?)KeyValue.Key : (T?)KeyValue.Value;
-            return default;
+            return tempValue ?? DefaultValue;
         }
         set
         {
@@ -47,28 +63,34 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
                 {
                     ValueChanged.InvokeAsync();
                 }
+
                 return;
             }
 
-            if (Property is null) return;
-
-            var oldValue = Value;
-
-            try
+            if (Property is not null)
             {
-                Property.SetValue(Parent, value);
-                Exception = null;
+                var oldValue = Value;
 
-                // Only invoke ValueChanged if the value actually changed
-                if (!Equals(oldValue, value))
+                try
                 {
-                    ValueChanged.InvokeAsync();
+                    Property.SetValue(Parent, value);
+                    Exception = null;
+
+                    // Only invoke ValueChanged if the value actually changed
+                    if (!Equals(oldValue, value))
+                    {
+                        ValueChanged.InvokeAsync();
+                    }
                 }
+                catch (TargetInvocationException ex)
+                {
+                    Exception = ex.InnerException ?? ex;
+                }
+
+                return;
             }
-            catch (TargetInvocationException ex)
-            {
-                Exception = ex.InnerException ?? ex;
-            }
+
+            tempValue = value;
         }
     }
 
@@ -92,20 +114,26 @@ public abstract class TypeValueComponentBase<T> : ComponentBase
                 }
             }
 
-            if (Property?.SetMethod is null) // does not consider init;
+            if (Property?.SetMethod is not null) // does not consider init;
             {
-                return true;
+                var parentType = Parent?.GetType();
+
+                // not sure what happens if two parents, one readonly, one non-readonly child
+                if (parentType is not null && parentType.IsValueType && !parentType.IsPrimitive && !parentType.IsEnum)
+                {
+                    return Attribute.IsDefined(parentType, typeof(System.Runtime.CompilerServices.IsReadOnlyAttribute));
+                }
+
+                return false;
             }
 
-            var parentType = Parent?.GetType();
-
-            // not sure what happens if two parents, one readonly, one non-readonly child
-            if (parentType is not null && parentType.IsValueType && !parentType.IsPrimitive && !parentType.IsEnum)
-            {
-                return Attribute.IsDefined(parentType, typeof(System.Runtime.CompilerServices.IsReadOnlyAttribute));
-            }
-
-            return false;
+            return (tempValue ?? DefaultValue) is null;
         }
+    }
+
+    object? ITypeValueComponent.Value
+    {
+        get => Value;
+        set => Value = (T?)value;
     }
 }
