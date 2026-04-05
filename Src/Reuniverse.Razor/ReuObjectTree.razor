@@ -59,13 +59,17 @@
     {
         <div class="items">
             @{
-                var enumerable = (Value as ReuObjectTreeMember)?.Value as IEnumerable<object>;
-                var totalCount = Children.Count;
-                var isPaged = enumerable is not null && totalCount > PageSize;
-                var renderedChildren = enumerable is not null && totalCount > PageSize ? Children.Skip(CurrentPage * PageSize).Take(PageSize) : Children;
+                int? totalCount = (Value as ReuObjectTreeMember)?.Value switch
+                {
+                    System.Collections.ICollection collection => collection.Count,
+                    IEnumerable<object> enumerable when enumerable.TryGetNonEnumeratedCount(out int count) => count,
+                    _ => null
+                };
+
+                var renderedChildren = totalCount > PageSize ? Children.Skip(CurrentPage * PageSize).Take(PageSize) : Children;
             }
 
-            @if (isPaged)
+            @if (totalCount > PageSize)
             {
                 var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
 
@@ -87,7 +91,7 @@
                             }" class="page-input" />
                         </label>
                     </div>
-                    <div class="pagination-text">Showing @(CurrentPage* PageSize +1)-@(Math.Min((CurrentPage + 1) * PageSize, totalCount)) of @totalCount elements</div>
+                    <div class="pagination-text">Showing @(CurrentPage* PageSize +1)-@(Math.Min((CurrentPage + 1) * PageSize, totalCount.Value)) of @totalCount elements</div>
                 </div>
             }
             @foreach (var child in renderedChildren)
@@ -101,7 +105,7 @@
                                TypeValueComponents="TypeValueComponents"
                                ChildrenProvider="ChildrenProvider"></ReuObjectTree>
             }
-            @if (isPaged)
+            @if (totalCount > PageSize)
             {
                 var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
                 var hasMoreItems = CurrentPage < totalPages - 1;
@@ -167,7 +171,7 @@
     /// A function that provides the children of a given object. By default it uses <see cref="DefaultChildrenProvider"/>, but you can override it.
     /// </summary>
     [Parameter]
-    public Func<object, ICollection<object?>> ChildrenProvider { get; set; } = DefaultChildrenProvider;
+    public Func<object, IEnumerable<object?>> ChildrenProvider { get; set; } = DefaultChildrenProvider;
 
     /// <summary>
     /// The display name for the root object.
@@ -257,7 +261,7 @@
         }
     }
 
-    public ICollection<object?> Children => Value is null ? [] : ChildrenProvider(Value);
+    public IEnumerable<object?> Children => Value is null ? [] : ChildrenProvider(Value);
 
     protected override void OnInitialized()
     {
@@ -298,7 +302,7 @@
         return typeValueComponents.TryGetValue(type, out componentType);
     }
 
-    private static ICollection<object?> DefaultChildrenProvider(object parent)
+    private static IEnumerable<object?> DefaultChildrenProvider(object parent)
     {
         Type parentType;
 
@@ -308,19 +312,19 @@
             {
                 case ReuObjectTreeMember member:
                     var valueMember = member.Value;
-                    if (valueMember is null) return [];
+                    if (valueMember is null) yield break;
                     parentType = valueMember.GetType();
                     parent = valueMember;
                     break;
                 case ReuObjectTreeItem item:
                     var valueItem = item.Value;
-                    if (valueItem is null) return [];
+                    if (valueItem is null) yield break;
                     parentType = valueItem.GetType();
                     parent = valueItem;
                     break;
                 case ReuObjectTreeKeyValue keyValue:
                     var valueKeyValue = keyValue.Value;
-                    if (valueKeyValue is null) return [];
+                    if (valueKeyValue is null) yield break;
                     parentType = valueKeyValue.GetType();
                     parent = valueKeyValue;
                     break;
@@ -331,12 +335,12 @@
         }
         catch (TargetInvocationException)
         {
-            return [];
+            yield break;
         }
 
         if (parent is string or Guid)
         {
-            return [];
+            yield break;
         }
 
         var isCollection = parent is System.Collections.ICollection or IReadOnlyCollection<object?>;
@@ -349,8 +353,6 @@
         }
 
         var isDictionary = parent is System.Collections.IDictionary;
-
-        var list = new List<object?>();
 
         if (!parentType.IsArray)
         {
@@ -376,7 +378,7 @@
                     continue;
                 }
 
-                list.Add(new ReuObjectTreeMember(parent, prop));
+                yield return new ReuObjectTreeMember(parent, prop);
             }
         }
 
@@ -385,14 +387,14 @@
             case System.Collections.IDictionary dictionary:
                 foreach (var key in dictionary.Keys)
                 {
-                    list.Add(new ReuObjectTreeKeyValue(parent, key, dictionary[key]));
+                    yield return new ReuObjectTreeKeyValue(parent, key, dictionary[key]);
                 }
                 break;
             case IEnumerable<object?> enumerable:
                 var index = 0;
                 foreach (var item in enumerable)
                 {
-                    list.Add(new ReuObjectTreeItem(parent, index, item));
+                    yield return new ReuObjectTreeItem(parent, index, item);
                     index++;
                 }
                 break;
@@ -400,13 +402,11 @@
                 var idx = 0;
                 foreach (var item in collection)
                 {
-                    list.Add(new ReuObjectTreeItem(parent, idx, item));
+                    yield return new ReuObjectTreeItem(parent, idx, item);
                     idx++;
                 }
                 break;
         }
-
-        return list;
     }
 
     private bool HasCyclicReference()
@@ -490,7 +490,7 @@
 
     private void GoToNextPage()
     {
-        var totalPages = (int)Math.Ceiling((double)Children.Count / PageSize);
+        var totalPages = (int)Math.Ceiling((double)Children.Count() / PageSize);
         if (CurrentPage < totalPages - 1)
         {
             CurrentPage++;
@@ -499,7 +499,7 @@
 
     private void GoToLastPage()
     {
-        var totalPages = (int)Math.Ceiling((double)Children.Count / PageSize);
+        var totalPages = (int)Math.Ceiling((double)Children.Count() / PageSize);
         CurrentPage = Math.Max(0, totalPages - 1);
     }
 
