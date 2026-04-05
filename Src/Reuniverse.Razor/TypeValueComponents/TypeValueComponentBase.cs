@@ -114,8 +114,13 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
                 }
             }
 
-            if (Property?.SetMethod is not null) // does not consider init;
+            if (Property is not null)
             {
+                if (Property.SetMethod is null) // does not consider init;
+                {
+                    return true;
+                }
+
                 var parentType = Parent?.GetType();
 
                 // not sure what happens if two parents, one readonly, one non-readonly child
