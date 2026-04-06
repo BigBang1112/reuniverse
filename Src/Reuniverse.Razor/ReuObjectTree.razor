@@ -96,16 +96,20 @@
             }
             @foreach (var child in renderedChildren)
             {
-                <ReuObjectTree Parent="Value"
-                               ParentTree="this"
-                               Value="child"
-                               HideType="HideType"
-                               OnTypeClick="OnTypeClick"
-                               TypeComponents="TypeComponents"
-                               TypeValueComponents="TypeValueComponents"
-                               FadeProvider="FadeProvider"
-                               Faded="ProvideFade(child)"
-                               ChildrenProvider="ChildrenProvider"></ReuObjectTree>
+                if (!ProvideIgnore(child))
+                {
+                    <ReuObjectTree Parent="Value"
+                                   ParentTree="this"
+                                   Value="child"
+                                   HideType="HideType"
+                                   OnTypeClick="OnTypeClick"
+                                   TypeComponents="TypeComponents"
+                                   TypeValueComponents="TypeValueComponents"
+                                   FadeProvider="FadeProvider"
+                                   Faded="ProvideFade(child)"
+                                   IgnoreProvider="IgnoreProvider"
+                                   ChildrenProvider="ChildrenProvider"></ReuObjectTree>
+                }
             }
             @if (totalCount > PageSize)
             {
@@ -250,6 +254,9 @@
 
     [Parameter]
     public Func<object?, bool>? FadeProvider { get; set; }
+
+    [Parameter]
+    public Func<object?, bool>? IgnoreProvider { get; set; }
 
     private int CurrentPage
     {
@@ -537,6 +544,18 @@
         try
         {
             return Faded || FadeProvider?.Invoke(child) == true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private bool ProvideIgnore(object? child)
+    {
+        try
+        {
+            return IgnoreProvider?.Invoke(child) == true;
         }
         catch
         {

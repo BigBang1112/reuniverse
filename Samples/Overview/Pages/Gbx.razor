@@ -11,9 +11,14 @@
 <ReuUploadButton OnUpload="OnUpload" Accept=".Gbx">Open Gbx</ReuUploadButton>
 <div style="overflow: auto; margin: 1rem 0">
     <ReuCheckbox IsCheckedChanged="isChecked => showTypes = isChecked" IsChecked="@showTypes">Types</ReuCheckbox>
+    <ReuCheckbox IsCheckedChanged="isChecked => ignore = isChecked" IsChecked="@ignore">Ignore instead of fade</ReuCheckbox>
 </div>
 <div>
-    <ReuObjectTree Value="gbx" HideType="!showTypes" IsExpandedByDefault="true" FadeProvider="ProvideFade"></ReuObjectTree>
+    <ReuObjectTree Value="gbx" 
+                   HideType="!showTypes"
+                   IsExpandedByDefault="true"
+                   FadeProvider="ProvideFade"
+                   IgnoreProvider="ProvideIgnore"></ReuObjectTree>
 </div>
 
 <ReuTooltip IsGlobal="true"></ReuTooltip>
@@ -22,6 +27,7 @@
     private GBX.NET.Gbx? gbx;
 
     private bool showTypes = true;
+    private bool ignore;
 
     protected override void OnInitialized()
     {
@@ -41,7 +47,7 @@
         gbx = GBX.NET.Gbx.Parse(ms);
     }
 
-    private bool ProvideFade(object? value)
+    private bool IgnoreIfNotInChunk(object? value)
     {
         if (value is not ReuObjectTreeMember member)
         {
@@ -62,5 +68,15 @@
         }
 
         return false;
+    }
+
+    private bool ProvideFade(object? value)
+    {
+        return !ignore && IgnoreIfNotInChunk(value);
+    }
+
+    private bool ProvideIgnore(object? value)
+    {
+        return ignore && IgnoreIfNotInChunk(value);
     }
 }
