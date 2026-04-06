@@ -65,8 +65,7 @@
 
         if (Attribute.IsDefined(member.Property, typeof(AppliedWithChunkAttribute)))
         {
-            var attributes = member.Property.GetCustomAttributes<AppliedWithChunkAttribute>()!;
-            return !attributes.Any(attribute =>
+            return !member.Property.GetCustomAttributes<AppliedWithChunkAttribute>().Any(attribute =>
             {
                 var chunk = parentNode.Chunks.Get(attribute.ChunkType);
 

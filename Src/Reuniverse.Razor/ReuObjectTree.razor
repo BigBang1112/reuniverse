@@ -59,14 +59,25 @@
     {
         <div class="items">
             @{
-                int? totalCount = (Value as ReuObjectTreeMember)?.Value switch
+                var value = (Value as ReuObjectTreeMember)?.Value;
+                var totalCount = value switch
                 {
                     System.Collections.ICollection collection => collection.Count,
                     IEnumerable<object> enumerable when enumerable.TryGetNonEnumeratedCount(out int count) => count,
-                    _ => null
+                    _ => default(int?)
                 };
 
-                var renderedChildren = totalCount > PageSize ? Children.Skip(CurrentPage * PageSize).Take(PageSize) : Children;
+                if (totalCount is null && value is System.Collections.IEnumerable pureEnumerable)
+                {
+                    totalCount = pureEnumerable.Cast<object>().Skip(CurrentPage * PageSize).Any() ? PageSize + 1 : 0;
+                }
+
+                var renderedChildren = Children;
+
+                if (totalCount > PageSize)
+                {
+                    renderedChildren = renderedChildren.Skip(CurrentPage * PageSize).Take(PageSize);
+                }
             }
 
             @if (totalCount > PageSize)
@@ -82,16 +93,10 @@
                         <button class="page-btn" @onclick="() => GoToLastPage()" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
                         <label class="page-goto">
                             <span class="pagination-text">Go to page:</span>
-                            <input type="number" min="1" max="@totalPages" @onchange="(e) =>
-                            {
-                                if (int.TryParse(e.Value?.ToString(), out int page))
-                                {
-                                    CurrentPage = Math.Clamp(page - 1, 0, totalPages - 1);
-                                }
-                            }" class="page-input" />
+                            <input type="number" min="1" max="@totalPages" @onchange="e => GoToPage(e.Value?.ToString(), totalPages)" class="page-input" />
                         </label>
+                        <input type="search" placeholder="Search..." class="page-input" @oninput="e => OnSearch(e.Value?.ToString())" />
                     </div>
-                    <div class="pagination-text">Showing @(CurrentPage* PageSize +1)-@(Math.Min((CurrentPage + 1) * PageSize, totalCount.Value)) of @totalCount elements</div>
                 </div>
             }
             @foreach (var child in renderedChildren)
@@ -118,16 +123,14 @@
                 
                 @if (hasMoreItems)
                 {
-                    var itemsLeft = totalCount - (CurrentPage + 1) * PageSize;
-
                     <div class="more-items-indicator">
-                        @(itemsLeft) more @(itemsLeft == 1 ? "item" : "items")
+                        More elements available
                     </div>
                 }
                 else
                 {
                     <div class="more-items-indicator">
-                        No more items
+                        No more elements
                     </div>
                 }
             }
@@ -142,6 +145,8 @@
 
     private ExpandedObject expandedObject = new();
     private const int PageSize = 10;
+
+    private string? searchTerm;
 
     /// <summary>
     /// The object to display.
@@ -521,6 +526,26 @@
     {
         var totalPages = (int)Math.Ceiling((double)Children.Count() / PageSize);
         CurrentPage = Math.Max(0, totalPages - 1);
+    }
+
+    private void GoToPage(string? page, int totalPages)
+    {
+        if (int.TryParse(page, out int pageNum))
+        {
+            CurrentPage = Math.Clamp(pageNum - 1, 0, totalPages - 1);
+        }
+    }
+
+    private void OnSearch(string? searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return;
+        }
+
+        CurrentPage = 0;
+
+        this.searchTerm = searchTerm;
     }
 
     private async Task SelectAsync(object? obj)
