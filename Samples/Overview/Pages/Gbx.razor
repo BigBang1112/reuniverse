@@ -5,8 +5,11 @@
 
 <PageTitle>Gbx - Reuniverse</PageTitle>
 
-<ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
-<div style="overflow: auto; margin-top: 1rem">
+<ReuUploadButton OnUpload="OnUpload" Accept=".Gbx">Open Gbx</ReuUploadButton>
+<div style="overflow: auto; margin: 1rem 0">
+    <ReuCheckbox IsCheckedChanged="isChecked => showTypes = isChecked" IsChecked="@showTypes">Types</ReuCheckbox>
+</div>
+<div>
     <ReuObjectTree Value="gbx" HideType="!showTypes" IsExpandedByDefault="true"></ReuObjectTree>
 </div>
 
@@ -16,11 +19,6 @@
     private GBX.NET.Gbx? gbx;
 
     private bool showTypes = true;
-
-    private void OnTypesChanged(bool isChecked)
-    {
-        showTypes = isChecked;
-    }
 
     protected override void OnInitialized()
     {
@@ -32,5 +30,11 @@
             gbx = GBX.NET.Gbx.Parse(ms);
             StateHasChanged();
         };
+    }
+
+    private void OnUpload(UploadEventArgs args)
+    {
+        using var ms = new MemoryStream(args.Data);
+        gbx = GBX.NET.Gbx.Parse(ms);
     }
 }
