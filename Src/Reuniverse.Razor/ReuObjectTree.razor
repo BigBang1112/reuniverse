@@ -1,5 +1,5 @@
 ﻿<div>
-    <div class="item @(ParentTree is null ? "root" : "")">
+    <div class="item @(ParentTree is null ? "root" : "") @(Faded ? "faded" : "")">
         @if (Value is null)
         {
             <span class="box-value">null</span>
@@ -103,6 +103,8 @@
                                OnTypeClick="OnTypeClick"
                                TypeComponents="TypeComponents"
                                TypeValueComponents="TypeValueComponents"
+                               FadeProvider="FadeProvider"
+                               Faded="ProvideFade(child)"
                                ChildrenProvider="ChildrenProvider"></ReuObjectTree>
             }
             @if (totalCount > PageSize)
@@ -242,6 +244,12 @@
 
     [Parameter]
     public EventCallback<object?> SelectedObjectChanged { get; set; }
+
+    [Parameter]
+    public bool Faded { get; set; }
+
+    [Parameter]
+    public Func<object?, bool>? FadeProvider { get; set; }
 
     private int CurrentPage
     {
@@ -522,6 +530,18 @@
         UpdateAll();
 
         await SelectedObjectChanged.InvokeAsync(SelectedObject);
+    }
+
+    private bool ProvideFade(object? child)
+    {
+        try
+        {
+            return Faded || FadeProvider?.Invoke(child) == true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public static Dictionary<Type, Type> DefaultTypeComponents { get; } = new()

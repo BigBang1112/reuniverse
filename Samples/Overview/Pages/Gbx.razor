@@ -1,4 +1,7 @@
 ﻿@page "/gbx"
+@using GBX.NET.Attributes
+@using System.Reflection
+@using GBX.NET.Engines.MwFoundations
 @layout MainLayout
 
 @inject EventService EventService
@@ -10,7 +13,7 @@
     <ReuCheckbox IsCheckedChanged="isChecked => showTypes = isChecked" IsChecked="@showTypes">Types</ReuCheckbox>
 </div>
 <div>
-    <ReuObjectTree Value="gbx" HideType="!showTypes" IsExpandedByDefault="true"></ReuObjectTree>
+    <ReuObjectTree Value="gbx" HideType="!showTypes" IsExpandedByDefault="true" FadeProvider="ProvideFade"></ReuObjectTree>
 </div>
 
 <ReuTooltip IsGlobal="true"></ReuTooltip>
@@ -36,5 +39,28 @@
     {
         using var ms = new MemoryStream(args.Data);
         gbx = GBX.NET.Gbx.Parse(ms);
+    }
+
+    private bool ProvideFade(object? value)
+    {
+        if (value is not ReuObjectTreeMember member)
+        {
+            return false;
+        }
+
+        var parentNode = (member.Parent as CMwNod) ?? (member.Parent as ReuObjectTreeMember)?.Value as CMwNod;
+
+        if (parentNode is null)
+        {
+            return false;
+        }
+
+        if (Attribute.IsDefined(member.Property, typeof(AppliedWithChunkAttribute)))
+        {
+            var attributes = member.Property.GetCustomAttributes<AppliedWithChunkAttribute>()!;
+            return !attributes.Any(attribute => parentNode.Chunks.Contains(attribute.ChunkType));
+        }
+
+        return false;
     }
 }
