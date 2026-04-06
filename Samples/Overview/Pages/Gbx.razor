@@ -1,7 +1,9 @@
 ﻿@page "/gbx"
+@using GBX.NET
 @using GBX.NET.Attributes
 @using System.Reflection
 @using GBX.NET.Engines.MwFoundations
+@using GBX.NET.Serialization.Chunking
 @layout MainLayout
 
 @inject EventService EventService
@@ -64,7 +66,18 @@
         if (Attribute.IsDefined(member.Property, typeof(AppliedWithChunkAttribute)))
         {
             var attributes = member.Property.GetCustomAttributes<AppliedWithChunkAttribute>()!;
-            return !attributes.Any(attribute => parentNode.Chunks.Contains(attribute.ChunkType));
+            return !attributes.Any(attribute =>
+            {
+                var chunk = parentNode.Chunks.Get(attribute.ChunkType);
+
+                if (chunk is IVersionable versionable)
+                {
+                    return versionable.Version >= attribute.SinceVersion
+                        && (attribute.UpToVersion is null || versionable.Version <= attribute.UpToVersion);
+                }
+
+                return chunk is not null;
+            });
         }
 
         return false;
