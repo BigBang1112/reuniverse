@@ -2,7 +2,19 @@
 
 @inherits TypeValueComponentBase<DateTime?>
 
-<input @bind="Value" @bind:format="@format" readonly="@IsReadOnly" @oninput="OnInput" minlength="19" style="min-width: 19ch;width:@(tempValue?.Length ?? Value?.ToString(format).Length ?? 0)ch" />
+@if (Value.HasValue)
+{
+    <input @bind="Value" @bind:format="@format" readonly="@IsReadOnly" @oninput="OnInput" minlength="19" style="min-width: 19ch;width:@(tempValue?.Length ?? Value?.ToString(format).Length ?? 0)ch" />
+}
+else
+{
+    <span class="box-value clickable"
+          @onclick="() => Value = default(DateTime)"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">@None</span>
+}
+
 @if (Exception is not null)
 {
     <div style="color: var(--color-red);">@Exception.Message</div>

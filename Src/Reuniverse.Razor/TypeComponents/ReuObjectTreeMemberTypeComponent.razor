@@ -110,9 +110,15 @@ catch (Exception ex)
         }
 
         // Check if it has a parameterless constructor
-        return !propertyType.IsAbstract && 
-               !propertyType.IsInterface && 
-               propertyType.GetConstructor(Type.EmptyTypes) is not null;
+        if (!propertyType.IsAbstract && 
+            !propertyType.IsInterface && 
+            propertyType.GetConstructor(Type.EmptyTypes) is not null)
+        {
+            return true;
+        }
+
+        // Try struct default for struct types in case no other conditions meet
+        return propertyType.IsValueType && !propertyType.IsEnum;
     }
 
     private async Task CreateInstance()

@@ -4,7 +4,7 @@
 {
     @if (Type is null)
     {
-        <span class="box-value">null</span>
+        <span class="box-value">@None</span>
     }
     else
     {
@@ -12,7 +12,7 @@
               @onclick="() => Value = Enum.GetValues(Type).GetValue(0)"
               @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
               @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal">null</span>
+              @onmouseout="ReuTooltip.HideGlobal">@None</span>
     }
 }
 else

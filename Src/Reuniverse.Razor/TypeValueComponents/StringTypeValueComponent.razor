@@ -6,7 +6,7 @@
           @onclick="() => Value = string.Empty"
           @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to empty string"))"
           @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">@(Property is null || Property.CanRead ? "null" : "(cannot get)")</span>
+          @onmouseout="ReuTooltip.HideGlobal">@None</span>
 }
 else
 {

@@ -136,6 +136,8 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
         }
     }
 
+    protected string None => Property is null || Property.CanRead ? "null" : "(cannot get)";
+
     object? ITypeValueComponent.Value
     {
         get => Value;
