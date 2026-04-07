@@ -36,11 +36,6 @@ else
         {
             return false;
         }
-
-        if (Value is IReadOnlyCollection<object>)
-        {
-            return false;
-        }
         
         if (Value is System.Collections.IList and not Array)
         {
@@ -58,6 +53,18 @@ else
             return !elementType.IsAbstract &&
                    !elementType.IsInterface &&
                    elementType.GetConstructor(Type.EmptyTypes) is not null;
+        }
+
+        var type = Value.GetType();
+
+        if (type.IsGenericType)
+        {
+            var genericDef = type.GetGenericTypeDefinition();
+            if (genericDef == typeof(System.Collections.Immutable.ImmutableList<>) ||
+                genericDef == typeof(System.Collections.Immutable.ImmutableArray<>))
+            {
+                return false;
+            }
         }
 
         return false;
