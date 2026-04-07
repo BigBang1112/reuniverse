@@ -47,24 +47,19 @@ else
                 return false;
             }
 
-            var elementType = type.GetGenericArguments()[0];
-
-            // Check if it has a parameterless constructor
-            return !elementType.IsAbstract &&
-                   !elementType.IsInterface &&
-                   elementType.GetConstructor(Type.EmptyTypes) is not null;
-        }
-
-        var type = Value.GetType();
-
-        if (type.IsGenericType)
-        {
             var genericDef = type.GetGenericTypeDefinition();
             if (genericDef == typeof(System.Collections.Immutable.ImmutableList<>) ||
                 genericDef == typeof(System.Collections.Immutable.ImmutableArray<>))
             {
                 return false;
             }
+
+            var elementType = type.GetGenericArguments()[0];
+
+            // Check if it has a parameterless constructor
+            return !elementType.IsAbstract &&
+                   !elementType.IsInterface &&
+                   elementType.GetConstructor(Type.EmptyTypes) is not null;
         }
 
         return false;
