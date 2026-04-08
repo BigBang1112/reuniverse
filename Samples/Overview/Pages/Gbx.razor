@@ -15,7 +15,7 @@
     <ReuCheckbox IsCheckedChanged="isChecked => showTypes = isChecked" IsChecked="@showTypes">Types</ReuCheckbox>
     <ReuCheckbox IsCheckedChanged="isChecked => ignore = isChecked" IsChecked="@ignore">Ignore instead of fade</ReuCheckbox>
 </div>
-<div>
+<div style="overflow: auto">
     <ReuObjectTree Value="gbx" 
                    HideType="!showTypes"
                    IsExpandedByDefault="true"
