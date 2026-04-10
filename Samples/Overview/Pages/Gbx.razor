@@ -4,7 +4,10 @@
 @using System.Reflection
 @using GBX.NET.Engines.MwFoundations
 @using GBX.NET.Serialization.Chunking
+@using TmEssentials
 @using TmEssentials.Razor
+@using Overview.Customization
+
 @layout MainLayout
 
 @inject EventService EventService
@@ -17,7 +20,8 @@
     <ReuCheckbox IsCheckedChanged="isChecked => ignore = isChecked" IsChecked="@ignore">Ignore instead of fade</ReuCheckbox>
 </div>
 <div style="overflow: auto">
-    <ReuObjectTree Value="gbx" 
+    <ReuObjectTree @ref="objectTree"
+                   Value="gbx" 
                    HideType="!showTypes"
                    IsExpandedByDefault="true"
                    FadeProvider="ProvideFade"
@@ -28,6 +32,7 @@
 <ReuTooltip IsGlobal="true"></ReuTooltip>
 
 @code {
+    private ReuObjectTree? objectTree;
     private GBX.NET.Gbx? gbx;
 
     private bool showTypes = true;
@@ -43,6 +48,15 @@
             gbx = GBX.NET.Gbx.Parse(ms);
             StateHasChanged();
         };
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objectTree?.TypeValueComponents.Add(typeof(TimeInt32), typeof(TimeInt32TypeValueComponent));
+            objectTree?.TypeValueComponents.Add(typeof(Id), typeof(IdTypeValueComponent));
+        }
     }
 
     private void OnUpload(UploadEventArgs args)

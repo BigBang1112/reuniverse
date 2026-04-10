@@ -1,0 +1,41 @@
+﻿@using GBX.NET
+@using GBX.NET.Managers
+@using Microsoft.AspNetCore.Components.Forms
+@using Reuniverse.Razor.TypeValueComponents
+
+@inherits TypeValueComponentBase<Id?>
+
+@if (Value.HasValue)
+{
+    <input @bind="ValueStr" readonly="@IsReadOnly" @oninput="OnInput" minlength="10" list="collectionIds" style="min-width: 10ch;width:@((tempValue?.Length ?? Value?.ToString().Length ?? 0) + 3)ch" />
+    <datalist id="collectionIds">
+        @foreach (var (collId, name) in CollectionManager.Collections)
+        {
+            <option value="@collId">@name</option>
+        }
+    </datalist>
+}
+else
+{
+    <span class="box-value clickable" @onclick="() => Value = default(Id)">@None</span>
+}
+
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}
+
+@code {
+    private string? tempValue;
+
+    private string ValueStr
+    {
+        get => Value is Id id ? id : "";
+        set => Value = int.TryParse(value, out int collectionId) ? new Id(collectionId) : new Id(value);
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        tempValue = e.Value?.ToString();
+    }
+}
