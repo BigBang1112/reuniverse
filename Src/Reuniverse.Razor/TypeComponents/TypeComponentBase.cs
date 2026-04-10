@@ -33,4 +33,7 @@ public abstract class TypeComponentBase<T> : ComponentBase
 
     [Parameter, EditorRequired]
     public bool Selected { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<object?, RenderFragment?>? VisualizationProvider { get; set; }
 }

@@ -20,7 +20,17 @@
 }
 @try
 {
-    @if (TryGetValueComponent(out var componentType))
+    @if (!revealed && VisualizationProvider?.Invoke(Value) is RenderFragment renderFragment)
+    {
+        <span class="box-value clickable"
+              @onclick="Reveal"
+              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
+              @onmousemove="ReuTooltip.MoveGlobal"
+              @onmouseout="ReuTooltip.HideGlobal">
+            @renderFragment
+        </span>
+    }
+    else if (TryGetValueComponent(out var componentType))
     {
         var parameters = new Dictionary<string, object?>
         {
@@ -51,6 +61,11 @@
     else
     {
         <span class="box-value">@(Value.Property.CanRead ? Value.Value : "(cannot get)")</span>
+    }
+
+    @if (revealed)
+    {
+        <span class="box-value clickable" @onclick="() => revealed = false">Visualize</span>
     }
 
     @if (CanRemoveValue())
@@ -85,7 +100,15 @@ catch (Exception ex)
     // this prevValue will be forgotten after the component is recreated, prefer storing it in separate class (not ReuObjectTreeMember as that one recreates too)
     private object? prevValue;
 
+    private bool revealed;
+
     public Exception? Exception { get; set; }
+
+    private void Reveal()
+    {
+        revealed = true;
+        ReuTooltip.HideGlobal();
+    }
 
     private bool TryGetValueComponent(out Type? componentType)
     {

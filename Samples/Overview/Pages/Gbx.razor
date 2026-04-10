@@ -4,6 +4,7 @@
 @using System.Reflection
 @using GBX.NET.Engines.MwFoundations
 @using GBX.NET.Serialization.Chunking
+@using TmEssentials.Razor
 @layout MainLayout
 
 @inject EventService EventService
@@ -20,7 +21,8 @@
                    HideType="!showTypes"
                    IsExpandedByDefault="true"
                    FadeProvider="ProvideFade"
-                   IgnoreProvider="ProvideIgnore"></ReuObjectTree>
+                   IgnoreProvider="ProvideIgnore"
+                   VisualizationProvider="ProvideVisualization"></ReuObjectTree>
 </div>
 
 <ReuTooltip IsGlobal="true"></ReuTooltip>
@@ -90,5 +92,32 @@
     private bool ProvideIgnore(object? value)
     {
         return ignore && IgnoreIfNotInChunk(value);
+    }
+
+    private RenderFragment? ProvideVisualization(object? value)
+    {
+        if (value is not ReuObjectTreeMember member)
+        {
+            return null;
+        }
+
+        var parentNode = (member.Parent as CMwNod) ?? (member.Parent as ReuObjectTreeMember)?.Value as CMwNod;
+
+        if (parentNode is null)
+        {
+            return null;
+        }
+
+        if (!Attribute.IsDefined(member.Property, typeof(SupportsFormattingAttribute)))
+        {
+            return null;
+        }
+
+        return builder =>
+        {
+            builder.OpenComponent(0, typeof(FormattedText));
+            builder.AddAttribute(1, "Text", member.Value);
+            builder.CloseComponent();
+        };
     }
 }
