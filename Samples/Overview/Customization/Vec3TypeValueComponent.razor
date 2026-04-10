@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using Reuniverse.Razor.TypeValueComponents
+@using GBX.NET
+
+@inherits TypeValueComponentBase<Vec3?>
+
+@if (Value.HasValue)
+{
+    <input type="number" @bind="X" readonly="@IsReadOnly" maxlength="13" style="width: 13ch;" />
+    <input type="number" @bind="Y" readonly="@IsReadOnly" maxlength="13" style="width: 13ch;" />
+    <input type="number" @bind="Z" readonly="@IsReadOnly" maxlength="13" style="width: 13ch;" />
+}
+else
+{
+    <span class="box-value clickable" @onclick="() => Value = default(Vec3)">@None</span>
+}
+
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}
+
+@code {
+    private float X
+    {
+        get => Value?.X ?? 0;
+        set => Value = new Vec3(value, Value?.Y ?? 0, Value?.Z ?? 0);
+    }
+
+    private float Y
+    {
+        get => Value?.Y ?? 0;
+        set => Value = new Vec3(Value?.X ?? 0, value, Value?.Z ?? 0);
+    }
+
+    private float Z
+    {
+        get => Value?.Z ?? 0;
+        set => Value = new Vec3(Value?.X ?? 0, Value?.Y ?? 0, value);
+    }
+}

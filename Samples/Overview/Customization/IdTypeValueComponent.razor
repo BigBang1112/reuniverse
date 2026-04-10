@@ -7,13 +7,13 @@
 
 @if (Value.HasValue)
 {
-    <input @bind="ValueStr" readonly="@IsReadOnly" @oninput="OnInput" minlength="10" list="collectionIds" style="min-width: 10ch;width:@((tempValue?.Length ?? Value?.ToString().Length ?? 0) + 3)ch" />
-    <datalist id="collectionIds">
-        @foreach (var (collId, name) in CollectionManager.Collections)
-        {
-            <option value="@collId">@name</option>
-        }
-    </datalist>
+    <input @bind="ValueStr" 
+           readonly="@IsReadOnly" 
+           @oninput="e => tempValue = e.Value?.ToString()"
+           placeholder="@Placeholder"
+           minlength="10" 
+           list="collectionIds" 
+           style="min-width: 10ch;width:@((tempValue?.Length ?? Value?.ToString().Length ?? 0) + 3)ch" />
 }
 else
 {
@@ -31,11 +31,10 @@ else
     private string ValueStr
     {
         get => Value is Id id ? id : "";
-        set => Value = int.TryParse(value, out int collectionId) ? new Id(collectionId) : new Id(value);
-    }
-
-    private async Task OnInput(ChangeEventArgs e)
-    {
-        tempValue = e.Value?.ToString();
+        set
+        {
+            Value = int.TryParse(value, out int collectionId) ? new Id(collectionId) : new Id(value);
+            tempValue = null;
+        }
     }
 }

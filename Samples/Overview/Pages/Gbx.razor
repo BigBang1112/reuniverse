@@ -3,6 +3,7 @@
 @using GBX.NET.Attributes
 @using System.Reflection
 @using GBX.NET.Engines.MwFoundations
+@using GBX.NET.Managers
 @using GBX.NET.Serialization.Chunking
 @using TmEssentials
 @using TmEssentials.Razor
@@ -27,6 +28,12 @@
                    FadeProvider="ProvideFade"
                    IgnoreProvider="ProvideIgnore"
                    VisualizationProvider="ProvideVisualization"></ReuObjectTree>
+    <datalist id="collectionIds">
+        @foreach (var (collId, name) in CollectionManager.Collections)
+        {
+            <option value="@collId">@name</option>
+        }
+    </datalist>
 </div>
 
 <ReuTooltip IsGlobal="true"></ReuTooltip>
@@ -55,7 +62,11 @@
         if (firstRender)
         {
             objectTree?.TypeValueComponents.Add(typeof(TimeInt32), typeof(TimeInt32TypeValueComponent));
+            objectTree?.TypeValueComponents.Add(typeof(TimeSingle), typeof(TimeSingleTypeValueComponent));
             objectTree?.TypeValueComponents.Add(typeof(Id), typeof(IdTypeValueComponent));
+            objectTree?.TypeValueComponents.Add(typeof(Ident), typeof(IdentTypeValueComponent));
+            objectTree?.TypeValueComponents.Add(typeof(Int3), typeof(Int3TypeValueComponent));
+            objectTree?.TypeValueComponents.Add(typeof(Vec3), typeof(Vec3TypeValueComponent));
         }
     }
 

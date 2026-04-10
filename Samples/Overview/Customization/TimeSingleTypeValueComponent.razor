@@ -2,7 +2,7 @@
 @using Reuniverse.Razor.TypeValueComponents
 @using TmEssentials
 
-@inherits TypeValueComponentBase<TimeInt32?>
+@inherits TypeValueComponentBase<TimeSingle?>
 
 @if (Value.HasValue)
 {
@@ -10,7 +10,7 @@
 }
 else
 {
-    <span class="box-value clickable" @onclick="() => Value = default(TimeInt32)">@None</span>
+    <span class="box-value clickable" @onclick="() => Value = default(TimeSingle)">@None</span>
 }
 
 @if (Exception is not null)

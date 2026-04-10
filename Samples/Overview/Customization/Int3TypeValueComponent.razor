@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using Reuniverse.Razor.TypeValueComponents
+@using GBX.NET
+
+@inherits TypeValueComponentBase<Int3?>
+
+@if (Value.HasValue)
+{
+    <input type="number" @bind="X" readonly="@IsReadOnly" maxlength="6" style="width: 6ch;" />
+    <input type="number" @bind="Y" readonly="@IsReadOnly" maxlength="6" style="width: 6ch;" />
+    <input type="number" @bind="Z" readonly="@IsReadOnly" maxlength="6" style="width: 6ch;" />
+}
+else
+{
+    <span class="box-value clickable" @onclick="() => Value = default(Int3)">@None</span>
+}
+
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}
+
+@code {
+    private int X
+    {
+        get => Value?.X ?? 0;
+        set => Value = new Int3(value, Value?.Y ?? 0, Value?.Z ?? 0);
+    }
+
+    private int Y
+    {
+        get => Value?.Y ?? 0;
+        set => Value = new Int3(Value?.X ?? 0, value, Value?.Z ?? 0);
+    }
+
+    private int Z
+    {
+        get => Value?.Z ?? 0;
+        set => Value = new Int3(Value?.X ?? 0, Value?.Y ?? 0, value);
+    }
+}

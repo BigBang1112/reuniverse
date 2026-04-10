@@ -10,7 +10,12 @@
 }
 else
 {
-    <input @bind="Value" readonly="@IsReadOnly" placeholder="@Placeholder" @oninput="OnInput" style="width:@((tempValue?.Length ?? Value?.Length ?? 0) + 1)ch" />
+    <input @bind="Value" 
+           readonly="@IsReadOnly" 
+           placeholder="@Placeholder" 
+           @oninput="e => tempValue = e.Value?.ToString()" 
+           style="width:@((tempValue?.Length ?? Value?.Length ?? 0) + 1)ch" />
+
     @if (!IsKey)
     {
         <span class="box-value"><code
@@ -26,9 +31,4 @@ else
 
 @code {
     private string? tempValue;
-
-    private async Task OnInput(ChangeEventArgs e)
-    {
-        tempValue = e.Value?.ToString();
-    }
 }

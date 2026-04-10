@@ -1,0 +1,66 @@
+﻿@using GBX.NET.Managers
+@using Microsoft.AspNetCore.Components.Forms
+@using Reuniverse.Razor.TypeValueComponents
+@using GBX.NET
+
+@inherits TypeValueComponentBase<Ident>
+
+@if (Value is null)
+{
+    <span class="box-value clickable" @onclick="() => Value = Ident.Empty">@None</span>
+}
+else
+{
+    <input @bind="Id"
+           readonly="@IsReadOnly"
+           placeholder="@Placeholder"
+           @oninput="e => tempId = e.Value?.ToString()"
+           style="width:@((tempId?.Length ?? Id?.Length ?? 0) + 1)ch" />
+
+    <input @bind="Collection"
+           readonly="@IsReadOnly"
+           @oninput="e => tempCollection = e.Value?.ToString()"
+           placeholder="@Placeholder"
+           minlength="10"
+           list="collectionIds"
+           style="min-width: 10ch;width:@((tempCollection?.Length ?? Collection?.Length ?? 0) + 3)ch" />
+           
+    <input @bind="Author"
+           readonly="@IsReadOnly"
+           placeholder="@Placeholder"
+           @oninput="e => tempAuthor = e.Value?.ToString()"
+           style="width:@((tempAuthor?.Length ?? Author?.Length ?? 0) + 1)ch" />
+}
+
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}
+
+@code {
+    private string? tempId;
+    private string? tempCollection;
+    private string? tempAuthor;
+
+    private string Id
+    {
+        get => Value?.Id ?? "";
+        set => Value = new Ident(value, Collection, Author);
+    }
+
+    private string Collection
+    {
+        get => Value?.Collection ?? "";
+        set
+        {
+            Value = int.TryParse(value, out int collectionId) ? new Ident(Id, collectionId, Author) : new Ident(Id, value, Author);
+            tempCollection = null;
+        }
+    }
+
+    private string Author
+    {
+        get => Value?.Author ?? "";
+        set => Value = new Ident(Id, Collection, value);
+    }
+}
