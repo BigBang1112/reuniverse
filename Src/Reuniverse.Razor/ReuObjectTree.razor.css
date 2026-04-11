@@ -72,6 +72,7 @@
 ::deep .box-value {
     padding: 0 10px;
     border-radius: 4px;
+    height: 29px;
     line-height: 29px;
     padding-top: 1px;
     background: #2228;
@@ -230,4 +231,15 @@
 
 .more-items-text {
     user-select: none;
+}
+
+.basetype-info {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-bottom: 1px solid #3338;
+    font-size: 90%;
+    gap: 12px;
+    white-space: nowrap;
+    animation: fadeIn 0.2s ease-in forwards;
 }
