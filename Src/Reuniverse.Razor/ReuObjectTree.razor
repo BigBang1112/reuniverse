@@ -58,54 +58,32 @@
     </div>
     @if (IsExpanded && Children.Any())
     {
-        var value = (Value as ReuObjectTreeMember)?.Value;
-        var totalCount = value switch
+        var memberValue = (Value as ReuObjectTreeMember)?.Value;
+        var totalCount = memberValue switch
         {
             System.Collections.ICollection collection => collection.Count,
             IEnumerable<object> enumerable when enumerable.TryGetNonEnumeratedCount(out int count) => count,
             _ => default(int?)
         };
 
-        if (totalCount is null && value is System.Collections.IEnumerable pureEnumerable)
-        {
-            totalCount = pureEnumerable.Cast<object>().Skip(CurrentPage * PageSize).Any() ? PageSize + 1 : 0;
-        }
+        var isPureEnumerable = totalCount is null && memberValue is System.Collections.IEnumerable;
 
-        var renderedChildren = Children;
-
-        if (totalCount > PageSize)
+        /*if (totalCount > PageSize)
         {
             renderedChildren = renderedChildren.Skip(CurrentPage * PageSize).Take(PageSize);
-        }
+        }*/
 
-        var groupedChildren = renderedChildren.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
+        var groupedChildren = Children.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
             .Where(group => group.Key != typeof(object) && group.Key != typeof(ValueType))
             .OrderByDescending(group => group.Key, BaseTypeComparer.Instance);
 
         var isFirstGroup = true;
 
         <div class="items">
-            @if (totalCount > PageSize)
-            {
-                var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
-
-                <div class="pagination-info">
-                    <div class="pagination-controls">
-                        <button class="page-btn" @onclick="() => GoToFirstPage()" disabled="@(CurrentPage == 0)">⏮</button>
-                        <button class="page-btn" @onclick="() => GoToPreviousPage()" disabled="@(CurrentPage == 0)">◀</button>
-                        <code class="page-info">@(CurrentPage + 1)/@totalPages</code>
-                        <button class="page-btn" @onclick="() => GoToNextPage()" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
-                        <button class="page-btn" @onclick="() => GoToLastPage()" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
-                        <label class="page-goto">
-                            <span class="pagination-text">Go to page:</span>
-                            <input type="number" min="1" max="@totalPages" @onchange="e => GoToPage(e.Value?.ToString(), totalPages)" class="page-input" />
-                        </label>
-                        <input type="search" placeholder="Search..." class="page-input" @oninput="e => OnSearch(e.Value?.ToString())" />
-                    </div>
-                </div>
-            }
             @foreach (var group in groupedChildren)
             {
+                var actualGroup = group.Where(child => !ProvideIgnore(child));
+
                 if (!isFirstGroup && group.Key is not null)
                 {
                     <div class="basetype-info"><ReuFriendlyType Type="group.Key"></ReuFriendlyType></div>
@@ -113,41 +91,67 @@
 
                 isFirstGroup = false;
 
-                foreach (var child in group)
+                if (group.Key is null && totalCount > PageSize)
                 {
-                    if (!ProvideIgnore(child))
+                    var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
+
+                    actualGroup = actualGroup.Skip(CurrentPage * PageSize).Take(PageSize);
+
+                    <div class="pagination-info">
+                        <div class="pagination-controls">
+                            <button class="page-btn" @onclick="() => GoToFirstPage()" disabled="@(CurrentPage == 0)">⏮</button>
+                            <button class="page-btn" @onclick="() => GoToPreviousPage()" disabled="@(CurrentPage == 0)">◀</button>
+                            <code class="page-info">@(CurrentPage + 1)/@totalPages</code>
+                            <button class="page-btn" @onclick="() => GoToNextPage()" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
+                            <button class="page-btn" @onclick="() => GoToLastPage()" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
+                            <label class="page-goto">
+                                <span class="pagination-text">Go to page:</span>
+                                <input type="number" min="1" max="@totalPages" @onchange="e => GoToPage(e.Value?.ToString(), totalPages)" class="page-input" />
+                            </label>
+                            <input type="search" placeholder="Search..." class="page-input" @oninput="e => OnSearch(e.Value?.ToString())" />
+                        </div>
+                    </div>
+                }
+
+                foreach (var child in actualGroup)
+                {
+                    <ReuObjectTree Parent="Value"
+                                    ParentTree="this"
+                                    Value="child"
+                                    HideType="HideType"
+                                    OnTypeClick="OnTypeClick"
+                                    TypeComponents="TypeComponents"
+                                    TypeValueComponents="TypeValueComponents"
+                                    FadeProvider="FadeProvider"
+                                    Faded="ProvideFade(child)"
+                                    IgnoreProvider="IgnoreProvider"
+                                    ChildrenProvider="ChildrenProvider"
+                                    VisualizationProvider="VisualizationProvider"></ReuObjectTree>
+                }
+
+                @if (group.Key is null)
+                {
+                    if (totalCount > PageSize)
                     {
-                        <ReuObjectTree Parent="Value"
-                                       ParentTree="this"
-                                       Value="child"
-                                       HideType="HideType"
-                                       OnTypeClick="OnTypeClick"
-                                       TypeComponents="TypeComponents"
-                                       TypeValueComponents="TypeValueComponents"
-                                       FadeProvider="FadeProvider"
-                                       Faded="ProvideFade(child)"
-                                       IgnoreProvider="IgnoreProvider"
-                                       ChildrenProvider="ChildrenProvider"
-                                       VisualizationProvider="VisualizationProvider"></ReuObjectTree>
+                        var itemsLeft = totalCount.Value - (CurrentPage + 1) * PageSize;
+
+                        @if (itemsLeft > 0)
+                        {
+                            <div class="more-items-indicator">
+                                @itemsLeft more element@(itemsLeft != 1 ? "s" : "") not shown
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="more-items-indicator">
+                                No more elements
+                            </div>
+                        }
                     }
-                }
-            }
-            @if (totalCount > PageSize)
-            {
-                var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
-                var hasMoreItems = CurrentPage < totalPages - 1;
-                
-                @if (hasMoreItems)
-                {
-                    <div class="more-items-indicator">
-                        More elements available
-                    </div>
-                }
-                else
-                {
-                    <div class="more-items-indicator">
-                        No more elements
-                    </div>
+                    else if (isPureEnumerable)
+                    {
+                        
+                    }
                 }
             }
         </div>
