@@ -1,30 +1,66 @@
 ﻿@inherits TypeValueComponentBase<object?>
 
-@if (Value is null)
+@if (Type is null)
 {
-    @if (Type is null)
+    <span class="box-value">@(Value is null ? "null" : Value)</span>
+}
+else if (Value is null)
+{
+    <span class="box-value clickable"
+            @onclick="() => Value = Enum.GetValues(Type).GetValue(0)"
+            @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
+            @onmousemove="ReuTooltip.MoveGlobal"
+            @onmouseout="ReuTooltip.HideGlobal">@None</span>
+}
+else if (Attribute.IsDefined(Type, typeof(FlagsAttribute)))
+{
+    var longValue = Convert.ToInt64(Value);
+
+    var flagValues = Enum.GetValues(Type)
+        .Cast<object>()
+        .Where(v =>
+        {
+            var flag = Convert.ToInt64(v);
+            return flag != 0 && (longValue & flag) == flag;
+        })
+        .ToArray();
+
+    @foreach (var flagValue in flagValues)
     {
-        <span class="box-value">@None</span>
+        <span class="box-value @(IsReadOnly ? "" : "clickable")">@flagValue</span>
     }
-    else
+
+    @if (!IsReadOnly)
     {
-        <span class="box-value clickable"
-              @onclick="() => Value = Enum.GetValues(Type).GetValue(0)"
-              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
-              @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal">@None</span>
+        <select @onchange="OnChange">
+            <option value="0" selected="@longValue == 0">Add a flag...</option>
+            @foreach (var enumValue in Enum.GetValues(Type))
+            {
+                var flag = Convert.ToInt64(enumValue);
+                var isSelected = (longValue & flag) == flag;
+                <option value="@flag" selected="@isSelected">@enumValue</option>
+            }
+        </select>
     }
 }
 else
 {
+    var enumValues = Enum.GetValues(Type);
+    var value = Value;
+    var containsCurrentValue = enumValues.Cast<object>().Any(v => v.Equals(value));
+
     <select disabled="@IsReadOnly" @onchange="OnChange">
-        @if (Type is not null)
+                
+        @if (!containsCurrentValue)
         {
-            @foreach (var enumValue in Enum.GetValues(Type))
-            {
-                <option value="@(Convert.ToInt32(enumValue))" selected="@enumValue.Equals(Value)">@enumValue</option>
-            }
+            <option value="@(Convert.ToInt32(value))" selected>@value</option>
         }
+
+        @foreach (var enumValue in enumValues)
+        {
+            <option value="@(Convert.ToInt32(enumValue))" selected="@enumValue.Equals(value)">@enumValue</option>
+        }
+
     </select>
 }
 
