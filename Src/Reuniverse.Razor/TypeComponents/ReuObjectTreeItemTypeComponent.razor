@@ -14,7 +14,17 @@
         @(IsExpanded ? "▼" : "▶")
     </div>
 }
-@if (TryGetValueComponent(out var componentType))
+@if (!revealed && VisualizationProvider?.Invoke(Value) is RenderFragment renderFragment)
+{
+    <span class="box-value clickable"
+          @onclick="Reveal"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">
+        @renderFragment
+    </span>
+}
+else if (TryGetValueComponent(out var componentType))
 {
     var parameters = new Dictionary<string, object?>
     {
@@ -33,6 +43,14 @@ else
 {
     <span class="box-value">@Value.Value</span>
 }
+@if (revealed)
+{
+    <span class="box-value clickable" @onclick="() => revealed = false">Visualize</span>
+}
+@if (ExtrasProvider?.Invoke(Value) is RenderFragment extrasFragment)
+{
+    @extrasFragment
+}
 @if (CanRemoveValue())
 {
     <span class="box-value clickable remove"
@@ -49,7 +67,13 @@ else
 }
 
 @code {
-    public Exception? Exception { get; set; }
+    private bool revealed;
+
+    private void Reveal()
+    {
+        revealed = true;
+        ReuTooltip.HideGlobal();
+    }
 
     private bool TryGetValueComponent(out Type? componentType)
     {

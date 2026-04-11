@@ -15,13 +15,12 @@ else
            readonly="@IsReadOnly"
            placeholder="@Placeholder"
            @oninput="e => tempId = e.Value?.ToString()"
-           style="width:@((tempId?.Length ?? Id?.Length ?? 0) + 1)ch" />
+           style="min-width: 10ch;width:@((tempId?.Length ?? Id?.Length ?? 0) + 1)ch" />
 
     <input @bind="Collection"
            readonly="@IsReadOnly"
            @oninput="e => tempCollection = e.Value?.ToString()"
            placeholder="@Placeholder"
-           minlength="10"
            list="collectionIds"
            style="min-width: 10ch;width:@((tempCollection?.Length ?? Collection?.Length ?? 0) + 3)ch" />
            
@@ -29,7 +28,7 @@ else
            readonly="@IsReadOnly"
            placeholder="@Placeholder"
            @oninput="e => tempAuthor = e.Value?.ToString()"
-           style="width:@((tempAuthor?.Length ?? Author?.Length ?? 0) + 1)ch" />
+           style="min-width: 10ch;width:@((tempAuthor?.Length ?? Author?.Length ?? 0) + 1)ch" />
 }
 
 @if (Exception is not null)

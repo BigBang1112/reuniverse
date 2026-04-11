@@ -68,6 +68,11 @@
         <span class="box-value clickable" @onclick="() => revealed = false">Visualize</span>
     }
 
+    @if (ExtrasProvider?.Invoke(Value) is RenderFragment extrasFragment)
+    {
+        @extrasFragment
+    }
+
     @if (CanRemoveValue())
     {
         <span class="box-value clickable remove"
@@ -101,8 +106,6 @@ catch (Exception ex)
     private object? prevValue;
 
     private bool revealed;
-
-    public Exception? Exception { get; set; }
 
     private void Reveal()
     {

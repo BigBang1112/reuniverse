@@ -8,17 +8,18 @@
         {
             var parameters = new Dictionary<string, object?>
             {
-                ["Value"] = Value,
-                ["TypeValueComponents"] = TypeValueComponents,
-                ["IsExpandable"] = IsExpandable,
-                ["IsExpanded"] = IsExpanded,
-                ["OnExpandToggle"] = EventCallback.Factory.Create(this, ToggleExpanded),
-                ["HideType"] = HideType,
-                ["OnTypeClick"] = OnTypeClick,
-                ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange),
-                ["OnSelect"] = EventCallback.Factory.Create(this, SelectAsync),
-                ["Selected"] = SelectedObject?.Equals(Value) ?? false,
-                ["VisualizationProvider"] = VisualizationProvider,
+                [nameof(TypeComponentBase<>.Value)] = Value,
+                [nameof(TypeComponentBase<>.TypeValueComponents)] = TypeValueComponents,
+                [nameof(TypeComponentBase<>.IsExpandable)] = IsExpandable,
+                [nameof(TypeComponentBase<>.IsExpanded)] = IsExpanded,
+                [nameof(TypeComponentBase<>.OnExpandToggle)] = EventCallback.Factory.Create(this, ToggleExpanded),
+                [nameof(TypeComponentBase<>.HideType)] = HideType,
+                [nameof(TypeComponentBase<>.OnTypeClick)] = OnTypeClick,
+                [nameof(TypeComponentBase<>.ValueChanged)] = EventCallback.Factory.Create(this, OnValueChange),
+                [nameof(TypeComponentBase<>.OnSelect)] = EventCallback.Factory.Create(this, SelectAsync),
+                [nameof(TypeComponentBase<>.Selected)] = SelectedObject?.Equals(Value) ?? false,
+                [nameof(TypeComponentBase<>.VisualizationProvider)] = VisualizationProvider,
+                [nameof(TypeComponentBase<>.ExtrasProvider)] = ExtrasProvider
             };
 
             <DynamicComponent Type="componentType" Parameters="parameters" />
@@ -152,7 +153,8 @@
                                     Faded="ProvideFade(child)"
                                     IgnoreProvider="IgnoreProvider"
                                     ChildrenProvider="ChildrenProvider"
-                                    VisualizationProvider="VisualizationProvider"></ReuObjectTree>
+                                    VisualizationProvider="VisualizationProvider"
+                                    ExtrasProvider="ExtrasProvider"></ReuObjectTree>
                 }
 
                 @if (group?.Key is null)
@@ -311,6 +313,9 @@
 
     [Parameter]
     public Func<object?, RenderFragment?>? VisualizationProvider { get; set; }
+
+    [Parameter]
+    public Func<object?, RenderFragment?>? ExtrasProvider { get; set; }
 
     private int CurrentPage
     {

@@ -27,7 +27,8 @@
                    IsExpandedByDefault="true"
                    FadeProvider="ProvideFade"
                    IgnoreProvider="ProvideIgnore"
-                   VisualizationProvider="ProvideVisualization"></ReuObjectTree>
+                   VisualizationProvider="ProvideVisualization"
+                   ExtrasProvider="ProvideExtra"></ReuObjectTree>
     <datalist id="collectionIds">
         @foreach (var (collId, name) in CollectionManager.Collections)
         {
@@ -126,14 +127,7 @@
             return null;
         }
 
-        var parentNode = (member.Parent as CMwNod) ?? (member.Parent as ReuObjectTreeMember)?.Value as CMwNod;
-
-        if (parentNode is null)
-        {
-            return null;
-        }
-
-        if (!Attribute.IsDefined(member.Property, typeof(SupportsFormattingAttribute)))
+        if (member.Property.PropertyType != typeof(string) || !Attribute.IsDefined(member.Property, typeof(SupportsFormattingAttribute)))
         {
             return null;
         }
@@ -144,5 +138,32 @@
             builder.AddAttribute(1, "Text", member.Value);
             builder.CloseComponent();
         };
+    }
+
+    private RenderFragment? ProvideExtra(object? value)
+    {
+        if (value is not ReuObjectTreeMember member)
+        {
+            return null;
+        }
+
+        if (member.Property.PropertyType != typeof(byte[]) || !Attribute.IsDefined(member.Property, typeof(JpegDataAttribute)))
+        {
+            return null;
+        }
+
+        if (member.Value is byte[] jpegData)
+        {
+            return builder =>
+            {
+                builder.OpenElement(0, "img");
+                builder.AddAttribute(1, "src", $"data:image/jpeg;base64,{Convert.ToBase64String(jpegData)}");
+                builder.AddAttribute(2, "width", "30");
+                builder.AddAttribute(3, "height", "30");
+                builder.AddAttribute(4, "style", "border-radius: 4px;transform: scaleY(-1);");
+                builder.CloseElement();
+            };
+        }
+        return null;
     }
 }
