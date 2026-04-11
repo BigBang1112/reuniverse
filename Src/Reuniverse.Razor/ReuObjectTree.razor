@@ -91,26 +91,46 @@
 
                 isFirstGroup = false;
 
-                if (group.Key is null && totalCount > PageSize)
+                if (group.Key is null)
                 {
-                    var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
+                    if (totalCount > PageSize)
+                    {
+                        var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
 
-                    actualGroup = actualGroup.Skip(CurrentPage * PageSize).Take(PageSize);
+                        if (!string.IsNullOrWhiteSpace(searchTerm))
+                        {
+                            actualGroup = actualGroup.Where(child => (child as IReuObjectTreeElement)?.Value?.ToString()?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true);
+                            totalPages = (int)Math.Ceiling((double)actualGroup.Count() / PageSize);
+                        }
 
-                    <div class="pagination-info">
-                        <div class="pagination-controls">
-                            <button class="page-btn" @onclick="() => GoToFirstPage()" disabled="@(CurrentPage == 0)">⏮</button>
-                            <button class="page-btn" @onclick="() => GoToPreviousPage()" disabled="@(CurrentPage == 0)">◀</button>
-                            <code class="page-info">@(CurrentPage + 1)/@totalPages</code>
-                            <button class="page-btn" @onclick="() => GoToNextPage()" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
-                            <button class="page-btn" @onclick="() => GoToLastPage()" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
-                            <label class="page-goto">
-                                <span class="pagination-text">Go to page:</span>
-                                <input type="number" min="1" max="@totalPages" @onchange="e => GoToPage(e.Value?.ToString(), totalPages)" class="page-input" />
-                            </label>
-                            <input type="search" placeholder="Search..." class="page-input" @oninput="e => OnSearch(e.Value?.ToString())" />
+                        actualGroup = actualGroup.Skip(CurrentPage * PageSize).Take(PageSize);
+
+                        <div class="pagination-info">
+                            <div class="pagination-controls">
+                                <button class="page-btn" @onclick="() => GoToFirstPage()" disabled="@(CurrentPage == 0)">⏮</button>
+                                <button class="page-btn" @onclick="() => GoToPreviousPage()" disabled="@(CurrentPage == 0)">◀</button>
+                                @if (totalPages == 0)
+                                {
+                                    <code class="page-info">@totalPages</code>
+                                }
+                                else
+                                {
+                                    <code class="page-info">@(CurrentPage + 1)/@totalPages</code>
+                                }
+                                <button class="page-btn" @onclick="() => GoToNextPage()" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
+                                <button class="page-btn" @onclick="() => GoToLastPage()" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
+                                <label class="page-goto">
+                                    <span class="pagination-text">Go to page:</span>
+                                    <input type="number" min="1" max="@totalPages" @onchange="e => GoToPage(e.Value?.ToString(), totalPages)" class="page-input" />
+                                </label>
+                                <input type="search" placeholder="Search..." class="page-input" @oninput="e => OnSearch(e.Value?.ToString())" />
+                            </div>
                         </div>
-                    </div>
+                    }
+                    else if (isPureEnumerable)
+                    {
+                        
+                    }
                 }
 
                 foreach (var child in actualGroup)
@@ -563,6 +583,7 @@
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
+            this.searchTerm = null;
             return;
         }
 

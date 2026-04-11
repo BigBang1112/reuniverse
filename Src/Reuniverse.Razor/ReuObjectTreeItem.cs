@@ -1,6 +1,6 @@
 ﻿namespace Reuniverse.Razor;
 
-public sealed record ReuObjectTreeItem(object Parent, int Index, object? Value)
+public sealed record ReuObjectTreeItem(object Parent, int Index, object? Value) : IReuObjectTreeElement
 {
     public object? Value { get; private set; } = Value;
 

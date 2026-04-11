@@ -2,7 +2,7 @@
 
 namespace Reuniverse.Razor;
 
-public sealed record ReuObjectTreeMember(object Parent, PropertyInfo Property)
+public sealed record ReuObjectTreeMember(object Parent, PropertyInfo Property) : IReuObjectTreeElement
 {
     public object? Value
     {

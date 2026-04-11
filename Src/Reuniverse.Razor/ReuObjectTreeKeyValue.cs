@@ -1,6 +1,6 @@
 ﻿namespace Reuniverse.Razor;
 
-public sealed record ReuObjectTreeKeyValue(object Parent, object Key, object? Value)
+public sealed record ReuObjectTreeKeyValue(object Parent, object Key, object? Value) : IReuObjectTreeElement
 {
     public override string ToString() => $"{Key} = {Value ?? "null"}";
 
