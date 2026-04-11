@@ -68,30 +68,36 @@
 
         var isPureEnumerable = totalCount is null && memberValue is System.Collections.IEnumerable;
 
-        /*if (totalCount > PageSize)
-        {
-            renderedChildren = renderedChildren.Skip(CurrentPage * PageSize).Take(PageSize);
-        }*/
+        IEnumerable<IGrouping<Type?, object?>?> groupedChildren;
 
-        var groupedChildren = Children.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
-            .Where(group => group.Key != typeof(object) && group.Key != typeof(ValueType))
-            .OrderByDescending(group => group.Key, BaseTypeComparer.Instance);
+        if (totalCount > 1000)
+        {
+            // large grouping creates thousands of object tree elements before they are even visible
+            groupedChildren = [null];
+        }
+        else
+        {
+            groupedChildren = Children.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
+                .Where(group => group.Key != typeof(object) && group.Key != typeof(ValueType))
+                .OrderByDescending(group => group.Key, BaseTypeComparer.Instance);
+        }
 
         var isFirstGroup = true;
 
         <div class="items">
             @foreach (var group in groupedChildren)
             {
-                var actualGroup = group.Where(child => !ProvideIgnore(child));
+                // in case large grouping was skipped, directly use Children
+                var actualGroup = (group ?? Children).Where(child => !ProvideIgnore(child));
 
-                if (!isFirstGroup && group.Key is not null)
+                if (!isFirstGroup && group?.Key is not null)
                 {
                     <div class="basetype-info"><ReuFriendlyType Type="group.Key"></ReuFriendlyType></div>
                 }
 
                 isFirstGroup = false;
 
-                if (group.Key is null)
+                if (group?.Key is null)
                 {
                     if (totalCount > PageSize)
                     {
@@ -111,14 +117,14 @@
                                 <button class="page-btn" @onclick="() => GoToPreviousPage()" disabled="@(CurrentPage == 0)">◀</button>
                                 @if (totalPages == 0)
                                 {
-                                    <code class="page-info">@totalPages</code>
+                                    <code class="page-info">0/0</code>
                                 }
                                 else
                                 {
                                     <code class="page-info">@(CurrentPage + 1)/@totalPages</code>
                                 }
-                                <button class="page-btn" @onclick="() => GoToNextPage()" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
-                                <button class="page-btn" @onclick="() => GoToLastPage()" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
+                                <button class="page-btn" @onclick="() => GoToNextPage(totalCount.Value)" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
+                                <button class="page-btn" @onclick="() => GoToLastPage(totalCount.Value)" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
                                 <label class="page-goto">
                                     <span class="pagination-text">Go to page:</span>
                                     <input type="number" min="1" max="@totalPages" @onchange="e => GoToPage(e.Value?.ToString(), totalPages)" class="page-input" />
@@ -149,7 +155,7 @@
                                     VisualizationProvider="VisualizationProvider"></ReuObjectTree>
                 }
 
-                @if (group.Key is null)
+                @if (group?.Key is null)
                 {
                     if (totalCount > PageSize)
                     {
@@ -556,18 +562,18 @@
         }
     }
 
-    private void GoToNextPage()
+    private void GoToNextPage(int totalCount)
     {
-        var totalPages = (int)Math.Ceiling((double)Children.Count() / PageSize);
+        var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
         if (CurrentPage < totalPages - 1)
         {
             CurrentPage++;
         }
     }
 
-    private void GoToLastPage()
+    private void GoToLastPage(int totalCount)
     {
-        var totalPages = (int)Math.Ceiling((double)Children.Count() / PageSize);
+        var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
         CurrentPage = Math.Max(0, totalPages - 1);
     }
 
