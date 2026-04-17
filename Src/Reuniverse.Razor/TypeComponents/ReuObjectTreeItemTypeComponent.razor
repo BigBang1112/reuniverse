@@ -17,31 +17,43 @@
 @if (!revealed && VisualizationProvider?.Invoke(Value) is RenderFragment renderFragment)
 {
     <span class="box-value clickable"
-          @onclick="Reveal"
-          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
-          @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">
+    @onclick="Reveal"
+    @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
+    @onmousemove="ReuTooltip.MoveGlobal"
+    @onmouseout="ReuTooltip.HideGlobal">
         @renderFragment
     </span>
 }
 else if (TryGetValueComponent(out var componentType))
 {
     var parameters = new Dictionary<string, object?>
-    {
-        ["Item"] = Value,
-        ["TypeValueComponents"] = TypeValueComponents,
-        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
-    };
+                {
+                    ["Item"] = Value,
+                    ["TypeValueComponents"] = TypeValueComponents,
+                    ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+                };
 
     <DynamicComponent Type="componentType" Parameters="parameters" />
 }
-else if (Value.Value is null)
-{
-    <span class="box-value">null</span>
-}
 else
 {
-    <span class="box-value">@Value.Value</span>
+    @try
+    {
+        var valueStr = Value.Value?.ToString();
+
+        if (valueStr is null)
+        {
+            <span class="box-value">null</span>
+        }
+        else
+        {
+            <span class="box-value">@valueStr</span>
+        }
+    }
+    catch (Exception ex)
+    {
+        Exception = ex.InnerException ?? ex;
+    }
 }
 @if (revealed)
 {
