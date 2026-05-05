@@ -15,5 +15,6 @@ public enum IconType
     Webhook,
     Login,
     Logout,
-    Person
+    Person,
+    NuGet
 }

@@ -112,6 +112,14 @@ main.reu-main {
         background-color: var(--color-discord-hover) !important;
     }
 
+.reu-nuget {
+    background-color: var(--color-blue) !important;
+}
+
+    .reu-nuget:hover {
+        background-color: var(--color-blue-hover) !important;
+    }
+
 .reu-kofi {
     background-color: var(--color-kofi) !important;
     cursor: pointer;

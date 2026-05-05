@@ -237,7 +237,7 @@
 .basetype-info {
     display: flex;
     align-items: center;
-    padding: 5px 15px;
+    padding: 8px 15px;
     border-bottom: 1px solid #3338;
     font-size: 90%;
     gap: 12px;
