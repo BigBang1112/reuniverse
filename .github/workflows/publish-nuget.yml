@@ -17,6 +17,7 @@ jobs:
       dotnet-version: 10.x.x
       project-path: Src/*
       pack-path: "{Src/*,Templates}"
+      enable-tests: false
       enable-coverage: false
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
