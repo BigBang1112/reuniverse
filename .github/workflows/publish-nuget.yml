@@ -16,7 +16,7 @@ jobs:
     with:
       dotnet-version: 10.x.x
       project-path: Src/*
-      pack-path: "{Src,Templates}/**/*.csproj"
+      pack-path: "{Src,Templates}"
       package-prefix: Reuniverse
       enable-coverage: false
     secrets:
