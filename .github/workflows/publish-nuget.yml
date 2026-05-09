@@ -15,7 +15,8 @@ jobs:
     uses: bigbang1112/workflows/.github/workflows/publish-nuget.yml@filter-projects
     with:
       dotnet-version: 10.x.x
-      project-path: "{Src,Templates}/**/*.csproj"
+      project-path: Src/*
+      pack-path: "{Src,Templates}/*"
       package-prefix: Reuniverse
       enable-coverage: false
     secrets:
