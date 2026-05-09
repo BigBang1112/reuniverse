@@ -23,8 +23,21 @@ async function onInstall(event) {
     const assetsRequests = self.assetsManifest.assets
         .filter(asset => offlineAssetsInclude.some(pattern => pattern.test(asset.url)))
         .filter(asset => !offlineAssetsExclude.some(pattern => pattern.test(asset.url)))
-        .map(asset => new Request(asset.url, { integrity: asset.hash, cache: 'no-cache' }));
+        //.map(asset => new Request(asset.url, { integrity: asset.hash, cache: 'no-cache' }));
+        .map(asset => {
+            const isBrotliAsset = /\.(dll|wasm|pdb|dat)$/.test(asset.url);
+
+            if (isBrotliAsset) {
+                // Append .br to match what loadBootResource fetches.
+                // Omit integrity — the hash is for the uncompressed file.
+                return new Request(asset.url + '.br', { cache: 'no-cache' });
+            } else {
+                return new Request(asset.url, { integrity: asset.hash, cache: 'no-cache' });
+            }
+        });
     await caches.open(cacheName).then(cache => cache.addAll(assetsRequests));
+
+    self.skipWaiting();
 }
 
 async function onActivate(event) {
@@ -38,18 +51,35 @@ async function onActivate(event) {
 }
 
 async function onFetch(event) {
-    let cachedResponse = null;
-    if (event.request.method === 'GET') {
-        // For all navigation requests, try to serve index.html from cache,
-        // unless that request is for an offline resource.
-        // If you need some URLs to be server-rendered, edit the following check to exclude those URLs
-        const shouldServeIndexHtml = event.request.mode === 'navigate'
-            && !manifestUrlList.some(url => url === event.request.url);
-
-        const request = shouldServeIndexHtml ? 'index.html' : event.request;
-        const cache = await caches.open(cacheName);
-        cachedResponse = await cache.match(request);
+    if (event.request.method !== 'GET') {
+        return;
     }
 
+    const url = new URL(event.request.url);
+
+    // Add any paths that should always be fetched from the network here
+    const directHitPaths = [];
+    const isDirectHit = directHitPaths.some(path => url.pathname.startsWith(base + path));
+
+    if (isDirectHit) {
+        return fetch(event.request);
+    }
+
+    const isNavigationRequest = event.request.mode === 'navigate';
+    const hasFileExtension = url.pathname.match(/\.[a-zA-Z0-9]+$/);
+
+    const shouldServeIndexHtml = isNavigationRequest
+        && !hasFileExtension
+        && !manifestUrlList.some(manifestUrl => manifestUrl === event.request.url);
+
+    const cache = await caches.open(cacheName);
+
+    if (shouldServeIndexHtml) {
+        const indexRequest = new URL('index.html', baseUrl).href;
+        const cachedIndex = await cache.match(indexRequest);
+        if (cachedIndex) return cachedIndex;
+    }
+
+    const cachedResponse = await cache.match(event.request);
     return cachedResponse || fetch(event.request);
 }
