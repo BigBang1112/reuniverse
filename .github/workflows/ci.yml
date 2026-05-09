@@ -11,3 +11,4 @@ jobs:
     with:
       dotnet-version: 10.x.x
       workloads: wasm-tools
+      enable-coverage: false
