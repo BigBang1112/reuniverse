@@ -12,12 +12,11 @@ permissions:
 jobs:
   deploy:
     name: Publish NuGet
-    uses: bigbang1112/workflows/.github/workflows/publish-nuget.yml@filter-projects
+    uses: bigbang1112/workflows/.github/workflows/publish-nuget.yml@main
     with:
       dotnet-version: 10.x.x
       project-path: Src/*
       pack-path: "{Src/*,Templates}"
-      package-prefix: Reuniverse
       enable-coverage: false
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
