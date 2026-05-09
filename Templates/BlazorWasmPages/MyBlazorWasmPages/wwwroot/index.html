@@ -68,6 +68,9 @@
     </div>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js" autostart="false"></script>
     <script type="module">
+        // This is useful only for hosts that don't support Brotli compression, such as GitHub Pages!
+        // It can be checked by looking at .wasm file Content-Encoding response header saying "br" or not.
+        // You can remove this script block if you're fine with gzip or if your host supports Brotli compression natively.
         import { BrotliDecode } from './decode.min.js';
         Blazor.start({
             loadBootResource: function (type, name, defaultUri, integrity) {
