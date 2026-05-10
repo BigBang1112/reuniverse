@@ -16,5 +16,23 @@
         "language": "C#",
         "type": "project"
     },
-    "description": "Provides a Blazor Web App + WebAssembly + Photino app with no styling."
+    "description": "Provides a Blazor Web App + WebAssembly + Photino app with no styling.",
+    "sources": [
+        {
+            "source": "./MyBlazorPhotinoHybrid",
+            "target": "./"
+        },
+        {
+            "source": "./MyBlazorPhotinoHybrid.BlazorWasm",
+            "target": "./"
+        },
+        {
+            "source": "./MyBlazorPhotinoHybrid.BlazorWebApp",
+            "target": "./"
+        },
+        {
+            "source": "./MyBlazorPhotinoHybrid.Photino",
+            "target": "./"
+        }
+    ]
 }
