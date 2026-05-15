@@ -59,15 +59,28 @@
     </div>
     @if (IsExpanded && Children.Any())
     {
-        var memberValue = (Value as ReuObjectTreeMember)?.Value;
+        var memberValue = (Value as IReuObjectTreeElement)?.Value;
         var totalCount = memberValue switch
         {
             System.Collections.ICollection collection => collection.Count,
+            IReadOnlyCollection<object> readonlyCollection => readonlyCollection.Count,
             IEnumerable<object> enumerable when enumerable.TryGetNonEnumeratedCount(out int count) => count,
             _ => default(int?)
         };
 
         var isPureEnumerable = totalCount is null && memberValue is System.Collections.IEnumerable;
+
+        // sanity checks for generic (non)readonly collections on struct types
+        if (isPureEnumerable && memberValue is not null)
+        {
+            var collectionInterface = GetCollectionInterface(memberValue.GetType());
+
+            if (collectionInterface is not null)
+            {
+                isPureEnumerable = false;
+                totalCount = (int)collectionInterface.GetProperty(nameof(ICollection<>.Count))?.GetValue(memberValue)!;
+            }
+        }
 
         IEnumerable<IGrouping<Type?, object?>?> groupedChildren;
 
@@ -477,9 +490,9 @@
                     index++;
                 }
                 break;
-            case System.Collections.ICollection collection: // generic covariance only works for reference types
+            case System.Collections.IEnumerable enumerable: // generic covariance only works for reference types
                 var idx = 0;
-                foreach (var item in collection)
+                foreach (var item in enumerable)
                 {
                     yield return new ReuObjectTreeItem(parent, idx, item);
                     idx++;
@@ -641,6 +654,18 @@
         {
             return false;
         }
+    }
+
+    private Type? GetCollectionInterface(Type type)
+    {
+        return type.GetInterfaces()
+            .FirstOrDefault(x =>
+            {
+                if (!x.IsGenericType) return false;
+                var genericDef = x.GetGenericTypeDefinition();
+                return (genericDef == typeof(ICollection<>) || genericDef == typeof(IReadOnlyCollection<>)) &&
+                    x.GenericTypeArguments[0].IsValueType;
+            });
     }
 
     public static Dictionary<Type, Type> DefaultTypeComponents { get; } = new()
