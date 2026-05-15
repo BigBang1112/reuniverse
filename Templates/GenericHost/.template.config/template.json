@@ -14,5 +14,11 @@
         "language": "C#",
         "type": "project"
     },
-    "description": "Provides a generic host project with OpenTelemetry and Serilog."
+    "description": "Provides a generic host project with OpenTelemetry and Serilog.",
+    "sources": [
+        {
+            "source": "./MyGenericHost",
+            "target": "./"
+        }
+    ]
 }

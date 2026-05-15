@@ -17,5 +17,11 @@
         "language": "C#",
         "type": "project"
     },
-    "description": "Provides a Blazor WebAssembly app hosted on GitHub Pages with no styling."
+    "description": "Provides a Blazor WebAssembly app hosted on GitHub Pages with no styling.",
+    "sources": [
+        {
+            "source": "./MyBlazorWasmPages",
+            "target": "./"
+        }
+    ]
 }

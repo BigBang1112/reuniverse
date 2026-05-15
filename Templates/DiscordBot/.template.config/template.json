@@ -16,5 +16,11 @@
         "language": "C#",
         "type": "project"
     },
-    "description": "Provides a Discord bot project with OpenTelemetry and Serilog."
+    "description": "Provides a Discord bot project with OpenTelemetry and Serilog.",
+    "sources": [
+        {
+            "source": "./MyDiscordBot",
+            "target": "./"
+        }
+    ]
 }

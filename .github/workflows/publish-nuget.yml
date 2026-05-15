@@ -15,7 +15,9 @@ jobs:
     uses: bigbang1112/workflows/.github/workflows/publish-nuget.yml@main
     with:
       dotnet-version: 10.x.x
-      package-prefix: Reuniverse
+      project-path: Src/*
+      pack-path: "{Src/*,Templates}"
+      enable-tests: false
       enable-coverage: false
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
