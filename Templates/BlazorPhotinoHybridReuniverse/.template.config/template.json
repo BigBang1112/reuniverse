@@ -20,11 +20,11 @@
     "sources": [
         {
             "source": "./MyBlazorPhotinoHybridReuniverse",
-            "target": "./"
+            "target": "./MyBlazorPhotinoHybridReuniverse"
         },
         {
             "source": "./MyBlazorPhotinoHybridReuniverse.BlazorWasm",
-            "target": "./"
+            "target": "./MyBlazorPhotinoHybridReuniverse.BlazorWasm"
         },
         {
             "source": "./MyBlazorPhotinoHybridReuniverse.BlazorWebApp",
@@ -32,7 +32,7 @@
         },
         {
             "source": "./MyBlazorPhotinoHybridReuniverse.Photino",
-            "target": "./"
+            "target": "./MyBlazorPhotinoHybridReuniverse.Photino"
         }
     ]
 }

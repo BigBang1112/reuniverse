@@ -20,11 +20,11 @@
     "sources": [
         {
             "source": "./MyBlazorPhotinoHybrid",
-            "target": "./"
+            "target": "./MyBlazorPhotinoHybrid"
         },
         {
             "source": "./MyBlazorPhotinoHybrid.BlazorWasm",
-            "target": "./"
+            "target": "./MyBlazorPhotinoHybrid.BlazorWasm"
         },
         {
             "source": "./MyBlazorPhotinoHybrid.BlazorWebApp",
@@ -32,7 +32,7 @@
         },
         {
             "source": "./MyBlazorPhotinoHybrid.Photino",
-            "target": "./"
+            "target": "./MyBlazorPhotinoHybrid.Photino"
         }
     ]
 }
