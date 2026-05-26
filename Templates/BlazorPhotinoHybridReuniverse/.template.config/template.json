@@ -16,23 +16,5 @@
         "language": "C#",
         "type": "project"
     },
-    "description": "Provides a Blazor Web App + WebAssembly + Photino app with Reuniverse styling.",
-    "sources": [
-        {
-            "source": "./MyBlazorPhotinoHybridReuniverse",
-            "target": "./"
-        },
-        {
-            "source": "./MyBlazorPhotinoHybridReuniverse.BlazorWasm",
-            "target": "./"
-        },
-        {
-            "source": "./MyBlazorPhotinoHybridReuniverse.BlazorWebApp",
-            "target": "./"
-        },
-        {
-            "source": "./MyBlazorPhotinoHybridReuniverse.Photino",
-            "target": "./"
-        }
-    ]
+    "description": "Provides a Blazor Web App + WebAssembly + Photino app with Reuniverse styling."
 }

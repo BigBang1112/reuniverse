@@ -1,0 +1,104 @@
+@inject NavigationManager NavManager
+
+@if (!string.IsNullOrWhiteSpace(Description))
+{
+    <meta name="description" content="@Description" />
+}
+
+<meta property="og:title" content="@Title">
+@if (!string.IsNullOrWhiteSpace(Description))
+{
+    <meta property="og:description" content="@Description">
+}
+<meta property="og:url" content="@ResolvedUrl">
+<meta property="og:type" content="@Type">
+
+@if (!string.IsNullOrWhiteSpace(SiteName))
+{
+    <meta property="og:site_name" content="@SiteName">
+}
+
+@if (HasImage)
+{
+    <meta property="og:image" content="@ResolvedImageUrl">
+    <meta property="og:image:width" content="@ImageWidth">
+    <meta property="og:image:height" content="@ImageHeight">
+}
+
+@if (IncludeTwitter)
+{
+    <meta name="twitter:card" content="@TwitterCard">
+    <meta name="twitter:title" content="@Title">
+    <meta name="twitter:description" content="@Description">
+
+    @if (HasImage)
+    {
+        <meta name="twitter:image" content="@ResolvedImageUrl">
+    }
+}
+
+@if (IncludeCanonical)
+{
+    <link rel="canonical" href="@ResolvedCanonicalUrl">
+}
+
+@if (!string.IsNullOrWhiteSpace(ThemeColor))
+{
+    <meta name="theme-color" content="@ThemeColor">
+}
+
+@code {
+    /// <summary>
+    /// The main headline of the page.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; }
+
+    [Parameter]
+    public string Type { get; set; } = "website";
+
+    /// <summary>
+    /// The brand of the overall website.
+    /// </summary>
+    [Parameter]
+    public string? SiteName { get; set; }
+
+    [Parameter]
+    public string? Url { get; set; }
+
+    [Parameter]
+    public string? CanonicalUrl { get; set; }
+
+    [Parameter]
+    public string? ImageUrl { get; set; }
+
+    [Parameter]
+    public string? ImagePath { get; set; }
+
+    [Parameter]
+    public int ImageWidth { get; set; } = 1200;
+
+    [Parameter]
+    public int ImageHeight { get; set; } = 630;
+
+    [Parameter]
+    public bool IncludeTwitter { get; set; } = true;
+
+    [Parameter]
+    public string TwitterCard { get; set; } = "summary_large_image";
+
+    [Parameter]
+    public bool IncludeCanonical { get; set; } = true;
+
+    [Parameter]
+    public string? ThemeColor { get; set; }
+
+    private string ResolvedUrl => Url ?? NavManager.Uri;
+    private string ResolvedCanonicalUrl => CanonicalUrl ?? ResolvedUrl;
+    private string ResolvedImageUrl => ImageUrl ?? NavManager.ToAbsoluteUri(ImagePath).ToString();
+
+    private bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl) || !string.IsNullOrWhiteSpace(ImagePath);
+}
