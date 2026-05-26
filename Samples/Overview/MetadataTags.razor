@@ -1,0 +1,15 @@
+﻿<ReuMetadataTags Title="@Title" 
+                 SiteName="Reuniverse"
+                 Description="@Description"
+                 ImagePath="@ImagePath"></ReuMetadataTags>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string? Description { get; set; } = "Templates, components, and styling not only for your Blazor ecosystem.";
+
+    [Parameter]
+    public string? ImagePath { get; set; }
+}
