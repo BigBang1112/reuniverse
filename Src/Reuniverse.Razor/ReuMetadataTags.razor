@@ -1,7 +1,15 @@
 @inject NavigationManager NavManager
 
+@if (!string.IsNullOrWhiteSpace(Description))
+{
+    <meta name="description" content="@Description" />
+}
+
 <meta property="og:title" content="@Title">
-<meta property="og:description" content="@Description">
+@if (!string.IsNullOrWhiteSpace(Description))
+{
+    <meta property="og:description" content="@Description">
+}
 <meta property="og:url" content="@ResolvedUrl">
 <meta property="og:type" content="@Type">
 
@@ -32,6 +40,11 @@
 @if (IncludeCanonical)
 {
     <link rel="canonical" href="@ResolvedCanonicalUrl">
+}
+
+@if (!string.IsNullOrWhiteSpace(ThemeColor))
+{
+    <meta name="theme-color" content="@ThemeColor">
 }
 
 @code {
@@ -79,6 +92,9 @@
 
     [Parameter]
     public bool IncludeCanonical { get; set; } = true;
+
+    [Parameter]
+    public string? ThemeColor { get; set; }
 
     private string ResolvedUrl => Url ?? NavManager.Uri;
     private string ResolvedCanonicalUrl => CanonicalUrl ?? ResolvedUrl;
