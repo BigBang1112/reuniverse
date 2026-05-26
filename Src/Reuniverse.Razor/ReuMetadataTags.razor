@@ -4,7 +4,11 @@
 <meta property="og:description" content="@Description">
 <meta property="og:url" content="@ResolvedUrl">
 <meta property="og:type" content="@Type">
-<meta property="og:site_name" content="@SiteName">
+
+@if (!string.IsNullOrWhiteSpace(SiteName))
+{
+    <meta property="og:site_name" content="@SiteName">
+}
 
 @if (HasImage)
 {
@@ -46,8 +50,8 @@
     /// <summary>
     /// The brand of the overall website.
     /// </summary>
-    [Parameter, EditorRequired]
-    public string SiteName { get; set; }
+    [Parameter]
+    public string? SiteName { get; set; }
 
     [Parameter]
     public string? Url { get; set; }
