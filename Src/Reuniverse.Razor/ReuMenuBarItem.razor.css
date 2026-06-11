@@ -8,6 +8,7 @@
     padding: 0.3rem 1rem;
     font-size: 80%;
     cursor: pointer;
+    transition: background-color 0.05s ease;
 }
 
     .reu-menubar-item:hover {
@@ -21,6 +22,7 @@
 .reu-menubar-dropdown {
     position: absolute;
     background: var(--color-input-bg);
+    transition: background-color 0.2s ease;
 }
 
     .reu-menubar-dropdown.nested {

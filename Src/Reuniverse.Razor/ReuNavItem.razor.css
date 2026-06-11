@@ -1,7 +1,7 @@
 ::deep .nav-link {
-    color: white;
-    background-color: #3333;
-    border-bottom: 2px solid #FFF3;
+    color: var(--color-text-primary);
+    background-color: var(--color-nav-item-bg);
+    border-bottom: 2px solid var(--color-nav-border);
     border-radius: 4px;
     height: 2.5rem;
     min-width: 3rem;
@@ -9,14 +9,14 @@
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    transition: background-color 0.05s ease, min-width 0.2s ease;
+    transition: background-color 0.05s ease, color 0.05s ease, min-width 0.2s ease;
     backdrop-filter: blur(5px);
     box-sizing: border-box;
 }
 
     ::deep .nav-link:hover {
-        color: white;
-        background-color: #3338;
+        color: var(--color-text-primary);
+        background-color: var(--color-nav-item-hover);
     }
 
     ::deep .nav-link.wide {
@@ -27,6 +27,10 @@
         display: none;
     }
 
+::deep .nav-link img {
+    transition: filter 0.2s ease;
+}
+
 ::deep a.active, ::deep button.active {
-    background-color: #555A !important;
+    background-color: var(--color-nav-item-active) !important;
 }

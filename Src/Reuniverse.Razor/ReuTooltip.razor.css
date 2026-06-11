@@ -1,7 +1,8 @@
 .tooltip {
     display: flex;
     position: fixed;
-    background: #3338;
+    background: var(--color-tooltip-bg);
+    color: var(--color-tooltip-text);
     pointer-events: none;
     border-radius: 0.2rem;
     padding: 0.2rem 0.4rem;

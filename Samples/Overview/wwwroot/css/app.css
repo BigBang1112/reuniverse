@@ -1,5 +1,5 @@
 body {
-    background-color: #111;
+    background-color: var(--color-bg, #111);
 }
 
 h1 {
@@ -23,7 +23,7 @@ h1 {
 .wasm-loader {
     aspect-ratio: 1;
     border-radius: 50%;
-    background: white;
+    background: var(--color-loader, #FFF);
     --_m: conic-gradient(#0000 10%,#000), linear-gradient(#000 0 0) content-box;
     -webkit-mask: var(--_m);
     mask: var(--_m);
