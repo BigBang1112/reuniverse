@@ -688,7 +688,7 @@ footer.reu-footer {
     height: 20px;
     opacity: 0.7;
     transition: opacity 0.15s ease;
-    background: url('_content/Reuniverse.Razor/icons/light.svg') no-repeat center / contain;
+    background: url('icons/light.svg') no-repeat center / contain;
 }
 
     .reu-theme-icon:hover {
@@ -696,7 +696,7 @@ footer.reu-footer {
     }
 
 [data-theme="light"] .reu-theme-icon {
-    background-image: url('_content/Reuniverse.Razor/icons/light_fill.svg');
+    background-image: url('icons/light_fill.svg');
     filter: invert(0.6);
 }
 
