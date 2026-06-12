@@ -16,3 +16,9 @@
         text-align: center;
     }
 }
+
+.file-opened-hint {
+    margin-top: 0.5rem;
+    font-size: 85%;
+    color: var(--color-text-secondary);
+}

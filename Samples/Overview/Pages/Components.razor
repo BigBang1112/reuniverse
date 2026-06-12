@@ -148,6 +148,16 @@
         <ReuMenuBar Items="items"></ReuMenuBar>
     </div>
     <div>
+        <h2>&lt;ReuFileBrowser&gt;</h2>
+    </div>
+    <div>
+        <ReuFileBrowser Root="sampleRoot" OnFileOpen="f => lastOpened = f.Name" style="height: 340px"></ReuFileBrowser>
+        @if (lastOpened is not null)
+        {
+            <p class="file-opened-hint">Opened: <strong>@lastOpened</strong></p>
+        }
+    </div>
+    <div>
         <h2>&lt;ReuObjectTree&gt;</h2>
         <ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
     </div>
@@ -273,6 +283,43 @@
         },
         new() { Name = "Help", Href = "help" }
     };
+
+    // ── ReuFileBrowser sample data ─────────────────────────────────────────────
+
+    private string? lastOpened;
+
+    private IReuFolder sampleRoot = new SampleFolder("My Documents",
+    [
+        new SampleFolder("Projects",
+        [
+            new SampleFolder("Reuniverse",
+            [
+                new SampleFile("README.md",          4_096,   DateTimeOffset.Now.AddDays(-30)),
+                new SampleFile("Reuniverse.slnx",    1_200,   DateTimeOffset.Now.AddDays(-5)),
+            ]),
+            new SampleFolder("GbxTools",
+            [
+                new SampleFile("notes.txt",          512,     DateTimeOffset.Now.AddDays(-90)),
+            ]),
+        ]),
+        new SampleFolder("Pictures",
+        [
+            new SampleFile("profile.png",           204_800, DateTimeOffset.Now.AddDays(-1)),
+            new SampleFile("screenshot.png",        81_920,  DateTimeOffset.Now.AddDays(-3)),
+        ]),
+        new SampleFile("budget.xlsx",               25_600,  DateTimeOffset.Now.AddDays(-7)),
+        new SampleFile("notes.txt",                 1_024,   DateTimeOffset.Now.AddDays(-14)),
+    ]);
+
+    private sealed record SampleFile(string Name, long Size, DateTimeOffset LastModified) : IReuFile
+    {
+        long? IReuFile.Size => Size;
+        DateTimeOffset? IReuFile.LastModified => LastModified;
+    }
+
+    private sealed record SampleFolder(string Name, IEnumerable<IReuEntry> Entries) : IReuFolder;
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     private bool showTypes = true;
 

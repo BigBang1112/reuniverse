@@ -1,0 +1,258 @@
+<div class="reu-file-browser @CssClass" @attributes="AdditionalAttributes">
+    <div class="toolbar">
+        <button class="up-one-level" @onclick="NavigateUp" disabled="@(path.Count <= 1)" title="Up one level">
+            <img src="_content/Reuniverse.Razor/icons/arrow_upward_alt.svg" alt="Up one level" width="24" height="24" />
+        </button>
+        <div class="breadcrumb">
+            @for (var i = 0; i < path.Count; i++)
+            {
+                var index = i;
+                var folder = path[index];
+
+                if (index > 0)
+                {
+                    <span class="separator">›</span>
+                }
+
+                <button class="crumb @(index == path.Count - 1 ? "active" : "")" @onclick="() => NavigateTo(index)">
+                    @(string.IsNullOrEmpty(folder.Name) ? "Root" : folder.Name)
+                </button>
+            }
+        </div>
+    </div>
+    <div class="listing" @onkeydown="HandleKeyDown">
+        <div class="list-header">
+            <span class="col-name">Name</span>
+            <span class="col-modified">Date modified</span>
+            <span class="col-size">Size</span>
+        </div>
+        @if (CurrentEntries.Count == 0)
+        {
+            <div class="empty">This folder is empty</div>
+        }
+        else
+        {
+            @foreach (var entry in CurrentEntries)
+            {
+                @if (entry is IReuFolder folderEntry)
+                {
+                    <button class="entry @(SelectedEntry == entry ? "selected" : "")"
+                            @onclick="() => SelectEntry(folderEntry)"
+                            @ondblclick="() => OnEntryDoubleClick(folderEntry)">
+                        <span class="col-name">
+                            <img src="_content/Reuniverse.Razor/icons/folder.svg" alt="Folder icon" width="20" height="20" class="icon" />
+                            <span class="name">@folderEntry.Name</span>
+                        </span>
+                        <span class="col-modified"></span>
+                        <span class="col-size">Folder</span>
+                    </button>
+                }
+                else if (entry is IReuFile fileEntry)
+                {
+                    <button class="entry @(SelectedEntry == entry ? "selected" : "")"
+                            @onclick="() => SelectEntry(fileEntry)"
+                            @ondblclick="() => OnEntryDoubleClick(fileEntry)">
+                        <span class="col-name">
+                            <img src="_content/Reuniverse.Razor/icons/draft.svg" alt="File icon" width="20" height="20" class="icon" />
+                            <span class="name">@fileEntry.Name</span>
+                        </span>
+                        <span class="col-modified">@(fileEntry.LastModified?.LocalDateTime.ToString("g"))</span>
+                        <span class="col-size">@FormatSize(fileEntry.Size)</span>
+                    </button>
+                }
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private readonly List<IReuFolder> path = new();
+    private List<IReuEntry>? currentEntries;
+
+    /// <summary>
+    /// The root folder to browse. It is treated as the top-level folder and its contents are listed first.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public IReuFolder Root { get; set; } = default!;
+
+    /// <summary>
+    /// When <see langword="true"/> (default), entries are opened by double-clicking.
+    /// When <see langword="false"/>, a single click selects the entry and Enter opens it.
+    /// </summary>
+    [Parameter]
+    public bool DoubleClickToOpen { get; set; }
+
+    /// <summary>
+    /// Callback invoked when a file is opened.
+    /// </summary>
+    [Parameter]
+    public EventCallback<IReuFile> OnFileOpen { get; set; }
+
+    /// <summary>
+    /// Callback invoked when a folder is opened and navigated into.
+    /// </summary>
+    [Parameter]
+    public EventCallback<IReuFolder> OnFolderOpen { get; set; }
+
+    /// <summary>
+    /// Callback invoked when an entry is selected (single-clicked).
+    /// </summary>
+    [Parameter]
+    public EventCallback<IReuEntry> OnSelect { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes to apply to the file browser.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// The currently selected entry, if any.
+    /// </summary>
+    public IReuEntry? SelectedEntry { get; private set; }
+
+    /// <summary>
+    /// The folder currently being viewed.
+    /// </summary>
+    public IReuFolder? CurrentFolder => path.Count > 0 ? path[^1] : null;
+
+    private List<IReuEntry> CurrentEntries => currentEntries ??= MaterializeEntries();
+
+    protected override void OnParametersSet()
+    {
+        // (re)initialise the navigation when the root changes
+        if (path.Count == 0 || !ReferenceEquals(path[0], Root))
+        {
+            path.Clear();
+
+            if (Root is not null)
+            {
+                path.Add(Root);
+            }
+
+            ResetEntries();
+        }
+    }
+
+    private List<IReuEntry> MaterializeEntries()
+    {
+        var folder = CurrentFolder;
+
+        if (folder is null)
+        {
+            return new List<IReuEntry>();
+        }
+
+        // enumerate lazily, then order folders before files (both alphabetically)
+        return (folder.Entries ?? Enumerable.Empty<IReuEntry>())
+            .OrderBy(entry => entry is IReuFolder ? 0 : 1)
+            .ThenBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private void ResetEntries()
+    {
+        currentEntries = null;
+        SelectedEntry = null;
+    }
+
+    private async Task SelectEntry(IReuEntry entry)
+    {
+        if (!DoubleClickToOpen && SelectedEntry == entry)
+        {
+            await OpenEntry(entry);
+            return;
+        }
+
+        SelectedEntry = entry;
+        await OnSelect.InvokeAsync(entry);
+    }
+
+    private async Task OnEntryDoubleClick(IReuEntry entry)
+    {
+        if (!DoubleClickToOpen) return;
+        await OpenEntry(entry);
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (DoubleClickToOpen || e.Key != "Enter" || SelectedEntry is null) return;
+        await OpenEntry(SelectedEntry);
+    }
+
+    private async Task OpenEntry(IReuEntry entry)
+    {
+        if (entry is IReuFolder folder)
+        {
+            await OpenFolder(folder);
+        }
+        else if (entry is IReuFile file)
+        {
+            await OpenFile(file);
+        }
+    }
+
+    private async Task OpenFolder(IReuFolder folder)
+    {
+        path.Add(folder);
+        ResetEntries();
+        await OnFolderOpen.InvokeAsync(folder);
+    }
+
+    private async Task OpenFile(IReuFile file)
+    {
+        SelectedEntry = file;
+        await OnFileOpen.InvokeAsync(file);
+    }
+
+    private void NavigateUp()
+    {
+        if (path.Count > 1)
+        {
+            path.RemoveAt(path.Count - 1);
+            ResetEntries();
+        }
+    }
+
+    private void NavigateTo(int index)
+    {
+        // ignore invalid indices and clicks on the current (last) folder
+        if (index < 0 || index >= path.Count - 1)
+        {
+            return;
+        }
+
+        path.RemoveRange(index + 1, path.Count - index - 1);
+        ResetEntries();
+    }
+
+    private static string FormatSize(long? size)
+    {
+        if (size is null)
+        {
+            return string.Empty;
+        }
+
+        var value = size.Value;
+
+        if (value < 1024)
+        {
+            return $"{value} B";
+        }
+
+        if (value < 1024 * 1024)
+        {
+            return $"{value / 1024.0:F2} kB";
+        }
+
+        if (value < 1024L * 1024 * 1024)
+        {
+            return $"{value / (1024.0 * 1024.0):F2} MB";
+        }
+
+        return $"{value / (1024.0 * 1024.0 * 1024.0):F2} GB";
+    }
+}
