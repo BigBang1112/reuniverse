@@ -158,6 +158,31 @@
         }
     </div>
     <div>
+        <h2>&lt;ReuLogs&gt;</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+            <ReuButton OnClick="LogSamples">Log all levels</ReuButton>
+            <ReuButton OnClick="LogParameterized">Log parameterized</ReuButton>
+            <ReuButton Variant="ReuButtonVariant.Red" OnClick="LogException">Log exception</ReuButton>
+            <ReuButton OnClick="LogScoped">Log with scopes</ReuButton>
+            <ReuButton OnClick="() => logProvider.Clear()">Clear</ReuButton>
+        </div>
+    </div>
+    <div>
+        <ReuLogs Provider="logProvider"
+                 OnEntryClick="e => clickedException = e.Exception?.ToString()"
+                 OnParameterClick='p => clickedParameter = $"{p.Name} = {p.Value}"'
+                 style="height: 340px"></ReuLogs>
+        @if (clickedException is not null)
+        {
+            <p class="file-opened-hint">Clicked exception:</p>
+            <pre style="overflow: auto; max-height: 160px;">@clickedException</pre>
+        }
+        @if (clickedParameter is not null)
+        {
+            <p class="file-opened-hint">Clicked parameter: <strong>@clickedParameter</strong></p>
+        }
+    </div>
+    <div>
         <h2>&lt;ReuObjectTree&gt;</h2>
         <ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
     </div>
@@ -318,6 +343,65 @@
     }
 
     private sealed record SampleFolder(string Name, IEnumerable<IReuEntry> Entries) : IReuFolder;
+
+    // ── ReuLogs sample data ────────────────────────────────────────────────────
+
+    private readonly ReuLoggerProvider logProvider = new();
+    private ILogger Logger => logProvider.CreateLogger("Overview.Components");
+    private string? clickedException;
+    private string? clickedParameter;
+
+    private void LogSamples()
+    {
+        Logger.LogTrace("Entering render loop");
+        Logger.LogDebug("Cache miss, fetching from source");
+        Logger.LogInformation("Application started successfully");
+        Logger.LogWarning("Disk space is running low");
+        Logger.LogError("Failed to connect to the database");
+        Logger.LogCritical("Unrecoverable state, shutting down");
+    }
+
+    private void LogParameterized()
+    {
+        Logger.LogInformation("User {UserId} logged in from {IpAddress}", Guid.NewGuid(), "192.168.1.42");
+        Logger.LogInformation("Processed {Count} items in {ElapsedMs} ms", 128, 37.5);
+        Logger.LogWarning("Rate limit reached for {Endpoint}: {Current}/{Limit}", "/api/upload", 100, 100);
+    }
+
+    private void LogException()
+    {
+        try
+        {
+            throw new InvalidOperationException("Something went wrong while processing the request.");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unhandled error in {Operation}", "ProcessRequest");
+        }
+    }
+
+    private void LogScoped()
+    {
+        using (Logger.BeginScope("Base48x48Screen155Day.Decoration.Gbx"))
+        {
+            Logger.LogDebug("Opening file");
+            using (Logger.BeginScope("GBX.NET"))
+            {
+                Logger.LogInformation("Parsing header");
+                using (Logger.BeginScope("CGameCtnDecoration (main)"))
+                {
+                    Logger.LogInformation("Reading chunk 0x03036000");
+                    using (Logger.BeginScope("Refe"))
+                    {
+                        Logger.LogInformation("Resolving reference");
+                        Logger.LogWarning("Reference target not found");
+                    }
+                    Logger.LogInformation("Chunk read successfully");
+                }
+                Logger.LogInformation("Parsing complete");
+            }
+        }
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
 

@@ -1,0 +1,187 @@
+.reu-logs {
+    display: flex;
+    flex-direction: column;
+    color: var(--color-text-primary);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+    container-type: inline-size;
+}
+
+.log-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr);
+    align-content: start;
+    font-family: var(--font-mono), monospace;
+    font-variant-ligatures: no-common-ligatures;
+    font-size: 80%;
+    font-weight: 200;
+}
+
+.empty {
+    padding: 12px;
+    color: var(--color-text-secondary);
+    text-align: center;
+}
+
+.entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+    .entry.clickable {
+        cursor: pointer;
+    }
+
+    .entry.clickable:hover {
+        background: var(--color-surface-hover);
+    }
+
+    .entry.level-error.clickable:hover {
+        background: color-mix(in srgb, var(--color-red) 24%, transparent);
+    }
+
+    .entry.exception-selected {
+        background: color-mix(in srgb, var(--color-red) 30%, transparent);
+        outline: 1px solid color-mix(in srgb, var(--color-red) 40%, transparent);
+        outline-offset: -1px;
+    }
+
+    .entry.exception-selected:hover {
+        background: color-mix(in srgb, var(--color-red) 20%, transparent);
+    }
+
+.timestamp {
+    flex: none;
+    color: var(--color-text-muted);
+    user-select: none;
+}
+
+.level {
+    flex: none;
+    width: 30px;
+    text-align: center;
+    font-weight: 600;
+    border-radius: 3px;
+    user-select: none;
+    font-size: 90%;
+}
+
+.message {
+    flex: none;
+}
+
+.scope {
+    flex: none;
+    color: var(--color-text-secondary);
+    opacity: 0.75;
+    user-select: text;
+}
+
+.param {
+    color: inherit;
+    background: color-mix(in srgb, var(--color-yellow) 20%, transparent);
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0 2px;
+    transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+    .param:hover {
+        background: color-mix(in srgb, var(--color-yellow) 40%, transparent);
+    }
+
+    .param.selected {
+        background: color-mix(in srgb, var(--color-yellow) 60%, transparent);
+        outline: 1px solid color-mix(in srgb, var(--color-yellow) 80%, transparent);
+    }
+
+.exception {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-red);
+    user-select: text;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0 2px;
+    transition: opacity 0.1s ease;
+}
+
+.exception-icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .exception-icon::before {
+        content: "⚠";
+        font-size: 13px;
+        line-height: 1;
+    }
+
+/* Level coloring */
+.level-trace .level {
+    color: var(--color-text-muted);
+    background: var(--color-overlay-weak);
+}
+
+.level-debug .level {
+    color: var(--color-text-muted);
+    background: var(--color-overlay-weak);
+}
+
+.level-information .level {
+    color: var(--color-text-secondary);
+    background: var(--color-overlay-weak);
+}
+
+.level-warning {
+    background: color-mix(in srgb, var(--color-yellow) 8%, transparent);
+}
+
+    .level-warning .level {
+        color: #222;
+        background: var(--color-yellow);
+    }
+
+.level-error {
+    background: color-mix(in srgb, var(--color-red) 8%, transparent);
+}
+
+    .level-error .level {
+        color: #FFF;
+        background: var(--color-red);
+    }
+
+.level-critical {
+    background: color-mix(in srgb, var(--color-red) 16%, transparent);
+}
+
+    .level-critical .level {
+        color: #FFF;
+        background: var(--color-button-red);
+        box-shadow: 0 0 0 1px var(--color-red);
+    }
+
+.level-critical .message {
+    font-weight: 600;
+}

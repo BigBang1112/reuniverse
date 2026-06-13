@@ -1,0 +1,493 @@
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.Extensions.Logging
+@implements IDisposable
+
+<div class="reu-logs @CssClass" @attributes="AdditionalAttributes">
+    <div class="log-list" role="log" aria-live="polite">
+        @if (entries.Count > 0)
+        {
+            <Virtualize Items="entries" ItemSize="ItemSize" Context="entry" OverscanCount="8">
+                <div class="entry level-@GetLevelClass(entry.Level) @(entry.HasException ? "clickable" : "") @(ReferenceEquals(SelectedException, entry.Exception) && entry.HasException ? "exception-selected" : "")"
+                     style="height: @(ItemSize.ToString(System.Globalization.CultureInfo.InvariantCulture))px;"
+                     @onclick="() => { if (entry.HasException) OnExceptionClicked(entry); }">
+                    @if (ShowTimestamp)
+                    {
+                        <span class="timestamp">@entry.Timestamp.ToString("HH:mm:ss.fff")</span>
+                    }
+                    <span class="level" aria-label="@entry.Level.ToString()">@GetLevelLabel(entry.Level)</span>
+                    @if (entry.Scopes is { Count: > 0 })
+                    {
+                        <span class="scope">@string.Join(" → ", entry.Scopes) →</span>
+                    }
+                    <span class="message">
+                        @foreach (var segment in BuildSegments(entry))
+                        {
+                            if (segment.IsParameter)
+                            {
+                                <span class="param @(IsSelectedParameter(segment.Name, segment.Value) ? "selected" : "")"
+                                      @onclick="() => OnParameterClicked(segment.Name, segment.Value)"
+                                      @onclick:stopPropagation="true">@segment.Text</span>
+                            }
+                            else
+                            {
+                                @segment.Text
+                            }
+                        }
+                    </span>
+                    @if (entry.HasException)
+                    {
+                        <span class="exception">
+                            <span class="exception-icon" aria-hidden="true"></span>
+                            @($"{entry.Exception!.GetType().Name}: {entry.Exception.Message}")
+                        </span>
+                    }
+                </div>
+            </Virtualize>
+        }
+    </div>
+</div>
+
+@code {
+    private readonly List<ReuLogEntry> entries = new();
+    private ReuLoggerProvider? subscribedProvider;
+
+    /// <summary>
+    /// A logger provider to subscribe to for live log entries. When set, entries are received automatically.
+    /// </summary>
+    [Parameter]
+    public ReuLoggerProvider? Provider { get; set; }
+
+    /// <summary>
+    /// An initial/static set of entries to display. Ignored once live entries arrive from <see cref="Provider"/>.
+    /// </summary>
+    [Parameter]
+    public IEnumerable<ReuLogEntry>? Entries { get; set; }
+
+    /// <summary>
+    /// The fixed height (in pixels) of every log row. A consistent value keeps virtualization stable even when
+    /// an entry carries a multiline exception.
+    /// </summary>
+    [Parameter]
+    public float ItemSize { get; set; } = 26;
+
+    /// <summary>
+    /// The maximum number of entries to keep when receiving live entries. Older entries are discarded.
+    /// </summary>
+    [Parameter]
+    public int MaxEntries { get; set; } = 1000;
+
+    /// <summary>
+    /// Whether to show the timestamp column.
+    /// </summary>
+    [Parameter]
+    public bool ShowTimestamp { get; set; } = true;
+
+    /// <summary>
+    /// Invoked when an entry that carries an exception is clicked.
+    /// </summary>
+    [Parameter]
+    public EventCallback<ReuLogEntry> OnEntryClick { get; set; }
+
+    /// <summary>
+    /// Invoked when a parameter token within a parameterized message is clicked.
+    /// </summary>
+    [Parameter]
+    public EventCallback<ReuLogParameter> OnParameterClick { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes to apply to the root element.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    public Exception? SelectedException { get; private set; }
+    public ReuLogParameter? SelectedParameter { get; private set; }
+
+    protected override void OnParametersSet()
+    {
+        if (!ReferenceEquals(subscribedProvider, Provider))
+        {
+            if (subscribedProvider is not null)
+            {
+                subscribedProvider.EntryAdded -= HandleEntryAdded;
+                subscribedProvider.Cleared -= HandleCleared;
+            }
+
+            subscribedProvider = Provider;
+
+            if (subscribedProvider is not null)
+            {
+                entries.Clear();
+                entries.AddRange(subscribedProvider.GetSnapshot());
+                TrimEntries();
+
+                subscribedProvider.EntryAdded += HandleEntryAdded;
+                subscribedProvider.Cleared += HandleCleared;
+            }
+        }
+
+        if (subscribedProvider is null && Entries is not null)
+        {
+            entries.Clear();
+            entries.AddRange(Entries);
+            TrimEntries();
+        }
+    }
+
+    /// <summary>
+    /// Appends an entry manually (useful when not using a <see cref="ReuLoggerProvider"/>).
+    /// </summary>
+    public void Add(ReuLogEntry entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        entries.Add(entry);
+        TrimEntries();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Clears all currently displayed entries.
+    /// </summary>
+    public void Clear()
+    {
+        entries.Clear();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Returns a snapshot of the currently displayed entries.
+    /// </summary>
+    public IReadOnlyList<ReuLogEntry> GetEntries() => entries.ToArray();
+
+    /// <summary>
+    /// Exports all currently displayed entries as a plain-text string, one line per entry.
+    /// Format: <c>[HH:mm:ss.fff] LEVEL Category Scope1 → Scope2 Message  ExceptionType: Message</c>
+    /// </summary>
+    public string ExportAsText()
+    {
+        var sb = new System.Text.StringBuilder();
+
+        foreach (var entry in entries)
+        {
+            sb.Append('[');
+            sb.Append(entry.Timestamp.ToString("HH:mm:ss.fff"));
+            sb.Append("] ");
+            sb.Append(GetLevelLabel(entry.Level));
+            sb.Append(' ');
+
+            if (!string.IsNullOrEmpty(entry.Category))
+            {
+                sb.Append(entry.Category);
+                sb.Append(' ');
+            }
+
+            if (entry.Scopes is { Count: > 0 })
+            {
+                sb.Append(string.Join(" → ", entry.Scopes));
+                sb.Append(' ');
+            }
+
+            sb.Append(entry.Message);
+
+            if (entry.HasException)
+            {
+                sb.Append("  ");
+                sb.Append(entry.Exception!.GetType().Name);
+                sb.Append(": ");
+                sb.Append(entry.Exception.Message);
+            }
+
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Exports all currently displayed entries as a CSV string (UTF-8, with header row).
+    /// Columns: Timestamp, Level, Category, Scopes, Message, Exception
+    /// </summary>
+    public string ExportAsCsv()
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Timestamp,Level,Category,Scopes,Message,Exception");
+
+        foreach (var entry in entries)
+        {
+            sb.Append(CsvEscape(entry.Timestamp.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")));
+            sb.Append(',');
+            sb.Append(CsvEscape(entry.Level.ToString()));
+            sb.Append(',');
+            sb.Append(CsvEscape(entry.Category ?? string.Empty));
+            sb.Append(',');
+            sb.Append(CsvEscape(entry.Scopes is { Count: > 0 } ? string.Join(" → ", entry.Scopes) : string.Empty));
+            sb.Append(',');
+            sb.Append(CsvEscape(entry.Message));
+            sb.Append(',');
+            sb.Append(CsvEscape(entry.HasException ? entry.Exception!.ToString() : string.Empty));
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Exports all currently displayed entries as a JSON array string.
+    /// </summary>
+    public string ExportAsJson()
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("[");
+
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+            sb.Append("  {");
+            sb.Append($"\"timestamp\":\"{entry.Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}\",");
+            sb.Append($"\"level\":\"{entry.Level}\",");
+            sb.Append($"\"category\":{JsonString(entry.Category)},");
+
+            if (entry.Scopes is { Count: > 0 })
+            {
+                sb.Append("\"scopes\":[");
+                for (var s = 0; s < entry.Scopes.Count; s++)
+                {
+                    if (s > 0) sb.Append(',');
+                    sb.Append(JsonString(entry.Scopes[s]));
+                }
+                sb.Append("],");
+            }
+            else
+            {
+                sb.Append("\"scopes\":[],");
+            }
+
+            sb.Append($"\"message\":{JsonString(entry.Message)},");
+            sb.Append($"\"exception\":{JsonString(entry.HasException ? entry.Exception!.ToString() : null)}");
+            sb.Append(i < entries.Count - 1 ? "}," : "}");
+            sb.AppendLine();
+        }
+
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    private static string CsvEscape(string value)
+    {
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+        {
+            return "\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    private static string JsonString(string? value)
+    {
+        if (value is null) return "null";
+        return "\"" + value
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"")
+            .Replace("\r", "\\r")
+            .Replace("\n", "\\n")
+            .Replace("\t", "\\t") + "\"";
+    }
+
+    private void HandleEntryAdded(ReuLogEntry entry)
+    {
+        _ = InvokeAsync(() =>
+        {
+            entries.Add(entry);
+            TrimEntries();
+            StateHasChanged();
+        });
+    }
+
+    private void HandleCleared()
+    {
+        _ = InvokeAsync(() =>
+        {
+            entries.Clear();
+            StateHasChanged();
+        });
+    }
+
+    private void TrimEntries()
+    {
+        var max = MaxEntries < 1 ? 1 : MaxEntries;
+
+        if (entries.Count > max)
+        {
+            entries.RemoveRange(0, entries.Count - max);
+        }
+    }
+
+    private void OnExceptionClicked(ReuLogEntry entry)
+    {
+        SelectedException = ReferenceEquals(SelectedException, entry.Exception) ? null : entry.Exception;
+        _ = OnEntryClick.InvokeAsync(entry);
+    }
+
+    private Task OnParameterClicked(string name, object? value)
+    {
+        var param = new ReuLogParameter(name, value);
+        SelectedParameter = IsSelectedParameter(name, value) ? null : param;
+        return OnParameterClick.InvokeAsync(param);
+    }
+
+    private bool IsSelectedParameter(string name, object? value)
+        => SelectedParameter is { } p && p.Name == name && Equals(p.Value, value);
+
+    private static string GetLevelLabel(LogLevel level) => level switch
+    {
+        LogLevel.Trace => "TRC",
+        LogLevel.Debug => "DBG",
+        LogLevel.Information => "INF",
+        LogLevel.Warning => "WRN",
+        LogLevel.Error => "ERR",
+        LogLevel.Critical => "CRT",
+        _ => "---"
+    };
+
+    private static string GetLevelClass(LogLevel level) => level switch
+    {
+        LogLevel.Trace => "trace",
+        LogLevel.Debug => "debug",
+        LogLevel.Information => "information",
+        LogLevel.Warning => "warning",
+        LogLevel.Error => "error",
+        LogLevel.Critical => "critical",
+        _ => "none"
+    };
+
+    private static IReadOnlyList<Segment> BuildSegments(ReuLogEntry entry)
+    {
+        var template = entry.MessageTemplate;
+
+        if (string.IsNullOrEmpty(template) || entry.State is null || entry.State.Count == 0)
+        {
+            return [new Segment(entry.Message, false, string.Empty, null)];
+        }
+
+        var segments = new List<Segment>();
+        var text = new System.Text.StringBuilder();
+
+        for (var i = 0; i < template.Length; i++)
+        {
+            var c = template[i];
+
+            if (c == '{')
+            {
+                // Escaped opening brace.
+                if (i + 1 < template.Length && template[i + 1] == '{')
+                {
+                    text.Append('{');
+                    i++;
+                    continue;
+                }
+
+                var end = template.IndexOf('}', i + 1);
+
+                if (end < 0)
+                {
+                    text.Append(c);
+                    continue;
+                }
+
+                var token = template.Substring(i + 1, end - i - 1);
+                var name = token;
+
+                // Strip destructuring/stringification hints and alignment/format specifiers.
+                if (name.Length > 0 && (name[0] == '@' || name[0] == '$'))
+                {
+                    name = name[1..];
+                }
+
+                var formatSep = name.IndexOfAny([',', ':']);
+
+                if (formatSep >= 0)
+                {
+                    name = name[..formatSep];
+                }
+
+                if (TryGetValue(entry.State, name, out var value))
+                {
+                    if (text.Length > 0)
+                    {
+                        segments.Add(new Segment(text.ToString(), false, string.Empty, null));
+                        text.Clear();
+                    }
+
+                    segments.Add(new Segment(FormatValue(value), true, name, value));
+                    i = end;
+                    continue;
+                }
+
+                // Unknown token: keep it verbatim.
+                text.Append(template, i, end - i + 1);
+                i = end;
+                continue;
+            }
+
+            if (c == '}')
+            {
+                // Escaped closing brace.
+                if (i + 1 < template.Length && template[i + 1] == '}')
+                {
+                    text.Append('}');
+                    i++;
+                    continue;
+                }
+
+                text.Append(c);
+                continue;
+            }
+
+            text.Append(c);
+        }
+
+        if (text.Length > 0)
+        {
+            segments.Add(new Segment(text.ToString(), false, string.Empty, null));
+        }
+
+        return segments;
+    }
+
+    private static bool TryGetValue(IReadOnlyList<KeyValuePair<string, object?>> state, string name, out object? value)
+    {
+        for (var i = 0; i < state.Count; i++)
+        {
+            if (string.Equals(state[i].Key, name, StringComparison.Ordinal))
+            {
+                value = state[i].Value;
+                return true;
+            }
+        }
+
+        value = null;
+        return false;
+    }
+
+    private static string FormatValue(object? value) => value switch
+    {
+        null => "null",
+        string s => s,
+        System.Collections.IEnumerable enumerable => string.Join(", ", enumerable.Cast<object?>().Select(static v => v?.ToString())),
+        _ => value.ToString() ?? string.Empty
+    };
+
+    private readonly record struct Segment(string Text, bool IsParameter, string Name, object? Value);
+
+    public void Dispose()
+    {
+        if (subscribedProvider is not null)
+        {
+            subscribedProvider.EntryAdded -= HandleEntryAdded;
+            subscribedProvider.Cleared -= HandleCleared;
+            subscribedProvider = null;
+        }
+    }
+}
