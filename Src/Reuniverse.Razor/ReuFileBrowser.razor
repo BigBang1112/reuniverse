@@ -1,3 +1,5 @@
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+
 <div class="reu-file-browser @CssClass" @attributes="AdditionalAttributes">
     <div class="toolbar">
         <button class="up-one-level" @onclick="NavigateUp" disabled="@(path.Count <= 1)" title="Up one level">
@@ -32,8 +34,7 @@
         }
         else
         {
-            @foreach (var entry in CurrentEntries)
-            {
+            <Virtualize Items="CurrentEntries" ItemSize="ItemSize" Context="entry" OverscanCount="8">
                 @if (entry is IReuFolder folderEntry)
                 {
                     <button class="entry @(SelectedEntry == entry ? "selected" : "")"
@@ -56,11 +57,11 @@
                             <img src="_content/Reuniverse.Razor/icons/draft.svg" alt="File icon" width="20" height="20" class="icon" />
                             <span class="name">@fileEntry.Name</span>
                         </span>
-                        <span class="col-modified">@(fileEntry.LastModified?.LocalDateTime.ToString("g"))</span>
+                        <span class="col-modified">@(fileEntry.LastModified?.LocalDateTime.ToString("yyyy-MM-dd HH:mm:ss"))</span>
                         <span class="col-size">@FormatSize(fileEntry.Size)</span>
                     </button>
                 }
-            }
+            </Virtualize>
         }
     </div>
 </div>
@@ -74,6 +75,12 @@
     /// </summary>
     [Parameter, EditorRequired]
     public IReuFolder Root { get; set; } = default!;
+
+    /// <summary>
+    /// The fixed height (in pixels) of every entry row. Must match the actual rendered row height for correct virtualization.
+    /// </summary>
+    [Parameter]
+    public float ItemSize { get; set; } = 32;
 
     /// <summary>
     /// When <see langword="true"/> (default), entries are opened by double-clicking.

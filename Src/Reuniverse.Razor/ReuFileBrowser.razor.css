@@ -181,3 +181,7 @@
     font-style: italic;
     font-size: 90%;
 }
+
+.listing ::deep .blazor-virtualize-spacer {
+    grid-column: 1 / -1;
+}
