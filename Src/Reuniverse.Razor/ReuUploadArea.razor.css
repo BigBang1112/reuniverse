@@ -20,15 +20,15 @@
     text-align: center;
     min-width: 250px;
     border-radius: 5px;
-    border: 3px dashed #FFF5;
-    background-color: #FFF1;
+    border: 3px dashed var(--color-dropzone-border);
+    background-color: var(--color-dropzone-bg);
     font-weight: bold;
-    color: #AAA;
+    color: var(--color-dropzone-text);
     transition: background-color 0.2s ease;
 }
 
     .upload-area:hover, .upload-area.drag {
-        background-color: #FFF2;
+        background-color: var(--color-dropzone-bg-hover);
     }
 
     .upload-area span {
@@ -37,7 +37,7 @@
 
         .upload-area span.note {
             font-size: 70%;
-            color: #666;
+            color: var(--color-dropzone-note);
         }
 
 .ext {
@@ -48,11 +48,11 @@
 }
 
     .ext.gbx {
-        color: #DDD;
-        background: #257A;
+        color: var(--color-tag-text);
+        background: var(--color-tag-gbx-bg);
     }
 
     .ext.other {
-        color: #DDD;
-        background: #642A;
+        color: var(--color-tag-text);
+        background: var(--color-tag-other-bg);
     }

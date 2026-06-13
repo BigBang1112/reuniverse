@@ -173,7 +173,38 @@ Example:
 
 ### `<ReuList>` and `<ReuListItem>`
 
-TBD
+A horizontal (or vertical) list container and its items.
+
+**`<ReuList>`**
+
+- Allows HTML content (has `ChildContent`).
+- `Panel` - Whether to render with a panel background and border.
+- `Vertical` - Whether to lay items out vertically instead of horizontally.
+- `Wrap` - Whether to wrap items when they overflow.
+- `Grow` - Whether list items grow to fill available space. (default: `true`)
+- `CssClass` - Additional CSS classes to apply to the list element.
+- Additional attributes are passed to the list element.
+
+**`<ReuListItem>`**
+
+- Allows HTML content (has `ChildContent`).
+- `Href` - If set, renders as `<a>`; otherwise, renders as `<button>`.
+- `OnClick` - Callback invoked when the item is clicked. **(requires interactivity)**
+- `Active` - Whether the item is in an active state.
+- `Enable` - Whether the item is enabled.
+- `NavLink` - Whether to render as a Blazor `NavLink` (only when `Href` is set).
+- `CssClass` - Additional CSS classes to apply to the item element.
+- Additional attributes are passed to the item element.
+
+Example:
+
+```cshtml
+<ReuList Panel="true" Wrap="true">
+    <ReuListItem>Item A</ReuListItem>
+    <ReuListItem Active="true">Item B (active)</ReuListItem>
+    <ReuListItem Enable="false">Item C (disabled)</ReuListItem>
+</ReuList>
+```
 
 ### `<ReuLoader>`
 
@@ -200,7 +231,42 @@ A main content wrapper to define the primary content area of a page. It is used 
 
 ### `<ReuNavMenu>` and `<ReuNavItem>`
 
-TBD
+A top navigation bar with a brand name, burger menu for mobile, and nav items.
+
+**`<ReuNavMenu>`**
+
+- Allows HTML content (has `ChildContent`). Place `<ReuNavItem>` elements inside.
+- `Brand` - The brand/site name shown on the left. **(required)**
+- `BurgerImageSrc` - Optional custom image source for the burger menu icon.
+- `CssClass` - Additional CSS classes to apply to the nav element.
+- Additional attributes are passed to the nav element.
+
+**`<ReuNavItem>`**
+
+- `Name` - The label text for the nav item.
+- `AltName` - An alternative label shown on mobile/narrow layouts.
+- `Href` - The URL the nav item links to.
+- `IsNavLink` - Whether to render as a Blazor `NavLink` for active-state tracking. (default: `true`)
+- `NavLinkMatch` - The `NavLinkMatch` rule used when `IsNavLink` is `true`.
+- `IconType` - A built-in `IconType` enum value for the icon.
+- `IconSrc` - A custom icon image source (used when `IconType` is not set).
+- `IconWidth` - Icon width in pixels. (default: 24)
+- `IconHeight` - Icon height in pixels. (default: 24)
+- `IconOnly` - Whether to show only the icon with no label text.
+- `Title` - Tooltip/title text for the nav item.
+- `CssClass` - Additional CSS classes to apply to the nav item element.
+- Additional attributes are passed to the nav item element.
+
+Example:
+
+```cshtml
+<ReuNavMenu Brand="My App">
+    <ReuNavItem Name="Home" Href="" IconType="IconType.Home" NavLinkMatch="NavLinkMatch.All" />
+    <ReuNavItem Name="Downloads" Href="downloads" IconType="IconType.Download" />
+    <ReuNavItem Name="GitHub" Href="https://github.com/example/repo"
+                IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" />
+</ReuNavMenu>
+```
 
 ### `<ReuObjectTree>`
 
@@ -281,7 +347,236 @@ A drag-and-drop file upload area with click-to-upload functionality.
 - `OnFileTooLarge` - Callback invoked when a file is too large.
 - `OnFileExceedCount` - Callback invoked when the file count exceeds the maximum.
 - `MaxFileCount` - Maximum number of files allowed to upload. Null means no limit. **Make sure to set limits if in serverside interactivity!**
-- `MaxFileSizeInBytes` - Maximum file size in bytes. Null means no limit. **Make sure to set limits if in serverside interactivity!**
-- `Extensions` - Extensions without the dot at the beginning.
+- `MaxFileSize` - Maximum file size in bytes. Null means no limit. **Make sure to set limits if in serverside interactivity!**
+- `Accept` - A comma-separated list of file types or unique file type specifiers describing which file types to allow.
+- `LoaderSize` - The size of the loader in pixels. (default: 50)
+- `LoaderThickness` - The thickness of the loader border in pixels. (default: 8)
 - `CssClass` - Additional CSS classes to apply to the upload area element.
 - Additional attributes are passed to the **input** element.
+
+Example:
+
+```cshtml
+<ReuUploadArea Accept=".gbx,.zip" MaxFileCount="10" MaxFileSize="10485760"
+               OnUpload="HandleUpload">
+    Drop files here or click to browse
+</ReuUploadArea>
+```
+
+### `<ReuUploadButton>`
+
+A button that opens a file picker and uploads the selected files.
+
+- **Requires interactivity** to function properly.
+- Allows HTML content (has `ChildContent`).
+- `OnUpload` - Callback invoked when files are uploaded.
+- `OnFileTooLarge` - Callback invoked when a file is too large.
+- `OnFileExceedCount` - Callback invoked when the file count exceeds the maximum.
+- `MaxFileCount` - Maximum number of files allowed to upload. Null means no limit. **Make sure to set limits if in serverside interactivity!**
+- `MaxFileSize` - Maximum file size in bytes. Null means no limit. **Make sure to set limits if in serverside interactivity!**
+- `Accept` - A comma-separated list of file types or unique file type specifiers describing which file types to allow.
+- `Enable` - Whether the button is enabled.
+- `Variant` - The variant style of the button (`Default`, `Blue`, `Yellow`, `Red`).
+- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `LoaderSize` - The size of the in-progress loader in pixels.
+- `LoaderThickness` - The thickness of the loader border in pixels.
+- `CssClass` - Additional CSS classes to apply to the button.
+- Additional attributes are supported.
+
+Example:
+
+```cshtml
+<ReuUploadButton Accept=".gbx" MaxFileSize="52428800" OnUpload="HandleUpload">
+    Open files...
+</ReuUploadButton>
+```
+
+### `<ReuUploadScreen>`
+
+A full-screen overlay upload area that appears when `IsVisible` is `true`.
+
+- **Requires interactivity** to function properly.
+- Allows HTML content (has `ChildContent`) rendered inside the upload area.
+- `IsVisible` - Whether the screen is visible.
+- `IsVisibleChanged` - Callback invoked when the visibility changes (supports two-way binding).
+- `OnUpload` - Callback invoked when files are uploaded.
+- `OnFileTooLarge` - Callback invoked when a file is too large.
+- `OnFileExceedCount` - Callback invoked when the file count exceeds the maximum.
+- `MaxFileCount` - Maximum number of files allowed to upload. Null means no limit. **Make sure to set limits if in serverside interactivity!**
+- `MaxFileSize` - Maximum file size in bytes. Null means no limit. **Make sure to set limits if in serverside interactivity!**
+- `Accept` - A comma-separated list of file types or unique file type specifiers describing which file types to allow.
+- `CssClass` - Additional CSS classes to apply to the upload screen.
+- `CssClassArea` - Additional CSS classes to apply to the inner upload area.
+
+Example:
+
+```cshtml
+<ReuUploadScreen @bind-IsVisible="uploadVisible" OnUpload="HandleUpload" />
+```
+
+### `<ReuExpansionPanels>` and `<ReuExpansionPanel>`
+
+An accordion-style container with collapsible panels.
+
+**`<ReuExpansionPanels>`**
+
+- Allows HTML content (has `ChildContent`). Place `<ReuExpansionPanel>` elements inside.
+- `SingleExpansion` - When `true`, only one panel can be expanded at a time.
+- `CssClass` - Additional CSS classes to apply to the panels container.
+- Additional attributes are passed to the container element.
+
+**`<ReuExpansionPanel>`**
+
+- `TitleContent` - Render fragment for the panel header.
+- `ChildContent` - Render fragment for the panel body.
+- `Expanded` - Whether the panel is expanded.
+- `ExpandedChanged` - Callback invoked when the expanded state changes.
+- `CssClass` - Additional CSS classes to apply to the panel element.
+- Additional attributes are passed to the panel element.
+
+Example:
+
+```cshtml
+<ReuExpansionPanels SingleExpansion="true">
+    <ReuExpansionPanel>
+        <TitleContent>Panel 1</TitleContent>
+        <ChildContent>Content of panel 1.</ChildContent>
+    </ReuExpansionPanel>
+    <ReuExpansionPanel Expanded="true">
+        <TitleContent>Panel 2 (open by default)</TitleContent>
+        <ChildContent>Content of panel 2.</ChildContent>
+    </ReuExpansionPanel>
+</ReuExpansionPanels>
+```
+
+### `<ReuTabs>` and `<ReuTab>`
+
+A tabbed content container.
+
+**`<ReuTabs>`**
+
+- Allows HTML content (has `ChildContent`). Place `<ReuTab>` elements inside.
+- `CssClass` - Additional CSS classes to apply to the tabs container.
+- Additional attributes are passed to the container element.
+
+**`<ReuTab>`**
+
+- `TitleContent` - Render fragment for the tab header button.
+- `ChildContent` - Render fragment for the tab body.
+- `CssClass` - Additional CSS classes to apply to the tab header.
+
+Example:
+
+```cshtml
+<ReuTabs>
+    <ReuTab>
+        <TitleContent>Overview</TitleContent>
+        <ChildContent>This is the overview tab.</ChildContent>
+    </ReuTab>
+    <ReuTab>
+        <TitleContent>Details</TitleContent>
+        <ChildContent>This is the details tab.</ChildContent>
+    </ReuTab>
+</ReuTabs>
+```
+
+### `<ReuMenuBar>` and `<ReuMenuBarItemData>`
+
+A horizontal menu bar with nested dropdown support.
+
+- `Items` - The collection of `ReuMenuBarItemData` items to render. **(required)**
+- `TemplateContent` - An optional `RenderFragment<ReuMenuBarItemData>` to customize item rendering.
+
+`ReuMenuBarItemData` has:
+- `Name` - The label text.
+- `Href` - Optional link URL. When set the item acts as a link.
+- `Items` - Optional nested sub-items (produces a dropdown).
+
+Example:
+
+```cshtml
+<ReuMenuBar Items="menuItems" />
+
+@code {
+    IEnumerable<ReuMenuBarItemData> menuItems = new[]
+    {
+        new ReuMenuBarItemData
+        {
+            Name = "File",
+            Items = new()
+            {
+                new() { Name = "New" },
+                new() { Name = "Open" },
+                new() { Name = "Save" }
+            }
+        },
+        new ReuMenuBarItemData { Name = "Help", Href = "help" }
+    };
+}
+```
+
+### `<ReuFileBrowser>`
+
+A file-system browser with breadcrumb navigation, sorted listings, and keyboard support.
+
+- **Requires interactivity** to function properly.
+- `Root` - The root `IReuFolder` to browse. **(required)**
+- `OnFileOpen` - Callback invoked when a file is opened.
+- `OnFolderOpen` - Callback invoked when a folder is navigated into.
+- `OnSelect` - Callback invoked when an entry is single-clicked.
+- `DoubleClickToOpen` - When `true`, a double-click opens entries; a single click selects. When `false`, a single click selects and a second click (or Enter) opens. (default: `false`)
+- `ItemSize` - Row height in pixels used for virtualization. (default: 32)
+- `CssClass` - Additional CSS classes to apply to the browser element.
+- Additional attributes are supported.
+
+Implement `IReuFolder` and `IReuFile` (both extend `IReuEntry`) to provide your own data:
+
+```cshtml
+<ReuFileBrowser Root="root" OnFileOpen="f => Console.WriteLine(f.Name)" style="height: 400px" />
+
+@code {
+    private IReuFolder root = new MyFolder("Root",
+    [
+        new MyFolder("Documents", [new MyFile("notes.txt")]),
+        new MyFile("readme.md")
+    ]);
+}
+```
+
+### `<ReuLogs>`
+
+A virtualized, live log viewer for `Microsoft.Extensions.Logging` entries.
+
+- **Requires interactivity** to function properly.
+- `Provider` - A `ReuLoggerProvider` to subscribe to for live entries.
+- `Entries` - A static list of `ReuLogEntry` items to display (used when `Provider` is not set).
+- `ShowTimestamp` - Whether to show the timestamp column. (default: `true`)
+- `MaxEntries` - Maximum number of entries to keep; oldest are discarded. (default: 1000)
+- `ItemSize` - Row height in pixels for virtualization. (default: 26)
+- `OnEntryClick` - Callback invoked when a row with an exception is clicked.
+- `OnParameterClick` - Callback invoked when a structured log parameter token is clicked.
+- `CssClass` - Additional CSS classes to apply to the log element.
+- Additional attributes are supported.
+
+Public methods: `Add(entry)`, `Clear()`, `GetEntries()`, `ExportAsText()`, `ExportAsCsv()`, `ExportAsJson()`.
+
+Selectable state: `SelectedException` and `SelectedParameter` reflect the currently highlighted exception row or parameter token.
+
+Scopes from `ILogger.BeginScope(...)` are captured automatically and rendered between the level badge and the message as `scope1 → scope2 → …`.
+
+Example:
+
+```cshtml
+<ReuLogs Provider="logProvider" style="height: 300px" />
+
+@code {
+    private readonly ReuLoggerProvider logProvider = new();
+
+    protected override void OnInitialized()
+    {
+        var logger = logProvider.CreateLogger("MyApp");
+        logger.LogInformation("Application started");
+        logger.LogWarning("Disk space is low: {FreeGb} GB remaining", 1.2);
+    }
+}
+```

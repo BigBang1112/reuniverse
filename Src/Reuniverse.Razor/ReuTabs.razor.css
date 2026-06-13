@@ -12,14 +12,15 @@
 .tab {
     border-top: 2px solid transparent;
     border-bottom: 2px solid var(--color-button-border);
-    background: #222;
+    background: var(--color-surface);
     padding: 10px;
     border-radius: 4px 4px 0 0;
     cursor: pointer;
+    transition: background-color 0.05s ease;
 }
 
     .tab:hover {
-        background: #333;
+        background: var(--color-surface-hover);
     }
 
     .tab.selected {
@@ -38,4 +39,5 @@
     border-left: 2px solid var(--color-button-border);
     border-radius: 0 4px 4px 4px;
     padding: 10px;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }

@@ -1,7 +1,31 @@
-:root {
-    /* Color Dictionary */
-    --color-text-primary: white;
+:root,
+[data-theme="dark"],
+.reu-theme-dark {
+    color-scheme: dark;
+    --color-scheme: dark;
+    /* Surfaces & backgrounds */
+    --color-bg: #111;
+    --color-surface: #222;
+    --color-surface-hover: #333;
+    --color-surface-active: #444;
+    --color-overlay-bg: #111D;
+    --color-footer-bg: #1A1A1A;
+    /* Text */
+    --color-text-primary: #FFF;
     --color-text-secondary: #888;
+    --color-text-muted: #666;
+    /* Borders */
+    --color-border: #333;
+    --color-border-subtle: #3338;
+    --color-border-strong: #555;
+    /* Decorative / surface overlays (subtle lightening on dark) */
+    --color-overlay-weak: #FFF1;
+    --color-overlay-medium: #FFF2;
+    --color-overlay-strong: #FFF5;
+    /* Spinner / loader fill */
+    --color-loader: #FFF;
+    /* Scrollbar */
+    --color-scrollbar-thumb: #555;
     /* Link Colors */
     --color-link: #4CB7FF;
     --color-link-hover: #66C1FF;
@@ -20,27 +44,138 @@
     --color-yellow: #FFCC11AA;
     --color-yellow-hover: #FFD633BB;
     --color-yellow-active: #FFE055BB;
+    /* Red Button Variant Colors */
+    --color-button-red: #CC3D3D;
+    --color-button-red-hover: #FF6666DD;
+    --color-button-red-active: #FF7777DD;
     /* Button Colors */
     --color-button-bg: #2228;
     --color-button-bg-hover: #333A;
     --color-button-bg-active: #333C;
     --color-button-bg-disabled: #3334;
     --color-button-border: #FFF3;
+    /* Navigation Colors */
+    --color-nav-bg: #111;
+    --color-nav-item-bg: #3333;
+    --color-nav-item-hover: #3338;
+    --color-nav-item-active: #555A;
+    --color-nav-border: #FFF3;
     /* Input Colors */
     --color-input-border: #333;
     --color-input-border-hover: #444;
     --color-input-bg: #1A1A1A;
     --color-input-bg-hover: #222;
     --color-input-bg-disabled: #282828;
+    /* Tooltip Colors */
+    --color-tooltip-bg: #3338;
+    --color-tooltip-text: #FFF;
     /* Modal Colors */
     --color-modal-bg: #111C;
     /* Object Tree Colors */
     --color-object-tree-box-bg: #222;
+    --color-object-tree-box: #2224;
+    --color-object-tree-box-value: #2228;
+    /* Upload Drop Zone Colors */
+    --color-dropzone-border: #FFF5;
+    --color-dropzone-bg: #FFF1;
+    --color-dropzone-bg-hover: #FFF2;
+    --color-dropzone-text: #AAA;
+    --color-dropzone-note: #666;
+    --color-tag-text: #DDD;
+    --color-tag-gbx-bg: #257A;
+    --color-tag-other-bg: #642A;
+    /* Friendly Type (syntax) Colors */
+    --color-syntax-keyword: #59B9FF;
+    --color-syntax-enum: #DBFFC1;
+    --color-syntax-struct: #63FFFF;
+    --color-syntax-class: #5BFFDE;
+    --color-syntax-generic: #B8D7A3;
+    --color-syntax-interface: #B6D7A3;
+    /* Control fill (checkbox / radio mark) */
+    --color-control-mark: #FFF;
     /* Validation Colors */
     --color-red: #FF4C4C;
     --color-green: #42DC54;
     /* Fonts */
     --font-mono: "Chivo Mono";
+}
+
+[data-theme="light"],
+.reu-theme-light {
+    color-scheme: light;
+    --color-scheme: light;
+    /* Surfaces & backgrounds */
+    --color-bg: #F4F4F5;
+    --color-surface: #FFF;
+    --color-surface-hover: #E9E9EC;
+    --color-surface-active: #DCDCE1;
+    --color-overlay-bg: #FFFFFFEE;
+    --color-footer-bg: #EEE;
+    /* Text */
+    --color-text-primary: #1A1A1A;
+    --color-text-secondary: #666;
+    --color-text-muted: #999;
+    /* Borders */
+    --color-border: #CCC;
+    --color-border-subtle: #0000001A;
+    --color-border-strong: #AAA;
+    /* Decorative / surface overlays (subtle darkening on light) */
+    --color-overlay-weak: #0000000A;
+    --color-overlay-medium: #00000014;
+    --color-overlay-strong: #00000033;
+    /* Spinner / loader fill */
+    --color-loader: #333;
+    /* Scrollbar */
+    --color-scrollbar-thumb: #BBB;
+    /* Link Colors */
+    --color-link: #1565C0;
+    --color-link-hover: #1E88E5;
+    /* Button Colors */
+    --color-button-bg: #FFFFFFAA;
+    --color-button-bg-hover: #FFFFFF;
+    --color-button-bg-active: #EDEDED;
+    --color-button-bg-disabled: #00000010;
+    --color-button-border: #00000026;
+    /* Navigation Colors */
+    --color-nav-bg: #FAFAFA;
+    --color-nav-item-bg: #00000006;
+    --color-nav-item-hover: #0000000A;
+    --color-nav-item-active: #00000026;
+    --color-nav-border: #00000026;
+    /* Input Colors */
+    --color-input-border: #CCC;
+    --color-input-border-hover: #999;
+    --color-input-bg: #FFF;
+    --color-input-bg-hover: #F4F4F5;
+    --color-input-bg-disabled: #EBEBEB;
+    /* Tooltip Colors */
+    --color-tooltip-bg: #222222E6;
+    --color-tooltip-text: #FFF;
+    /* Modal Colors */
+    --color-modal-bg: #FFFFFFCC;
+    /* Object Tree Colors */
+    --color-object-tree-box-bg: #E9E9EC;
+    --color-object-tree-box: #00000004;
+    --color-object-tree-box-value: #00000012;
+    /* Upload Drop Zone Colors */
+    --color-dropzone-border: #00000033;
+    --color-dropzone-bg: #0000000A;
+    --color-dropzone-bg-hover: #00000014;
+    --color-dropzone-text: #555;
+    --color-dropzone-note: #999;
+    --color-tag-text: #222;
+    /* Friendly Type (syntax) Colors */
+    --color-syntax-keyword: #0033B3;
+    --color-syntax-enum: #267F2A;
+    --color-syntax-struct: #008080;
+    --color-syntax-class: #267F99;
+    --color-syntax-generic: #3E7C2A;
+    --color-syntax-interface: #3E7C2A;
+    /* Control fill (checkbox / radio mark) */
+    --color-control-mark: #1565C0;
+    /* Validation Colors */
+    --color-red: #D32F2F;
+    --color-green: #2E7D32;
 }
 
 @import url('CourierPrime-Regular.ttf');
@@ -63,6 +198,8 @@ html, body {
     padding: 0;
     font-size: 18px;
     color: var(--color-text-primary);
+    background-color: var(--color-bg);
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body {
@@ -144,7 +281,7 @@ main.reu-main {
     border-bottom: 2px solid var(--color-button-border);
     border-radius: 4px;
     text-decoration: none;
-    transition: background-color 0.05s ease;
+    transition: background-color 0.05s ease, color 0.05s ease;
     padding: 10px 5px;
     cursor: pointer;
     width: max-content;
@@ -168,14 +305,17 @@ main.reu-main {
 
 .reu-button-blue {
     background-color: var(--color-blue);
+    color: #FFF;
 }
 
     .reu-button-blue:hover:enabled, .reu-button-blue:hover:not(.disabled) {
         background-color: var(--color-blue-hover);
+        color: #FFF;
     }
 
     .reu-button-blue.active {
         background-color: var(--color-blue-active);
+        color: #FFF;
     }
 
 .reu-button-yellow {
@@ -191,16 +331,53 @@ main.reu-main {
     }
 
 .reu-button-red {
-    background-color: #CC3D3D;
+    background-color: var(--color-button-red);
+    color: #FFF;
 }
 
     .reu-button-red:hover:enabled, .reu-button-red:hover:not(.disabled) {
-        background-color: #FF6666DD;
+        background-color: var(--color-button-red-hover);
+    color: #FFF;
     }
 
     .reu-button-red.active {
-        background-color: #FF7777DD;
+        background-color: var(--color-button-red-active);
+    color: #FFF;
     }
+
+.reu-button img {
+    transition: filter 0.2s ease;
+}
+
+/* In the light theme, icons inside plain buttons are white SVGs designed for
+   dark backgrounds — invert them so they are visible on the light surface. */
+[data-theme="light"] .reu-button img,
+.reu-theme-light .reu-button img {
+    filter: invert(1);
+    transition: filter 0.2s ease;
+}
+
+/* Colored-variant buttons keep their dark backgrounds so they are excluded. */
+[data-theme="light"] .reu-button-blue img,
+[data-theme="light"] .reu-button-yellow img,
+[data-theme="light"] .reu-button-red img,
+[data-theme="light"] .reu-discord img,
+[data-theme="light"] .reu-kofi img,
+[data-theme="light"] .reu-nuget img,
+.reu-theme-light .reu-button-blue img,
+.reu-theme-light .reu-button-yellow img,
+.reu-theme-light .reu-button-red img,
+.reu-theme-light .reu-discord img,
+.reu-theme-light .reu-kofi img,
+.reu-theme-light .reu-nuget img {
+    filter: none;
+}
+
+/* Nav item icons (e.g. GitHub, Home) are white SVGs — invert on light theme */
+[data-theme="light"] .nav-link img,
+.reu-theme-light .nav-link img {
+    filter: invert(1);
+}
 
 .reu-upload-button {
     position: relative;
@@ -231,18 +408,19 @@ main.reu-main {
     }
 
         .reu-list .reu-list-item:hover {
-            background-color: #333;
+            background-color: var(--color-surface-hover);
             cursor: pointer;
         }
 
         .reu-list .reu-list-item.active {
-            background-color: #444;
+            background-color: var(--color-surface-active);
         }
 
     .reu-list.panel {
-        background-color: #1A1A1AAA;
-        border: 1px solid #333;
+        background-color: var(--color-input-bg);
+        border: 1px solid var(--color-border);
         border-radius: 5px;
+        transition: background-color 0.2s ease;
     }
 
     .reu-list.vertical {
@@ -264,7 +442,7 @@ main.reu-main {
         font-style: italic;
         font-size: 0.9em;
         margin-bottom: 2rem;
-        border-left: 3px solid #ddd;
+        border-left: 3px solid var(--color-border);
         padding-left: 1rem;
     }
 
@@ -309,7 +487,8 @@ input[type=number] {
     padding: 2px 10px;
     background-color: var(--color-input-bg);
     font-size: inherit;
-    color-scheme: dark;
+    color-scheme: var(--color-scheme, dark);
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
     input[type=text]:hover,
@@ -422,9 +601,10 @@ textarea {
 textarea {
     padding: 5px;
     border-radius: 5px 0 0 5px;
-    background: #222C;
-    color: white;
-    border: 1px solid #333;
+    background: var(--color-input-bg);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-input-border);
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
     textarea:read-only {
@@ -459,7 +639,8 @@ progress {
     }
 
 footer.reu-footer {
-    background: var(--color-input-bg);
+    background: var(--color-footer-bg);
+    transition: background-color 0.2s ease;
 }
 
     footer.reu-footer small {
@@ -469,6 +650,7 @@ footer.reu-footer {
 .footer-discover-more {
     margin-top: 1rem;
     display: flex;
+    align-items: center;
     gap: 0.5rem 1rem;
     flex-wrap: wrap;
     font-size: 75%;
@@ -485,6 +667,12 @@ footer.reu-footer {
         gap: 0.2rem;
     }
 
+    .footer-discover-more .footer-buttons {
+        flex: 1;
+        display: flex;
+        justify-content: end;
+    }
+
 .reu-upload-button input {
     position: absolute;
     top: 0;
@@ -492,6 +680,24 @@ footer.reu-footer {
     height: calc(100% + 3px);
     cursor: pointer;
     opacity: 0;
+}
+
+.reu-theme-icon {
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+    background: url('icons/light.svg') no-repeat center / contain;
+}
+
+    .reu-theme-icon:hover {
+        opacity: 1;
+    }
+
+[data-theme="light"] .reu-theme-icon {
+    background-image: url('icons/light_fill.svg');
+    filter: invert(0.6);
 }
 
 .invalid {
@@ -552,9 +758,9 @@ footer.reu-footer {
 
 /* Scrollbar */
 * {
-    scrollbar-color: #555 var(--color-input-bg);
+    scrollbar-color: var(--color-scrollbar-thumb) var(--color-input-bg);
 }
 
 .reu-scrollbar-thin {
-    scrollbar-color: #555 var(--color-input-bg);
+    scrollbar-color: var(--color-scrollbar-thumb) var(--color-input-bg);
 }

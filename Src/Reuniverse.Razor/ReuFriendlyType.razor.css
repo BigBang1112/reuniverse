@@ -4,25 +4,25 @@
 }
 
 .keyword {
-    color: #59B9FF;
+    color: var(--color-syntax-keyword);
 }
 
 .enum {
-    color: #DBFFC1;
+    color: var(--color-syntax-enum);
 }
 
 .struct {
-    color: #63FFFF;
+    color: var(--color-syntax-struct);
 }
 
 .class {
-    color: #5BFFDE;
+    color: var(--color-syntax-class);
 }
 
 .generic {
-    color: #B8D7A3;
+    color: var(--color-syntax-generic);
 }
 
 .interface {
-    color: #B6D7A3;
+    color: var(--color-syntax-interface);
 }

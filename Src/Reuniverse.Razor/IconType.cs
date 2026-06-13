@@ -16,5 +16,7 @@ public enum IconType
     Login,
     Logout,
     Person,
-    NuGet
+    NuGet,
+    Folder,
+    Draft
 }

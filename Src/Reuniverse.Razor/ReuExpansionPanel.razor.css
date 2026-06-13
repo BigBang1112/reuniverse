@@ -6,7 +6,7 @@
     border-bottom: 2px solid var(--color-button-border);
     border-radius: 4px;
     text-decoration: none;
-    transition: background-color 0.05s ease;
+    transition: background-color 0.05s ease, color 0.05s ease;
 }
 
 .expandable {

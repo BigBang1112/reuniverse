@@ -45,8 +45,8 @@
     border-radius: 4px;
     line-height: 28px;
     padding-top: 1px;
-    background: #2224;
-    border-bottom: 1px solid #3338;
+    background: var(--color-object-tree-box);
+    border-bottom: 1px solid var(--color-border-subtle);
     transition: background 0.1s ease;
 }
 
@@ -75,8 +75,9 @@
     height: 29px;
     line-height: 29px;
     padding-top: 1px;
-    background: #2228;
-    color: #888;
+    background: var(--color-object-tree-box-value);
+    color: var(--color-text-secondary);
+    transition: background-color 0.05s ease, color 0.05s ease;
 }
 
     ::deep .box-value.type {
@@ -152,7 +153,7 @@
     justify-content: space-between;
     align-items: center;
     padding-bottom: 5px;
-    border-bottom: 1px solid #3338;
+    border-bottom: 1px solid var(--color-border-subtle);
     font-size: 80%;
     gap: 12px;
     white-space: nowrap;
@@ -166,8 +167,8 @@
 }
 
 .page-btn {
-    background: #2224;
-    border: 1px solid #3338;
+    background: var(--color-object-tree-box);
+    border: 1px solid var(--color-border-subtle);
     border-radius: 4px;
     color: inherit;
     width: 24px;
@@ -184,7 +185,7 @@
 
     .page-btn:hover:not(:disabled) {
         background: var(--color-object-tree-box-bg);
-        border-color: #555a;
+        border-color: var(--color-border-strong);
     }
 
     .page-btn:disabled {
@@ -198,7 +199,7 @@
 
 .page-info {
     padding: 0 8px;
-    color: #888;
+    color: var(--color-text-secondary);
     white-space: nowrap;
 }
 
@@ -224,9 +225,9 @@
     justify-content: center;
     padding: 8px 0;
     margin-top: 1px;
-    border-top: 1px solid #222;
+    border-top: 1px solid var(--color-border);
     font-size: 11px;
-    color: #666;
+    color: var(--color-text-muted);
     font-style: italic;
 }
 
@@ -238,7 +239,7 @@
     display: flex;
     align-items: center;
     padding: 8px 15px;
-    border-bottom: 1px solid #3338;
+    border-bottom: 1px solid var(--color-border-subtle);
     font-size: 90%;
     gap: 12px;
     white-space: nowrap;

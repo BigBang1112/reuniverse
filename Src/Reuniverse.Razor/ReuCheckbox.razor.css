@@ -53,7 +53,7 @@ input {
         display: none;
         width: 100%;
         border-radius: 3px;
-        background-color: white;
+        background-color: var(--color-control-mark);
         margin: 6px;
         box-sizing: border-box;
     }

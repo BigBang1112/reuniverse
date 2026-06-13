@@ -8,6 +8,31 @@
     <base href="/" />
     <link rel="preload" id="webassembly" />
 
+    <script>
+        window.reuTheme = {
+            get: function () {
+                return document.documentElement.getAttribute('data-theme') || 'dark';
+            },
+            set: function (theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                try { localStorage.setItem('reu-theme', theme); } catch (e) { }
+                return theme;
+            },
+            toggle: function () {
+                return window.reuTheme.set(window.reuTheme.get() === 'light' ? 'dark' : 'light');
+            }
+        };
+        (function () {
+            var theme;
+            try { theme = localStorage.getItem('reu-theme'); } catch (e) { }
+            if (!theme) {
+                theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
+                    ? 'light' : 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="_content/Reuniverse.Razor/reuniverse.css" />
     <link href="Overview.styles.css" rel="stylesheet" />

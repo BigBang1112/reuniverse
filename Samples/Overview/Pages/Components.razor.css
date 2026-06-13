@@ -1,6 +1,6 @@
 ﻿.components {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: 1rem 2rem;
 }
@@ -15,4 +15,10 @@
         gap: 0.5rem 0;
         text-align: center;
     }
+}
+
+.file-opened-hint {
+    margin-top: 0.5rem;
+    font-size: 85%;
+    color: var(--color-text-secondary);
 }
