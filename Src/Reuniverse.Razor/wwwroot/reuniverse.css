@@ -373,12 +373,6 @@ main.reu-main {
     filter: none;
 }
 
-/* Nav item icons (e.g. GitHub, Home) are white SVGs — invert on light theme */
-[data-theme="light"] .nav-link img,
-.reu-theme-light .nav-link img {
-    filter: invert(1);
-}
-
 .reu-upload-button {
     position: relative;
 }
