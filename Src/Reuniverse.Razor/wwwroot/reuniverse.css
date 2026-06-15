@@ -284,7 +284,6 @@ main.reu-main {
     transition: background-color 0.05s ease, color 0.05s ease;
     padding: 10px 5px;
     cursor: pointer;
-    width: max-content;
 }
 
     .reu-button:hover, input[type=submit]:hover, input[type=button]:hover {
