@@ -1,3 +1,3 @@
 ﻿namespace Reuniverse.Razor;
 
-public sealed record FileInfoEventArgs(string FileName, int Size, DateTimeOffset LastModified);
+public sealed record FileInfoEventArgs(string FileName, int Size, DateTimeOffset LastModified, string Type);
