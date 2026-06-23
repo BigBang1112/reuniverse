@@ -14,15 +14,15 @@ export function addHandlers(element, dotNetHelper, streamed) {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 if (i >= toUploadCount) {
-                    await dotNetHelper.invokeMethodAsync("OnFileExceedCountAsync", file.name, file.size, file.lastModified);
+                    await dotNetHelper.invokeMethodAsync("OnFileExceedCountAsync", file.name, file.size, file.lastModified, file.type);
                     continue;
                 }
                 if (maxFileSize > 0 && file.size > maxFileSize) {
-                    await dotNetHelper.invokeMethodAsync("OnFileTooLargeAsync", file.name, file.size, file.lastModified);
+                    await dotNetHelper.invokeMethodAsync("OnFileTooLargeAsync", file.name, file.size, file.lastModified, file.type);
                     continue;
                 }
                 const data = new Uint8Array(await file.arrayBuffer());
-                await dotNetHelper.invokeMethodAsync("UploadAsync", file.name, data, file.lastModified);
+                await dotNetHelper.invokeMethodAsync("UploadAsync", file.name, data, file.lastModified, file.type);
             }
         }
 

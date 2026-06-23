@@ -284,7 +284,6 @@ main.reu-main {
     transition: background-color 0.05s ease, color 0.05s ease;
     padding: 10px 5px;
     cursor: pointer;
-    width: max-content;
 }
 
     .reu-button:hover, input[type=submit]:hover, input[type=button]:hover {
@@ -371,12 +370,6 @@ main.reu-main {
 .reu-theme-light .reu-kofi img,
 .reu-theme-light .reu-nuget img {
     filter: none;
-}
-
-/* Nav item icons (e.g. GitHub, Home) are white SVGs — invert on light theme */
-[data-theme="light"] .nav-link img,
-.reu-theme-light .nav-link img {
-    filter: invert(1);
 }
 
 .reu-upload-button {

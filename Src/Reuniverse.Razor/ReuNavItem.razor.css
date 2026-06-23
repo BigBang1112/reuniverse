@@ -34,3 +34,9 @@
 ::deep a.active, ::deep button.active {
     background-color: var(--color-nav-item-active) !important;
 }
+
+
+[data-theme="light"] .nav-link:not(.reu-discord):not(.reu-nuget) img,
+.reu-theme-light .nav-link:not(.reu-discord):not(.reu-nuget) img {
+    filter: invert(1);
+}

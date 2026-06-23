@@ -147,9 +147,9 @@
     }
 
     [JSInvokable]
-    public async Task UploadAsync(string fileName, byte[] data, long lastModified)
+    public async Task UploadAsync(string fileName, byte[] data, long lastModified, string type)
     {
-        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, DateTimeOffset.FromUnixTimeMilliseconds(lastModified)));
+        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
     }
 
     [JSInvokable]
@@ -159,15 +159,15 @@
     public Task<int> GetMaxFileSizeAsync() => Task.FromResult(MaxFileSize ?? 0);
 
     [JSInvokable]
-    public async Task OnFileTooLargeAsync(string fileName, int size, long lastModified)
+    public async Task OnFileTooLargeAsync(string fileName, int size, long lastModified, string type)
     {
-        await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified)));
+        await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
     }
 
     [JSInvokable]
-    public async Task OnFileExceedCountAsync(string fileName, int size, long lastModified)
+    public async Task OnFileExceedCountAsync(string fileName, int size, long lastModified, string type)
     {
-        await OnFileExceedCount.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified)));
+        await OnFileExceedCount.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
     }
 
     private void DragEnter(DragEventArgs e)
