@@ -34,6 +34,36 @@ In Blazor WebAssembly or Photino Blazor:
 <script src="_content/Reuniverse.Razor/reuniverse.js" defer></script>
 ```
 
+### Theming
+
+Reuniverse has a light/dark theme system driven by the `data-theme` attribute on `<html>`. Include `reuniverse.theme.js` as a **blocking** (no `defer`/`async`) script at the very top of `<head>`, before any stylesheets:
+
+In Blazor Web App (`App.razor`):
+
+```html
+<script src="@Assets["_content/Reuniverse.Razor/reuniverse.theme.js"]"></script>
+```
+
+In Blazor WebAssembly or Photino Blazor (`wwwroot/index.html`):
+
+```html
+<script src="_content/Reuniverse.Razor/reuniverse.theme.js"></script>
+```
+
+The script exposes a `window.reuTheme` API:
+
+| Method | Description |
+|--------|-------------|
+| `reuTheme.get()` | Returns the current theme: `"dark"` (default) or `"light"`. |
+| `reuTheme.set(theme)` | Sets and persists the theme. Returns the applied theme. |
+| `reuTheme.toggle()` | Toggles between `"dark"` and `"light"`. Returns the new theme. |
+
+You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick` handler:
+
+```html
+<button onclick="reuTheme.toggle()">Toggle theme</button>
+```
+
 To use the components:
 
 ```cshtml
