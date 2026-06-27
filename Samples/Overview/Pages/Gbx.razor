@@ -20,7 +20,7 @@
     <ReuCheckbox IsCheckedChanged="isChecked => ignore = isChecked" IsChecked="@ignore">Ignore instead of fade</ReuCheckbox>
 </div>
 <div style="overflow: auto">
-    <ReuObjectTree @ref="objectTree"
+    <ReuObjectTree AdditionalTypeValueComponents="additionalTypeValueComponents"
                    Value="gbx" 
                    HideType="!showTypes"
                    IsExpandedByDefault="true"
@@ -39,11 +39,20 @@
 <ReuTooltip IsGlobal="true"></ReuTooltip>
 
 @code {
-    private ReuObjectTree? objectTree;
     private GBX.NET.Gbx? gbx;
 
     private bool showTypes = true;
     private bool ignore;
+
+    private static readonly IReadOnlyDictionary<Type, Type> additionalTypeValueComponents = new Dictionary<Type, Type>
+    {
+        [typeof(TimeInt32)] = typeof(TimeInt32TypeValueComponent),
+        [typeof(TimeSingle)] = typeof(TimeSingleTypeValueComponent),
+        [typeof(Id)] = typeof(IdTypeValueComponent),
+        [typeof(Ident)] = typeof(IdentTypeValueComponent),
+        [typeof(Int3)] = typeof(Int3TypeValueComponent),
+        [typeof(Vec3)] = typeof(Vec3TypeValueComponent),
+    };
 
     protected override void OnInitialized()
     {
@@ -57,18 +66,6 @@
         };
     }
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            objectTree?.TypeValueComponents.Add(typeof(TimeInt32), typeof(TimeInt32TypeValueComponent));
-            objectTree?.TypeValueComponents.Add(typeof(TimeSingle), typeof(TimeSingleTypeValueComponent));
-            objectTree?.TypeValueComponents.Add(typeof(Id), typeof(IdTypeValueComponent));
-            objectTree?.TypeValueComponents.Add(typeof(Ident), typeof(IdentTypeValueComponent));
-            objectTree?.TypeValueComponents.Add(typeof(Int3), typeof(Int3TypeValueComponent));
-            objectTree?.TypeValueComponents.Add(typeof(Vec3), typeof(Vec3TypeValueComponent));
-        }
-    }
 
     private void OnUpload(UploadEventArgs args)
     {
