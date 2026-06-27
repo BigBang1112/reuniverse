@@ -154,6 +154,8 @@ nav {
 
 .navbar.reu-nav-responsive.reu-nav-menu nav ::deep .nav-link img.icon {
     display: block;
+    width: 32px;
+    height: 32px;
     margin-right: 0.75rem;
 }
 
