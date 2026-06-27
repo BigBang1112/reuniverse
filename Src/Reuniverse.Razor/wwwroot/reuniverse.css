@@ -749,6 +749,16 @@ footer.reu-footer {
     }
 }
 
+@keyframes reu-modal-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes reu-modal-panel-in {
+    from { opacity: 0; transform: scale(0.96) translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+
 /* Scrollbar */
 * {
     scrollbar-color: var(--color-scrollbar-thumb) var(--color-input-bg);

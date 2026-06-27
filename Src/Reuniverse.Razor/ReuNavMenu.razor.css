@@ -16,7 +16,7 @@
     display: flex;
 }
 
-.navbar-left {
+.nav-brand {
     display: flex;
     align-items: center;
 }
@@ -33,26 +33,32 @@
         opacity: 0.5;
     }
 
+@media (max-width: 850px) {
+    .brand {
+        margin-left: 0.5rem;
+    }
+}
+
 nav {
     display: flex;
     margin-left: auto;
     gap: 5px;
 }
 
-#burger {
+#nav-toggle {
     display: none;
     cursor: pointer;
 }
 
-    #burger:checked ~ nav {
+    #nav-toggle:checked ~ nav {
         display: flex;
     }
 
-    #burger:checked ~ label {
+    #nav-toggle:checked ~ label {
         background-color: var(--color-nav-item-active) !important;
     }
 
-.burger {
+.nav-toggle {
     margin-left: auto;
     display: none;
     cursor: pointer;
@@ -66,14 +72,105 @@ nav {
     justify-content: center;
     transition: background-color 0.05s ease, color 0.05s ease;
     backdrop-filter: blur(5px);
+    box-sizing: border-box;
 }
 
-    .burger:hover {
+    .nav-toggle:hover {
         background-color: var(--color-nav-item-hover);
     }
 
+[data-theme="light"] .nav-toggle img,
+.reu-theme-light .nav-toggle img {
+    filter: invert(1);
+    transition: filter 0.2s ease;
+}
+
+/* While the script probes natural widths, freeze every transition so the
+   intermediate measurement states never paint or animate. */
+.navbar.reu-nav-sizing,
+.navbar.reu-nav-sizing .reu-container,
+.navbar.reu-nav-sizing nav,
+.navbar.reu-nav-sizing .nav-toggle,
+.navbar.reu-nav-sizing nav ::deep .nav-link,
+.navbar.reu-nav-sizing nav ::deep .nav-link img {
+    transition: none !important;
+}
+
+.navbar.reu-nav-responsive.reu-nav-icons nav ::deep .nav-item .nav-link.wide {
+    min-width: 5rem;
+}
+
+.navbar.reu-nav-responsive.reu-nav-icons nav ::deep .nav-item .nav-link span {
+    display: none;
+}
+
+.navbar.reu-nav-responsive.reu-nav-icons nav ::deep .nav-item .nav-link img.icon {
+    display: block;
+}
+
+.navbar.reu-nav-responsive.reu-nav-menu nav {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    right: 1.5rem;
+    top: calc(100% + 0.6rem);
+    width: min(var(--reu-nav-menu-width, max-content), calc(100vw - 3rem));
+    max-width: calc(100vw - 3rem);
+    padding: 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--color-overlay-bg) 88%, transparent);
+    box-shadow: 0 18px 38px #0006, 0 4px 14px #0003;
+    backdrop-filter: blur(14px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-0.5rem) scale(0.97);
+    transform-origin: top right;
+    transition: opacity 0.16s ease, transform 0.18s ease, visibility 0.18s step-end;
+}
+
+.navbar.reu-nav-responsive.reu-nav-menu .nav-toggle {
+    display: flex;
+}
+
+.navbar.reu-nav-responsive.reu-nav-menu.reu-nav-menu-open nav {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    transition: opacity 0.16s ease, transform 0.18s ease, visibility 0s;
+}
+
+.navbar.reu-nav-responsive.reu-nav-menu nav ::deep .nav-link {
+    width: auto;
+    justify-content: flex-start;
+    padding-inline: 0.9rem 1rem;
+}
+
+.navbar.reu-nav-responsive.reu-nav-menu nav ::deep .nav-link.wide {
+    min-width: 0;
+}
+
+.navbar.reu-nav-responsive.reu-nav-menu nav ::deep .nav-link img.icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin-right: 0.75rem;
+}
+
+.navbar.reu-nav-responsive.reu-nav-menu nav ::deep .nav-link span {
+    display: inline;
+}
+
+.navbar.reu-nav-responsive.reu-nav-menu .reu-container {
+    width: calc(100% - 3rem);
+}
+
+/* Fallback for when JS hasn't enhanced the navbar */
+
 @media (max-width: 750px) {
-    nav {
+    .navbar:not(.reu-nav-responsive) nav {
         display: none;
         flex-direction: column;
         position: absolute;
@@ -81,41 +178,41 @@ nav {
         top: 85%;
     }
 
-    .burger {
+    .navbar:not(.reu-nav-responsive) .nav-toggle {
         display: flex;
     }
 
-        .burger .nav-link.wide {
+        .navbar:not(.reu-nav-responsive) .nav-toggle .nav-link.wide {
             min-width: 5rem;
         }
 
-        .burger .nav-link img.icon {
+        .navbar:not(.reu-nav-responsive) .nav-toggle .nav-link img.icon {
             display: block;
         }
 
-    #burger:checked ~ nav {
+    .navbar:not(.reu-nav-responsive) #nav-toggle:checked ~ nav {
         background: var(--color-overlay-bg);
         padding: 5px;
         border-radius: 5px;
         backdrop-filter: blur(5px);
     }
 
-    .reu-container {
+    .navbar:not(.reu-nav-responsive) .reu-container {
         width: calc(100% - 3rem);
     }
 }
 
 
 @media (max-width: 1000px) and (min-width: 750px) {
-    nav ::deep .nav-item .nav-link.wide {
+    .navbar:not(.reu-nav-responsive) nav ::deep .nav-item .nav-link.wide {
         min-width: 5rem;
     }
 
-    nav ::deep .nav-item .nav-link span {
+    .navbar:not(.reu-nav-responsive) nav ::deep .nav-item .nav-link span {
         display: none;
     }
 
-    nav ::deep .nav-item .nav-link img.icon {
+    .navbar:not(.reu-nav-responsive) nav ::deep .nav-item .nav-link img.icon {
         display: block;
     }
 }

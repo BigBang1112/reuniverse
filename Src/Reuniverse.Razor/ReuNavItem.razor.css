@@ -23,8 +23,16 @@
         min-width: 8rem;
     }
 
+    ::deep .nav-link .nav-item-label {
+        display: none;
+    }
+
     ::deep .nav-link img.icon {
         display: none;
+    }
+
+    ::deep .nav-link img.icon.nav-icon-standalone {
+        display: block;
     }
 
 ::deep .nav-link img {

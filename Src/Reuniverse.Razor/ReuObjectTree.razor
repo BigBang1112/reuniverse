@@ -4,12 +4,12 @@
         {
             <span class="box-value">null</span>
         }
-        else if (TypeComponents.TryGetValue(Value.GetType(), out var componentType))
+        else if (ResolvedTypeComponents.TryGetValue(Value.GetType(), out var componentType))
         {
             var parameters = new Dictionary<string, object?>
             {
                 [nameof(TypeComponentBase<>.Value)] = Value,
-                [nameof(TypeComponentBase<>.TypeValueComponents)] = TypeValueComponents,
+                [nameof(TypeComponentBase<>.TypeValueComponents)] = ResolvedTypeValueComponents,
                 [nameof(TypeComponentBase<>.IsExpandable)] = IsExpandable,
                 [nameof(TypeComponentBase<>.IsExpanded)] = IsExpanded,
                 [nameof(TypeComponentBase<>.OnExpandToggle)] = EventCallback.Factory.Create(this, ToggleExpanded),
@@ -160,8 +160,8 @@
                                     Value="child"
                                     HideType="HideType"
                                     OnTypeClick="OnTypeClick"
-                                    TypeComponents="TypeComponents"
-                                    TypeValueComponents="TypeValueComponents"
+                                    TypeComponents="ResolvedTypeComponents"
+                                    TypeValueComponents="ResolvedTypeValueComponents"
                                     FadeProvider="FadeProvider"
                                     Faded="ProvideFade(child)"
                                     IgnoreProvider="IgnoreProvider"
@@ -234,10 +234,34 @@
     public Dictionary<Type, Type> TypeComponents { get; set; } = DefaultTypeComponents;
 
     /// <summary>
+    /// Extra type-to-component mappings merged on top of <see cref="TypeComponents"/> (or <see cref="DefaultTypeComponents"/> when
+    /// <see cref="TypeComponents"/> is not set). Entries here take precedence over the base dictionary.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyDictionary<Type, Type>? AdditionalTypeComponents { get; set; }
+
+    private Dictionary<Type, Type> ResolvedTypeComponents =>
+        AdditionalTypeComponents is null or { Count: 0 }
+            ? TypeComponents
+            : Merge(TypeComponents, AdditionalTypeComponents);
+
+    /// <summary>
     /// Any type to component type mapping to provide value rendering/editing. By default it uses <see cref="DefaultTypeValueComponents"/>, but you can override or extend it.
     /// </summary>
     [Parameter]
     public Dictionary<Type, Type> TypeValueComponents { get; set; } = DefaultTypeValueComponents;
+
+    /// <summary>
+    /// Extra type-to-value-component mappings merged on top of <see cref="TypeValueComponents"/> (or <see cref="DefaultTypeValueComponents"/> when
+    /// <see cref="TypeValueComponents"/> is not set). Entries here take precedence over the base dictionary.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyDictionary<Type, Type>? AdditionalTypeValueComponents { get; set; }
+
+    private Dictionary<Type, Type> ResolvedTypeValueComponents =>
+        AdditionalTypeValueComponents is null or { Count: 0 }
+            ? TypeValueComponents
+            : Merge(TypeValueComponents, AdditionalTypeValueComponents);
 
     /// <summary>
     /// A function that provides the children of a given object. By default it uses <see cref="DefaultChildrenProvider"/>, but you can override it.
@@ -363,7 +387,7 @@
             return false;
         }
 
-        return TryGetValueComponent(Value, Value.GetType(), TypeValueComponents, out componentType);
+        return TryGetValueComponent(Value, Value.GetType(), ResolvedTypeValueComponents, out componentType);
     }
 
     internal static bool TryGetValueComponent(object? value, Type type, IReadOnlyDictionary<Type, Type> typeValueComponents, out Type? componentType)
@@ -697,6 +721,13 @@
         [typeof(decimal)] = typeof(DecimalTypeValueComponent),
         [typeof(Guid)] = typeof(GuidTypeValueComponent),
     };
+
+    private static Dictionary<Type, Type> Merge(Dictionary<Type, Type> @base, IReadOnlyDictionary<Type, Type> extras)
+    {
+        var merged = new Dictionary<Type, Type>(@base);
+        foreach (var kv in extras) merged[kv.Key] = kv.Value;
+        return merged;
+    }
 
     // This object cannot be record type as it needs to be unique for ALL instances
     private sealed class ExpandedObject;

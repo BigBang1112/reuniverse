@@ -6,11 +6,11 @@
         <NavLink class="@($"nav-link{(IconOnly ? "" : " wide")}{(IconType == IconType.Discord ? " reu-discord" : "")}{(IconType == IconType.NuGet ? " reu-nuget" : "")}")" href="@Href" Match="NavLinkMatch">
             @if (!string.IsNullOrEmpty(IconSrcFromType))
             {
-                <img src="@IconSrcFromType" alt="@(AltName ?? Name)" class="@(IconOnly ? "" : " icon")" width="@IconWidth" height="@IconHeight" />
+                <img src="@IconSrcFromType" alt="@(AltName ?? Name)" class="icon@(IconOnly ? " nav-icon-standalone" : "")" width="@IconWidth" height="@IconHeight" />
             }
-            @if (!IconOnly && !string.IsNullOrEmpty(Name))
+            @if (!string.IsNullOrEmpty(Name))
             {
-                <span>@Name</span>
+                <span class="@(IconOnly ? "nav-item-label" : null)">@Name</span>
             }
         </NavLink>
     }
@@ -19,11 +19,11 @@
         <a class="nav-link @(IconOnly ? "" : "wide") @(IconType == IconType.Discord ? "reu-discord" : "") @(IconType == IconType.NuGet ? "reu-nuget" : "")" href="@Href">
             @if (!string.IsNullOrEmpty(IconSrcFromType))
             {
-                <img src="@IconSrcFromType" alt="@(AltName ?? Name)" class="@(IconOnly ? "" : " icon")" width="@IconWidth" height="@IconHeight" />
+                <img src="@IconSrcFromType" alt="@(AltName ?? Name)" class="icon@(IconOnly ? " nav-icon-standalone" : "")" width="@IconWidth" height="@IconHeight" />
             }
-            @if (!IconOnly && !string.IsNullOrEmpty(Name))
+            @if (!string.IsNullOrEmpty(Name))
             {
-                <span>@Name</span>
+                <span class="@(IconOnly ? "nav-item-label" : null)">@Name</span>
             }
         </a>
     }

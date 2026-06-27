@@ -2,12 +2,12 @@
 
 <div class="navbar @CssClass @(IsAbsolute ? "absolute" : "")" @attributes="AdditionalAttributes">
     <div class="reu-container">
-        <div class="navbar-left">
+        <div class="nav-brand">
             <a class="brand" href="">@Brand</a>
         </div>
 
-        <input id="burger" type="checkbox" />
-        <label for="burger" class="burger">
+        <input id="nav-toggle" type="checkbox" />
+        <label for="nav-toggle" class="nav-toggle">
             <img src="@(string.IsNullOrEmpty(BurgerImageSrc) ? $"{Consts.BaseDir}/icons/menu.svg" : BurgerImageSrc)" alt="Menu" width="32" height="32" />
         </label>
 
