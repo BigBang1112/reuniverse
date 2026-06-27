@@ -440,20 +440,9 @@
         showTypes = isChecked;
     }
 
-    // ── ReuModal / ReuDialog ───────────────────────────────────────────────────
-
     private bool modalOpen;
     private bool modalNoFooterOpen;
     private bool modalFullscreenOpen;
-    private bool dialogOpen;
-    private bool dialogNoCancel;
-    private string? dialogResult;
-
-    private void OnDialogConfirm() => dialogResult = "Confirmed";
-    private void OnDialogCancel() => dialogResult = "Cancelled";
-    private void OnDialogDismiss() => dialogResult = "Dismissed";
-
-
 
     public enum UserStatus
     {

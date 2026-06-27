@@ -64,6 +64,8 @@ You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick`
 <button onclick="reuTheme.toggle()">Toggle theme</button>
 ```
 
+### Components
+
 To use the components:
 
 ```cshtml

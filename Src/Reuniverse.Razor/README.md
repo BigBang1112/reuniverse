@@ -36,7 +36,7 @@ In Blazor WebAssembly:
 
 ### Theming
 
-Reiniverse ships a built-in light/dark theme system driven by the `data-theme` attribute on `<html>`. Include `reuniverse.theme.js` as a **blocking** (no `defer`/`async`) script at the very top of `<head>`, before any stylesheets, to apply the saved or preferred theme before first paint — this prevents a flash of the wrong theme:
+Reuniverse has a light/dark theme system driven by the `data-theme` attribute on `<html>`. Include `reuniverse.theme.js` as a **blocking** (no `defer`/`async`) script at the very top of `<head>`, before any stylesheets:
 
 In Blazor Web App (`App.razor`):
 
@@ -63,6 +63,8 @@ You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick`
 ```html
 <button onclick="reuTheme.toggle()">Toggle theme</button>
 ```
+
+### Components
 
 To use the components:
 
