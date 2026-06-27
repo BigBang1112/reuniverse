@@ -15,6 +15,12 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
+For the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag (it works without interactivity; if omitted, the navbar falls back to static width breakpoints):
+
+```html
+<script src="@Assets["_content/Reuniverse.Razor/reuniverse.js"]" defer></script>
+```
+
 In Blazor WebAssembly or Photino Blazor:
 
 `wwwroot/index.html`
@@ -22,6 +28,10 @@ In Blazor WebAssembly or Photino Blazor:
 ```html
 <link rel="stylesheet" href="_content/Reuniverse.Razor/reuniverse.css" />
 <link rel="stylesheet" href="[YOUR_PROJECT_NAME].styles.css" />
+```
+
+```html
+<script src="_content/Reuniverse.Razor/reuniverse.js" defer></script>
 ```
 
 To use the components:
