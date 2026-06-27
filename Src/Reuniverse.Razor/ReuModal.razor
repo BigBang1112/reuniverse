@@ -1,0 +1,131 @@
+@if (IsOpen)
+{
+    <div class="reu-modal-backdrop" @onclick="HandleBackdropClick"
+         style="--reu-modal-max-width: @MaxWidth; --reu-modal-height: @Height;">
+        <div class="reu-modal-panel @CssClass"
+             @onclick:stopPropagation="true"
+             role="dialog"
+             aria-modal="true"
+             @attributes="AdditionalAttributes">
+            @if (TitleContent is not null || Title is not null || ShowCloseButton)
+            {
+                <div class="reu-modal-header">
+                    <div class="reu-modal-title">
+                        @if (TitleContent is not null)
+                        {
+                            @TitleContent
+                        }
+                        else
+                        {
+                            @Title
+                        }
+                    </div>
+                    @if (ShowCloseButton)
+                    {
+                        <button class="reu-modal-close-btn" @onclick="CloseAsync" title="Close">✕</button>
+                    }
+                </div>
+            }
+            <div class="reu-modal-body">
+                @ChildContent
+            </div>
+            @if (FooterContent is not null)
+            {
+                <div class="reu-modal-footer">
+                    @FooterContent
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Whether the modal is currently open.
+    /// </summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>
+    /// Raised when <see cref="IsOpen"/> changes, enabling two-way binding with <c>@bind-IsOpen</c>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    /// <summary>
+    /// Plain-text title rendered in the modal header. Ignored when <see cref="TitleContent"/> is set.
+    /// </summary>
+    [Parameter]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// Custom content rendered in the modal header, replacing <see cref="Title"/>.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>
+    /// Content rendered in the modal body.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Content rendered in the modal footer. When omitted, no footer is shown.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? FooterContent { get; set; }
+
+    /// <summary>
+    /// Whether to show the close (✕) button in the header. Defaults to <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool ShowCloseButton { get; set; } = true;
+
+    /// <summary>
+    /// Whether clicking the backdrop closes the modal. Defaults to <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool CloseOnBackdropClick { get; set; } = true;
+
+    /// <summary>
+    /// Callback invoked after the modal has been closed.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClosed { get; set; }
+
+    /// <summary>
+    /// Maximum width of the modal panel. Accepts any CSS length value. Defaults to <c>600px</c>.
+    /// </summary>
+    [Parameter]
+    public string MaxWidth { get; set; } = "600px";
+
+    /// <summary>
+    /// Height of the modal panel. Accepts any CSS length value. Defaults to <c>auto</c>.
+    /// </summary>
+    [Parameter]
+    public string Height { get; set; } = "auto";
+
+    /// <summary>
+    /// Additional CSS classes to apply to the modal panel.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private async Task CloseAsync()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+        await OnClosed.InvokeAsync();
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        if (CloseOnBackdropClick)
+        {
+            await CloseAsync();
+        }
+    }
+}

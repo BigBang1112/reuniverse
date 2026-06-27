@@ -189,7 +189,39 @@
     <div style="overflow: auto">
         <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true"></ReuObjectTree>
     </div>
+    <div>
+        <h2>&lt;ReuModal&gt;</h2>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        <ReuButton OnClick="() => modalOpen = true">Open modal</ReuButton>
+        <ReuButton OnClick="() => modalNoFooterOpen = true">Open modal (no footer)</ReuButton>
+        <ReuButton OnClick="() => modalFullscreenOpen = true">Open modal (fullscreen)</ReuButton>
+    </div>
 </div>
+
+<ReuModal @bind-IsOpen="modalOpen" Title="Example Modal">
+    <ChildContent>
+        <p>This is the modal body. It supports any Blazor content.</p>
+        <p style="color: var(--color-text-secondary); margin-top: 0.5rem;">Scrollable when content overflows, backdrop click or ✕ to close.</p>
+    </ChildContent>
+    <FooterContent>
+        <ReuButton OnClick="() => modalOpen = false">Close</ReuButton>
+        <ReuButton Variant="ReuButtonVariant.Blue" OnClick="() => modalOpen = false">Confirm</ReuButton>
+    </FooterContent>
+</ReuModal>
+
+<ReuModal @bind-IsOpen="modalNoFooterOpen" Title="No Footer" ShowCloseButton="true">
+    <ChildContent>
+        <p>This modal has no footer — only the header close button.</p>
+    </ChildContent>
+</ReuModal>
+
+<ReuModal @bind-IsOpen="modalFullscreenOpen" Title="Fullscreen Modal" ShowCloseButton="true" MaxWidth="100%" Height="100%">
+    <ChildContent>
+        <p>This modal is fullscreen.</p>
+        <p style="color: var(--color-text-secondary); margin-top: 0.5rem;">It can be closed with the header close button or by pressing ESC.</p>
+    </ChildContent>
+</ReuModal>
 
 <ReuTooltip IsGlobal="true"></ReuTooltip>
 
@@ -407,6 +439,21 @@
     {
         showTypes = isChecked;
     }
+
+    // ── ReuModal / ReuDialog ───────────────────────────────────────────────────
+
+    private bool modalOpen;
+    private bool modalNoFooterOpen;
+    private bool modalFullscreenOpen;
+    private bool dialogOpen;
+    private bool dialogNoCancel;
+    private string? dialogResult;
+
+    private void OnDialogConfirm() => dialogResult = "Confirmed";
+    private void OnDialogCancel() => dialogResult = "Cancelled";
+    private void OnDialogDismiss() => dialogResult = "Dismissed";
+
+
 
     public enum UserStatus
     {

@@ -1,0 +1,71 @@
+.reu-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: var(--color-modal-bg);
+    backdrop-filter: blur(4px);
+    animation: reu-modal-backdrop-in 0.15s ease;
+}
+
+.reu-modal-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 24px 64px #0009, 0 4px 16px #0004;
+    width: 100%;
+    max-width: var(--reu-modal-max-width, 600px);
+    max-height: calc(100dvh - 3rem);
+    height: var(--reu-modal-height, auto);
+    display: flex;
+    flex-direction: column;
+    animation: reu-modal-panel-in 0.18s ease;
+}
+
+.reu-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem 0.875rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.reu-modal-title {
+    flex: 1;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.reu-modal-close-btn {
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    transition: color 0.1s ease, background-color 0.1s ease;
+}
+
+    .reu-modal-close-btn:hover {
+        color: var(--color-text-primary);
+        background-color: var(--color-overlay-medium);
+    }
+
+.reu-modal-body {
+    padding: 1.25rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.reu-modal-footer {
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
