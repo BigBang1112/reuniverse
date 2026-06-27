@@ -33,6 +33,12 @@
         opacity: 0.5;
     }
 
+@media (max-width: 850px) {
+    .brand {
+        margin-left: 0.5rem;
+    }
+}
+
 nav {
     display: flex;
     margin-left: auto;
