@@ -74,7 +74,7 @@
     /// The maximum number of entries to keep when receiving live entries. Older entries are discarded.
     /// </summary>
     [Parameter]
-    public int MaxEntries { get; set; } = 1000;
+    public int? MaxEntries { get; set; }
 
     /// <summary>
     /// Whether to show the timestamp column.
@@ -316,7 +316,12 @@
 
     private void TrimEntries()
     {
-        var max = MaxEntries < 1 ? 1 : MaxEntries;
+        if (MaxEntries is null)
+        {
+            return;
+        }
+
+        var max = MaxEntries < 1 ? 1 : MaxEntries.Value;
 
         if (entries.Count > max)
         {
