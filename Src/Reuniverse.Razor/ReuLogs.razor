@@ -1,9 +1,10 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.Extensions.Logging
-@implements IDisposable
+@implements IAsyncDisposable
+@inject IJSRuntime JS
 
 <div class="reu-logs @CssClass" @attributes="AdditionalAttributes">
-    <div class="log-list" role="log" aria-live="polite">
+    <div class="log-list" @ref="logListRef" role="log" aria-live="polite">
         @if (entries.Count > 0)
         {
             <Virtualize Items="entries" ItemSize="ItemSize" Context="entry" OverscanCount="8">
@@ -50,6 +51,9 @@
 @code {
     private readonly List<ReuLogEntry> entries = new();
     private ReuLoggerProvider? subscribedProvider;
+    private ElementReference logListRef;
+    private IJSObjectReference? module;
+    private bool scrollPending;
 
     /// <summary>
     /// A logger provider to subscribe to for live log entries. When set, entries are received automatically.
@@ -74,7 +78,7 @@
     /// The maximum number of entries to keep when receiving live entries. Older entries are discarded.
     /// </summary>
     [Parameter]
-    public int MaxEntries { get; set; } = 1000;
+    public int? MaxEntries { get; set; }
 
     /// <summary>
     /// Whether to show the timestamp column.
@@ -93,6 +97,13 @@
     /// </summary>
     [Parameter]
     public EventCallback<ReuLogParameter> OnParameterClick { get; set; }
+
+    /// <summary>
+    /// Whether to automatically scroll to the bottom when a new entry is added or the log is initialized.
+    /// Defaults to <c>true</c>.
+    /// </summary>
+    [Parameter]
+    public bool ScrollToBottom { get; set; } = true;
 
     /// <summary>
     /// Additional CSS classes to apply to the root element.
@@ -123,6 +134,7 @@
                 entries.Clear();
                 entries.AddRange(subscribedProvider.GetSnapshot());
                 TrimEntries();
+                if (ScrollToBottom) scrollPending = true;
 
                 subscribedProvider.EntryAdded += HandleEntryAdded;
                 subscribedProvider.Cleared += HandleCleared;
@@ -134,6 +146,7 @@
             entries.Clear();
             entries.AddRange(Entries);
             TrimEntries();
+            if (ScrollToBottom) scrollPending = true;
         }
     }
 
@@ -145,6 +158,7 @@
         ArgumentNullException.ThrowIfNull(entry);
         entries.Add(entry);
         TrimEntries();
+        if (ScrollToBottom) scrollPending = true;
         StateHasChanged();
     }
 
@@ -301,6 +315,7 @@
         {
             entries.Add(entry);
             TrimEntries();
+            if (ScrollToBottom) scrollPending = true;
             StateHasChanged();
         });
     }
@@ -316,7 +331,12 @@
 
     private void TrimEntries()
     {
-        var max = MaxEntries < 1 ? 1 : MaxEntries;
+        if (MaxEntries is null)
+        {
+            return;
+        }
+
+        var max = MaxEntries < 1 ? 1 : MaxEntries.Value;
 
         if (entries.Count > max)
         {
@@ -481,13 +501,33 @@
 
     private readonly record struct Segment(string Text, bool IsParameter, string Name, object? Value);
 
-    public void Dispose()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Reuniverse.Razor/ReuLogs.razor.js");
+        }
+
+        if (scrollPending && module is not null)
+        {
+            scrollPending = false;
+            await module.InvokeVoidAsync("scrollToBottom", logListRef);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
     {
         if (subscribedProvider is not null)
         {
             subscribedProvider.EntryAdded -= HandleEntryAdded;
             subscribedProvider.Cleared -= HandleCleared;
             subscribedProvider = null;
+        }
+
+        if (module is not null)
+        {
+            await module.DisposeAsync();
+            module = null;
         }
     }
 }

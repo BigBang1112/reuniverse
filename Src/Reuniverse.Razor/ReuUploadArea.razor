@@ -129,8 +129,6 @@
     [JSInvokable]
     public async Task UploadAsync(string fileName, byte[] data, long lastModified, string type)
     {
-        StateHasChanged();
-        await Task.Yield();
         await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
     }
 

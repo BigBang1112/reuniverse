@@ -114,14 +114,14 @@
 
     private async Task Upload(UploadEventArgs args)
     {
-        await OnUpload.InvokeAsync(args);
         await SetVisible(false);
+        await OnUpload.InvokeAsync(args);
     }
 
     private async Task Stream(StreamEventArgs args)
     {
-        await OnStream.InvokeAsync(args);
         await SetVisible(false);
+        await OnStream.InvokeAsync(args);
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
