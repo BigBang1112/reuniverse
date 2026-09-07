@@ -177,6 +177,22 @@
     function start() {
         enhanceAll(document);
 
+        if (window.Blazor && typeof window.Blazor.addEventListener === "function") {
+            window.Blazor.addEventListener("enhancedload", function () {
+                document.querySelectorAll(".navbar:not(.reu-nav-responsive)").forEach(function (navbar) {
+                    enhanceNavMenu(navbar);
+
+                    // Trigger the navbar's mutation observer after enhanced navigation.
+                    const nav = navbar.querySelector("nav");
+                    if (nav) {
+                        const marker = document.createComment("");
+                        nav.append(marker);
+                        marker.remove();
+                    }
+                });
+            });
+        }
+
         // Enhance navbars that appear later (e.g. Blazor enhanced navigation or
         // interactive rendering replacing the DOM).
         const observer = new MutationObserver(function (mutations) {
