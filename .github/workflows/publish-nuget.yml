@@ -21,6 +21,5 @@ jobs:
         Templates/*.csproj
       enable-tests: false
       enable-coverage: false
-      main-project: Reuniverse
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
