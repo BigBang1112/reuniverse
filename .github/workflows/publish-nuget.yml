@@ -16,7 +16,9 @@ jobs:
     with:
       dotnet-version: 10.x.x
       project-path: Src/*
-      pack-path: "{Src/*,Templates}"
+      pack-path:  |
+        Src/Reuniverse.Razor/*.csproj
+        Templates/*.csproj
       enable-tests: false
       enable-coverage: false
       main-project: Reuniverse
