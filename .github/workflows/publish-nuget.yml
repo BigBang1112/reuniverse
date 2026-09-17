@@ -16,7 +16,7 @@ jobs:
     with:
       dotnet-version: 10.x.x
       project-path: Src/*
-      pack-path:  |
+      pack-path: |
         Src/Reuniverse.Razor/*.csproj
         Templates/*.csproj
       enable-tests: false
