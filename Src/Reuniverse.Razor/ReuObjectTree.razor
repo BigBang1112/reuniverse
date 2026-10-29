@@ -200,12 +200,9 @@
 </div>
 
 @code {
-    private static HashSet<ExpandedObject> expandedObjects = new();
-    private static HashSet<object> expansionPath = new();
-    private static Dictionary<ExpandedObject, int> objectPages = new();
-
-    private ExpandedObject expandedObject = new();
     private const int PageSize = 10;
+
+    private bool isExpanded;
 
     private string? searchTerm;
 
@@ -293,13 +290,13 @@
 
     public bool IsExpanded
     {
-        get => expandedObjects.Contains(expandedObject);
+        get => isExpanded;
         set
         {
             // Children.Any could be a bit expensive
             if (!value || !IsExpandable)
             {
-                expandedObjects.Remove(expandedObject);
+                isExpanded = false;
                 return;
             }
 
@@ -308,7 +305,7 @@
                 throw new InvalidOperationException("Detected cyclic reference in object tree");
             }
 
-            expandedObjects.Add(expandedObject);
+            isExpanded = true;
         }
     }
 
@@ -354,11 +351,7 @@
     [Parameter]
     public Func<object?, RenderFragment?>? ExtrasProvider { get; set; }
 
-    private int CurrentPage
-    {
-        get => objectPages.GetValueOrDefault(expandedObject, 0);
-        set => objectPages[expandedObject] = value;
-    }
+    private int CurrentPage { get; set; }
 
     public void ToggleExpanded()
     {
@@ -728,9 +721,6 @@
         foreach (var kv in extras) merged[kv.Key] = kv.Value;
         return merged;
     }
-
-    // This object cannot be record type as it needs to be unique for ALL instances
-    private sealed class ExpandedObject;
 
     private class BaseTypeComparer : IComparer<Type?>
     {
