@@ -25,10 +25,10 @@
             SelectedItem = item;
         }
 
+        // the action itself is already invoked by ReuMenuBarItem
         if (item.Action is not null)
         {
             SelectedItem = null;
-            await item.Action.Invoke();
         }
     }
 
