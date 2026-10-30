@@ -1,0 +1,38 @@
+@using System.Numerics
+
+@typeparam T where T : struct, INumber<T>
+@inherits TypeValueComponentBase<T?>
+
+@if (Value.HasValue)
+{
+    <input type="number" @bind="Value" readonly="@IsReadOnly" maxlength="@Width" style="width: @(Width)ch;" />
+}
+else
+{
+    <span class="box-value clickable"
+          @onclick="() => Value = default(T)"
+          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
+          @onmousemove="ReuTooltip.MoveGlobal"
+          @onmouseout="ReuTooltip.HideGlobal">@None</span>
+}
+@if (Exception is not null)
+{
+    <div style="color: var(--color-red);">@Exception.Message</div>
+}
+
+@code {
+    // static per closed generic type, so it's computed once for each number type
+    private static readonly int Width = default(T) switch
+    {
+        byte => 5,
+        sbyte => 6,
+        short => 8,
+        ushort => 7,
+        int => 13,
+        uint => 12,
+        long => 22,
+        ulong => 21,
+        decimal => 22,
+        _ => 13 // float, double and other number types
+    };
+}
