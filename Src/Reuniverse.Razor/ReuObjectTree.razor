@@ -1,4 +1,6 @@
-﻿<div>
+﻿@implements IDisposable
+
+<div>
     <div class="item @(ParentTree is null ? "root" : "") @(Faded ? "faded" : "")">
         @if (Value is null)
         {
@@ -364,7 +366,28 @@
         }
     }
 
-    public IEnumerable<object?> Children => Value is null ? [] : ChildrenProvider(Value);
+    // cached so the children provider (reflection + enumeration) runs once per parameter set or update instead of multiple times per render
+    private BufferedEnumerable<object?>? children;
+
+    public IEnumerable<object?> Children => Value is null ? [] : children ??= new(ChildrenProvider(Value));
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // the parent re-rendered, the value or its contents may have changed
+        InvalidateChildren();
+        return base.SetParametersAsync(parameters);
+    }
+
+    private void InvalidateChildren()
+    {
+        children?.Dispose();
+        children = null;
+    }
+
+    public void Dispose()
+    {
+        InvalidateChildren();
+    }
 
     protected override void OnInitialized()
     {
@@ -573,6 +596,7 @@
     /// </summary>
     public void Update()
     {
+        InvalidateChildren();
         StateHasChanged();
     }
 
