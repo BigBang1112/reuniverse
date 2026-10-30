@@ -3,7 +3,7 @@
         <div class="header">
             @foreach (var tab in Tabs)
             {
-                <div class="tab @(tab.Selected ? "selected" : "")" @onclick="() => SelectTabAsync(tab)">@tab.TitleContent</div>
+                <div class="tab @(tab.Selected ? "selected" : "") @tab.CssClass" @onclick="() => SelectTabAsync(tab)">@tab.TitleContent</div>
             }
         </div>
         <div class="content">
