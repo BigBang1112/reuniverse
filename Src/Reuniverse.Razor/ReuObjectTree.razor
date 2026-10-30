@@ -104,6 +104,9 @@
                 // in case large grouping was skipped, directly use Children
                 var actualGroup = (group ?? Children).Where(child => !ProvideIgnore(child));
 
+                // element count after search filtering, used for paging
+                var shownCount = totalCount ?? 0;
+
                 if (!isFirstGroup && group?.Key is not null)
                 {
                     <div class="basetype-info"><ReuFriendlyType Type="group.Key"></ReuFriendlyType></div>
@@ -115,13 +118,13 @@
                 {
                     if (totalCount > PageSize)
                     {
-                        var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
-
                         if (!string.IsNullOrWhiteSpace(searchTerm))
                         {
                             actualGroup = actualGroup.Where(child => (child as IReuObjectTreeElement)?.Value?.ToString()?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true);
-                            totalPages = (int)Math.Ceiling((double)actualGroup.Count() / PageSize);
+                            shownCount = actualGroup.Count();
                         }
+
+                        var totalPages = (int)Math.Ceiling((double)shownCount / PageSize);
 
                         actualGroup = actualGroup.Skip(CurrentPage * PageSize).Take(PageSize);
 
@@ -137,8 +140,8 @@
                                 {
                                     <code class="page-info">@(CurrentPage + 1)/@totalPages</code>
                                 }
-                                <button class="page-btn" @onclick="() => GoToNextPage(totalCount.Value)" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
-                                <button class="page-btn" @onclick="() => GoToLastPage(totalCount.Value)" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
+                                <button class="page-btn" @onclick="() => GoToNextPage(shownCount)" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
+                                <button class="page-btn" @onclick="() => GoToLastPage(shownCount)" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
                                 <label class="page-goto">
                                     <span class="pagination-text">Go to page:</span>
                                     <input type="number" min="1" max="@totalPages" @onchange="e => GoToPage(e.Value?.ToString(), totalPages)" class="page-input" />
@@ -174,7 +177,7 @@
                 {
                     if (totalCount > PageSize)
                     {
-                        var itemsLeft = totalCount.Value - (CurrentPage + 1) * PageSize;
+                        var itemsLeft = shownCount - (CurrentPage + 1) * PageSize;
 
                         @if (itemsLeft > 0)
                         {
@@ -522,19 +525,20 @@
     {
         try
         {
-            if (Value is not ReuObjectTreeMember currentMember)
+            if (Value is not IReuObjectTreeElement { Value: { } currentValue })
             {
                 return false;
             }
 
-            while (Parent is ReuObjectTreeMember parentMember)
+            // walk all ancestor trees, the root tree holds the raw object instead of an element
+            for (var tree = ParentTree; tree is not null; tree = tree.ParentTree)
             {
-                if (Equals(currentMember.Value, parentMember.Value))
+                var ancestorValue = tree.Value is IReuObjectTreeElement element ? element.Value : tree.Value;
+
+                if (Equals(currentValue, ancestorValue))
                 {
                     return true;
                 }
-
-                Parent = parentMember.Parent;
             }
         }
         catch (TargetInvocationException)
@@ -616,7 +620,7 @@
     {
         if (int.TryParse(page, out int pageNum))
         {
-            CurrentPage = Math.Clamp(pageNum - 1, 0, totalPages - 1);
+            CurrentPage = Math.Clamp(pageNum - 1, 0, Math.Max(0, totalPages - 1));
         }
     }
 
