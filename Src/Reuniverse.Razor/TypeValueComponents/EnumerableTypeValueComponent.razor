@@ -37,54 +37,46 @@ else
             return false;
         }
         
-        if (Value is System.Collections.IList and not Array)
+        // arrays are fixed size, immutable and read-only collections are read-only
+        if (Value is System.Collections.IList { IsReadOnly: false, IsFixedSize: false })
         {
-            var type = Value.GetType();
-
-            if (!type.IsGenericType)
-            {
-                // dont add default element to non-generic lists yet, it would have to be object and thats confusing
-                return false;
-            }
-
-            var genericDef = type.GetGenericTypeDefinition();
-            if (genericDef == typeof(System.Collections.Immutable.ImmutableList<>) ||
-                genericDef == typeof(System.Collections.Immutable.ImmutableArray<>))
-            {
-                return false;
-            }
-
-            var elementType = type.GetGenericArguments()[0];
-
-            // Check if it has a parameterless constructor
-            return !elementType.IsAbstract &&
-                   !elementType.IsInterface &&
-                   elementType.GetConstructor(Type.EmptyTypes) is not null;
+            // dont add default element to non-generic lists yet, it would have to be object and thats confusing
+            return GetElementType(Value.GetType()) is Type elementType && CanCreateElement(elementType);
         }
 
         return false;
     }
 
+    private static Type? GetElementType(Type listType)
+    {
+        return listType.GetInterfaces()
+            .FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IList<>))?
+            .GenericTypeArguments[0];
+    }
+
+    private static bool CanCreateElement(Type elementType)
+    {
+        if (elementType == typeof(string) || elementType.IsValueType)
+        {
+            return true;
+        }
+
+        // Check if it has a parameterless constructor
+        return !elementType.IsAbstract &&
+               !elementType.IsInterface &&
+               elementType.GetConstructor(Type.EmptyTypes) is not null;
+    }
+
     private async Task AddElementAsync()
     {
-        if (Value is not System.Collections.IList list)
+        if (Value is not System.Collections.IList list || GetElementType(Value.GetType()) is not Type elementType)
         {
             return;
         }
-
-        var type = Value.GetType();
-
-        if (!type.IsGenericType)
-        {
-            // dont add default element to non-generic lists yet, it would have to be object and thats confusing
-            return;
-        }
-
-        var elementType = type.GetGenericArguments()[0];
 
         try
         {
-            var newElement = Activator.CreateInstance(elementType);
+            var newElement = elementType == typeof(string) ? string.Empty : Activator.CreateInstance(elementType);
 
             list.Add(newElement);
 
