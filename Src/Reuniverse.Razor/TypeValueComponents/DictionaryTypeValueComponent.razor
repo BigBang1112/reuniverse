@@ -46,7 +46,7 @@ else
 
     private bool TryGetValueComponent([NotNullWhen(true)] out Type? keyType, [NotNullWhen(true)] out Type? componentType)
     {
-        keyType = Value?.GetType().GetGenericArguments()[0];
+        keyType = Value is null ? null : GetKeyValueTypes(Value.GetType())?[0];
 
         if (keyType is null)
         {
@@ -57,29 +57,20 @@ else
         return ReuObjectTree.TryGetValueComponent(value: null, keyType, TypeValueComponents, out componentType);
     }
 
+    /// <summary>
+    /// Gets the [TKey, TValue] type arguments of the dictionary, or null if it is not a generic dictionary.
+    /// </summary>
+    private static Type[]? GetKeyValueTypes(Type dictionaryType)
+    {
+        return dictionaryType.GetInterfaces()
+            .FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>))?
+            .GenericTypeArguments;
+    }
+
     private bool CanAddElement()
     {
-        if (Value is null)
-        {
-            return false;
-        }
-
-        if (Value is System.Collections.IDictionary)
-        {
-            var type = Value.GetType();
-
-            if (!type.IsGenericType)
-            {
-                // dont add default element to non-generic lists yet, it would have to be object and thats confusing
-                return false;
-            }
-
-            var keyType = type.GetGenericArguments()[0];
-
-            return true;
-        }
-
-        return false;
+        // dont add default element to non-generic dictionaries yet, it would have to be object and thats confusing
+        return Value is { IsReadOnly: false, IsFixedSize: false } && GetKeyValueTypes(Value.GetType()) is not null;
     }
 
     private async Task AddElementAsync()
@@ -89,22 +80,17 @@ else
             return;
         }
 
-        if (Value is not System.Collections.IDictionary dict)
+        if (Value is not System.Collections.IDictionary dict || GetKeyValueTypes(Value.GetType()) is not [_, var valueType])
         {
-            return;
-        }
-
-        var type = Value.GetType();
-
-        if (!type.IsGenericType)
-        {
-            // dont add default element to non-generic lists yet, it would have to be object and thats confusing
             return;
         }
 
         try
         {
-            dict.Add(keyComponent.Value, null);
+            // non-generic Add throws on null for value type values
+            var defaultValue = valueType.IsValueType ? Activator.CreateInstance(valueType) : null;
+
+            dict.Add(keyComponent.Value, defaultValue);
             keyComponent.Value = null;
 
             await ValueChanged.InvokeAsync(Value);
