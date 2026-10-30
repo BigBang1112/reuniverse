@@ -28,11 +28,19 @@
         StateHasChanged();
     }
 
-    public void CollapseAll()
+    /// <summary>
+    /// Collapses all panels, notifying each panel's <c>ExpandedChanged</c>.
+    /// </summary>
+    public Task CollapseAllAsync() => CollapseAllAsync(except: null);
+
+    internal async Task CollapseAllAsync(ReuExpansionPanel? except)
     {
         foreach (var panel in Panels)
         {
-            panel.Collapse();
+            if (panel != except)
+            {
+                await panel.CollapseAsync();
+            }
         }
         StateHasChanged();
     }

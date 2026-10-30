@@ -42,17 +42,24 @@
 
     private async Task ToggleExpanded()
     {
-        if (Parent?.SingleExpansion == true)
-        {
-            Parent?.CollapseAll();
-        }
-
         Expanded = !Expanded;
         await ExpandedChanged.InvokeAsync(Expanded);
+
+        if (Expanded && Parent?.SingleExpansion == true)
+        {
+            await Parent.CollapseAllAsync(except: this);
+        }
     }
 
-    internal void Collapse()
+    internal async Task CollapseAsync()
     {
+        if (!Expanded)
+        {
+            return;
+        }
+
         Expanded = false;
+        await ExpandedChanged.InvokeAsync(false);
+        StateHasChanged();
     }
 }
