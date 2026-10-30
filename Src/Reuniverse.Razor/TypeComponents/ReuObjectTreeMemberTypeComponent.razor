@@ -5,7 +5,7 @@
 {
     <div class="box type">
         <ReuFriendlyType Type="Value.Property.PropertyType" OnClick="OnTypeClick"></ReuFriendlyType>
-        @if (!Value.Property.PropertyType.IsValueType && new NullabilityInfoContext().Create(Value.Property).ReadState is NullabilityState.Nullable)
+        @if (!Value.Property.PropertyType.IsValueType && GetNullabilityInfo(Value.Property).ReadState is NullabilityState.Nullable)
         {
             <span>?</span>
         }
@@ -198,8 +198,15 @@ catch (Exception ex)
         }
 
         // For reference types, check if it's nullable using NullabilityInfo
-        var nullabilityInfo = new NullabilityInfoContext().Create(Value.Property);
-        return nullabilityInfo.WriteState is NullabilityState.Nullable;
+        return GetNullabilityInfo(Value.Property).WriteState is NullabilityState.Nullable;
+    }
+
+    // NullabilityInfoContext is not thread-safe, so a new one is created only on cache miss
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<PropertyInfo, NullabilityInfo> nullabilityCache = new();
+
+    private static NullabilityInfo GetNullabilityInfo(PropertyInfo property)
+    {
+        return nullabilityCache.GetOrAdd(property, static p => new NullabilityInfoContext().Create(p));
     }
 
     private async Task RemoveValueAsync()

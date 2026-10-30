@@ -240,10 +240,8 @@
     [Parameter]
     public IReadOnlyDictionary<Type, Type>? AdditionalTypeComponents { get; set; }
 
-    private Dictionary<Type, Type> ResolvedTypeComponents =>
-        AdditionalTypeComponents is null or { Count: 0 }
-            ? TypeComponents
-            : Merge(TypeComponents, AdditionalTypeComponents);
+    // resolved in OnParametersSet to avoid merging on every access
+    private Dictionary<Type, Type> ResolvedTypeComponents { get; set; } = DefaultTypeComponents;
 
     /// <summary>
     /// Any type to component type mapping to provide value rendering/editing. By default it uses <see cref="DefaultTypeValueComponents"/>, but you can override or extend it.
@@ -258,10 +256,8 @@
     [Parameter]
     public IReadOnlyDictionary<Type, Type>? AdditionalTypeValueComponents { get; set; }
 
-    private Dictionary<Type, Type> ResolvedTypeValueComponents =>
-        AdditionalTypeValueComponents is null or { Count: 0 }
-            ? TypeValueComponents
-            : Merge(TypeValueComponents, AdditionalTypeValueComponents);
+    // resolved in OnParametersSet to avoid merging on every access
+    private Dictionary<Type, Type> ResolvedTypeValueComponents { get; set; } = DefaultTypeValueComponents;
 
     /// <summary>
     /// A function that provides the children of a given object. By default it uses <see cref="DefaultChildrenProvider"/>, but you can override it.
@@ -373,6 +369,17 @@
     protected override void OnInitialized()
     {
         IsExpanded = IsExpandedByDefault;
+    }
+
+    protected override void OnParametersSet()
+    {
+        ResolvedTypeComponents = AdditionalTypeComponents is null or { Count: 0 }
+            ? TypeComponents
+            : Merge(TypeComponents, AdditionalTypeComponents);
+
+        ResolvedTypeValueComponents = AdditionalTypeValueComponents is null or { Count: 0 }
+            ? TypeValueComponents
+            : Merge(TypeValueComponents, AdditionalTypeValueComponents);
     }
 
     private bool TryGetValueComponent(out Type? componentType)
