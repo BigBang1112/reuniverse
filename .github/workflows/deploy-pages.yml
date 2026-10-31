@@ -15,4 +15,4 @@ jobs:
       id-token: write
     with:
       dotnet-version: 10.0.x
-      project: Samples/Overview
+      project: Samples/Showcase

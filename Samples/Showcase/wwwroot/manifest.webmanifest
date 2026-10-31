@@ -1,6 +1,6 @@
 {
-  "name": "Overview",
-  "short_name": "Overview",
+  "name": "Showcase",
+  "short_name": "Showcase",
   "id": "./",
   "start_url": "./",
   "display": "standalone",

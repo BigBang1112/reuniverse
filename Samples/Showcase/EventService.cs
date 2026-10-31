@@ -1,4 +1,4 @@
-﻿namespace Overview;
+﻿namespace Showcase;
 
 public sealed class EventService
 {
