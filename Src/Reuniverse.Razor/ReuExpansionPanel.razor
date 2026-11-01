@@ -1,3 +1,5 @@
+@implements IDisposable
+
 <div class="reu-expansion-panel @CssClass" @attributes="AdditionalAttributes">
     <div class="expandable" @onclick="ToggleExpanded" @onmousedown:preventDefault="true">
         @TitleContent
@@ -61,5 +63,10 @@
         Expanded = false;
         await ExpandedChanged.InvokeAsync(false);
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Parent?.Unregister(this);
     }
 }
