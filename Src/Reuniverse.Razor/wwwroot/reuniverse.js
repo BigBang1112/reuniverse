@@ -217,3 +217,175 @@
         start();
     }
 })();
+
+// Reuniverse tooltips.
+//
+// Any element with a data-reu-tooltip attribute shows its text after a short hover
+// or keyboard focus. This is all client-side, with a single listener on the document, so it
+// works under every render mode including static SSR, and elements rendered later
+// need no setup.
+(function () {
+    "use strict";
+
+    const attribute = "data-reu-tooltip";
+    const selector = `[${attribute}]`;
+    const tooltipId = "reu-tooltip";
+
+    const showDelay = 500;
+    const cursorGap = 16;
+    const edgeGap = 8;
+
+    let tooltip = null;
+    let target = null;
+    let waitingFor = null;
+    let waitTimer = 0;
+    let dismissed = null;
+    let anchorX = 0;
+    let anchorTop = 0;
+    let anchorBottom = 0;
+
+    // Blazor enhanced navigation replaces the contents of <body>, so the element
+    // has to be able to come back after it was removed.
+    function ensureTooltip() {
+        if (!tooltip) {
+            tooltip = document.createElement("div");
+            tooltip.id = tooltipId;
+            tooltip.className = "reu-tooltip";
+            tooltip.setAttribute("role", "tooltip");
+        }
+
+        if (!tooltip.isConnected) {
+            document.body.append(tooltip);
+        }
+
+        return tooltip;
+    }
+
+    function place() {
+        const { width, height } = tooltip.getBoundingClientRect();
+        const maxLeft = window.innerWidth - width - edgeGap;
+        const fitsBelow = anchorBottom + height + edgeGap <= window.innerHeight;
+
+        const left = Math.max(edgeGap, Math.min(anchorX, maxLeft));
+        const top = fitsBelow ? anchorBottom : Math.max(edgeGap, anchorTop - height - edgeGap);
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+    }
+
+    function hide() {
+        clearTimeout(waitTimer);
+        waitingFor = null;
+
+        if (!target) {
+            return;
+        }
+
+        if (target.getAttribute("aria-describedby") === tooltipId) {
+            target.removeAttribute("aria-describedby");
+        }
+
+        target = null;
+        tooltip.remove();
+        changes.disconnect();
+    }
+
+    function show(element) {
+        const text = element.isConnected ? element.getAttribute(attribute) : null;
+
+        if (!text) {
+            hide();
+            return;
+        }
+
+        if (element !== target) {
+            hide();
+            target = element;
+
+            if (!target.hasAttribute("aria-describedby")) {
+                target.setAttribute("aria-describedby", tooltipId);
+            }
+
+            changes.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: [attribute] });
+        }
+
+        ensureTooltip().textContent = text;
+        place();
+    }
+
+    // Moving within the element keeps the wait going, so the tooltip appears where
+    // the cursor ended up rather than where it came in.
+    function request(element, x, top, bottom) {
+        anchorX = x;
+        anchorTop = top;
+        anchorBottom = bottom;
+
+        if (element === dismissed) {
+            hide();
+        } else if (element === target) {
+            show(element);
+        } else if (element !== waitingFor) {
+            hide();
+            waitingFor = element;
+            waitTimer = setTimeout(function () {
+                waitingFor = null;
+                show(element);
+            }, showDelay);
+        }
+    }
+
+    // Keeps up with the target while the tooltip is visible, as an element that is
+    // removed or changed under a still cursor does not raise any pointer events.
+    const changes = new MutationObserver(function () {
+        if (!target) {
+            return;
+        }
+
+        const text = target.isConnected ? target.getAttribute(attribute) : null;
+
+        if (!text) {
+            hide();
+        } else if (tooltip.textContent !== text) {
+            tooltip.textContent = text;
+            place();
+        }
+    });
+
+    document.addEventListener("pointermove", function (event) {
+        if (event.pointerType === "touch") {
+            return;
+        }
+
+        const element = event.target instanceof Element ? event.target.closest(selector) : null;
+
+        if (element !== dismissed) {
+            dismissed = null;
+        }
+
+        if (element) {
+            request(element, event.clientX, event.clientY, event.clientY + cursorGap);
+        } else {
+            hide();
+        }
+    }, { passive: true });
+
+    document.addEventListener("focusin", function (event) {
+        const element = event.target.closest(selector);
+
+        if (element && event.target.matches(":focus-visible")) {
+            const { left, top, bottom } = element.getBoundingClientRect();
+            request(element, left, top, bottom + edgeGap);
+        }
+    });
+
+    document.addEventListener("focusout", hide);
+    document.addEventListener("scroll", hide, { capture: true, passive: true });
+    document.documentElement.addEventListener("pointerleave", hide);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && (target || waitingFor)) {
+            dismissed = target ?? waitingFor;
+            hide();
+        }
+    });
+})();

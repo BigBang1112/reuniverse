@@ -10,9 +10,7 @@ else
 {
     <span class="box-value clickable"
           @onclick="() => Value = default(DateTimeOffset)"
-          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
-          @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">@None</span>
+          data-reu-tooltip="Set to default value">@None</span>
 }
 
 @if (Exception is not null)

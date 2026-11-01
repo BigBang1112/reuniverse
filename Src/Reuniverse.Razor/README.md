@@ -15,7 +15,7 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
-For the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag (it works without interactivity; if omitted, the navbar falls back to static width breakpoints):
+For tooltips and the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown and the navbar falls back to static width breakpoints:
 
 ```html
 <script src="@Assets["_content/Reuniverse.Razor/reuniverse.js"]" defer></script>
@@ -91,7 +91,7 @@ A versatile button component that can render as a link or a button with various 
 - `Enable` - Whether the button is enabled.
 - `NavLink` - Whether to render as a Blazor `NavLink` (only when `Href` is set).
 - `Variant` - The variant style of the button (`Default`, `Blue`, `Yellow`, `Red`).
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus.
 - `CssClass` - Additional CSS classes to apply to the button.
 - Additional attributes are supported.
 
@@ -193,7 +193,7 @@ A custom checkbox component with label and state management. It should also work
 - `IsChecked` - Whether the checkbox is checked.
 - `IsCheckedChanged` - Callback invoked when the checked state changes. **(requires interactivity)**
 - `Size` - The size of the checkbox in pixels. (default: 28)
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus.
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -436,7 +436,7 @@ A custom radio button component with label and state management. It should also 
 - `IsChecked` - Whether the radio button is checked.
 - `IsCheckedChanged` - Callback invoked when the checked state changes. **(requires interactivity)**
 - `Size` - The size of the radio button in pixels. (default: 28)
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus.
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -485,9 +485,23 @@ Example:
 
 ### `<ReuTooltip>`
 
-A component to display a tooltip either globally for `Tooltip` parameters, or for specific content.
+A component to show a tooltip for its content after it is hovered or focused with the keyboard for half a second. Works in every render mode, including static SSR, and needs no setup other than the `reuniverse.js` script.
 
-TBD
+- `Text` - The text of the tooltip. Line breaks are kept.
+
+Example:
+
+```cshtml
+<ReuTooltip Text="Saved 2 minutes ago">Saved</ReuTooltip>
+```
+
+Components with a `Tooltip` parameter use the same tooltip. To add one to any other element, set the `data-reu-tooltip` attribute:
+
+```cshtml
+<img src="map.png" alt="Map" data-reu-tooltip="Made by Hylis" />
+```
+
+The tooltip disappears on its own when the element is removed, and picks up any change to the text.
 
 ### `<ReuUploadArea>`
 

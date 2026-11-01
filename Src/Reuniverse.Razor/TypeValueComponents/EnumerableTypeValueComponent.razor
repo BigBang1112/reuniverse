@@ -18,9 +18,7 @@ else
     {
         <span class="box-value clickable add"
               @onclick="AddElementAsync"
-              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Add element"))"
-              @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal">+</span>
+              data-reu-tooltip="Add element">+</span>
     }
 }
 

@@ -8,9 +8,7 @@ else if (Value is null)
 {
     <span class="box-value clickable"
             @onclick="() => Value = Enum.GetValues(Type).GetValue(0)"
-            @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
-            @onmousemove="ReuTooltip.MoveGlobal"
-            @onmouseout="ReuTooltip.HideGlobal">@None</span>
+            data-reu-tooltip="Set to default value">@None</span>
 }
 else if (Attribute.IsDefined(Type, typeof(FlagsAttribute)))
 {
@@ -35,9 +33,7 @@ else if (Attribute.IsDefined(Type, typeof(FlagsAttribute)))
         {
             <span class="box-value clickable"
                   @onclick="() => RemoveFlag(flagValue)"
-                  @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Remove flag"))"
-                  @onmousemove="ReuTooltip.MoveGlobal"
-                  @onmouseout="ReuTooltip.HideGlobal">@flagValue</span>
+                  data-reu-tooltip="Remove flag">@flagValue</span>
         }
     }
 
@@ -145,7 +141,6 @@ else
         if (Value is not null)
         {
             SetBits(ToBits(Value) & ~ToBits(flagValue));
-            ReuTooltip.HideGlobal();
         }
     }
 }

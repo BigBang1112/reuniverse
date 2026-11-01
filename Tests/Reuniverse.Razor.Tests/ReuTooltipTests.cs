@@ -1,200 +1,160 @@
-using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 
 namespace Reuniverse.Razor.Tests;
 
-// the global tooltip keeps its state in statics, so tests cannot run alongside anything that touches it
-[NotInParallel]
-public class ReuTooltipTests : BunitContext
+public class ReuTooltipTests : ReuObjectTreeTestBase
 {
-    private static readonly MouseEventArgs Cursor = new() { ClientX = 10, ClientY = 20 };
+    private const string TooltipAttribute = "data-reu-tooltip";
 
-    public ReuTooltipTests()
+    private class Model
     {
-        // in this order, as HideGlobal does nothing once the text is empty
-        ReuTooltip.HideGlobal();
-        ReuTooltip.UpdateGlobal(null);
-    }
-
-    private IRenderedComponent<ReuTooltip> RenderGlobalTooltip()
-    {
-        return Render<ReuTooltip>(parameters => parameters.Add(x => x.IsGlobal, true));
+        public string? Nullable { get; set; }
+        public Model? Child { get; set; }
     }
 
     [Test]
-    public async Task ShowGlobal_WithText_ShowsTooltip()
+    public async Task Render_WithText_SetsTooltipOnContent()
     {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-
         // Act
-        await cut.InvokeAsync(() => ReuTooltip.ShowGlobal(Cursor, "Hint"));
+        var cut = Render<ReuTooltip>(parameters => parameters
+            .Add(x => x.Text, "Hint")
+            .AddChildContent("Content"));
 
         // Assert
-        await Assert.That(cut.Find(".tooltip.global").TextContent.Trim()).IsEqualTo("Hint");
+        await Assert.That(cut.Find("span").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
+        await Assert.That(cut.Find("span").TextContent).IsEqualTo("Content");
     }
 
     [Test]
-    public async Task ShowGlobal_WithText_PositionsTooltipBelowCursor()
+    public async Task Render_WithoutText_LeavesAttributeOut()
     {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-
         // Act
-        await cut.InvokeAsync(() => ReuTooltip.ShowGlobal(Cursor, "Hint"));
+        var cut = Render<ReuTooltip>(parameters => parameters.AddChildContent("Content"));
 
         // Assert
-        await Assert.That(cut.Find(".tooltip.global").GetAttribute("style")).IsEqualTo("left:10px;top:40px;");
+        await Assert.That(cut.Find("span").HasAttribute(TooltipAttribute)).IsFalse();
     }
 
     [Test]
-    public async Task ShowGlobal_WithoutText_ShowsNothing()
+    public async Task Render_WithAdditionalAttributes_PassesThemToElement()
     {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-
         // Act
-        await cut.InvokeAsync(() => ReuTooltip.ShowGlobal(Cursor, null));
+        var cut = Render<ReuTooltip>(parameters => parameters.AddUnmatched("class", "custom"));
 
         // Assert
-        await Assert.That(cut.FindAll(".tooltip").Count).IsEqualTo(0);
+        await Assert.That(cut.Find("span").ClassList.Contains("custom")).IsTrue();
     }
 
     [Test]
-    public async Task MoveGlobal_WithVisibleTooltip_FollowsCursor()
+    public async Task Render_WithOldIsGlobalParameter_DoesNotThrow()
     {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-        await cut.InvokeAsync(() => ReuTooltip.ShowGlobal(Cursor, "Hint"));
-
         // Act
-        await cut.InvokeAsync(() => ReuTooltip.MoveGlobal(new MouseEventArgs { ClientX = 50, ClientY = 60 }));
-
-        // Assert
-        await Assert.That(cut.Find(".tooltip.global").GetAttribute("style")).IsEqualTo("left:50px;top:80px;");
-    }
-
-    [Test]
-    public async Task MoveGlobal_WithoutText_ShowsNothing()
-    {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-
-        // Act
-        await cut.InvokeAsync(() => ReuTooltip.MoveGlobal(Cursor));
-
-        // Assert
-        await Assert.That(cut.FindAll(".tooltip").Count).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task HideGlobal_WithVisibleTooltip_HidesTooltip()
-    {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-        await cut.InvokeAsync(() => ReuTooltip.ShowGlobal(Cursor, "Hint"));
-
-        // Act
-        await cut.InvokeAsync(ReuTooltip.HideGlobal);
-
-        // Assert
-        await Assert.That(cut.FindAll(".tooltip").Count).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task UpdateGlobal_WithVisibleTooltip_ReplacesText()
-    {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-        await cut.InvokeAsync(() => ReuTooltip.ShowGlobal(Cursor, "Hint"));
-
-        // Act
-        await cut.InvokeAsync(() => ReuTooltip.UpdateGlobal("New hint"));
-
-        // Assert
-        await Assert.That(cut.Find(".tooltip.global").TextContent.Trim()).IsEqualTo("New hint");
-    }
-
-    [Test]
-    public async Task Hover_OverButtonWithTooltip_ShowsGlobalTooltip()
-    {
-        // Arrange
-        var tooltip = RenderGlobalTooltip();
-        var button = Render<ReuButton>(parameters => parameters.Add(x => x.Tooltip, "Hint"));
-
-        // Act
-        await button.Find("button").TriggerEventAsync("onmouseenter", Cursor);
-
-        // Assert
-        await Assert.That(tooltip.Find(".tooltip.global").TextContent.Trim()).IsEqualTo("Hint");
-    }
-
-    [Test]
-    public async Task Show_OnLocalTooltip_ShowsContent()
-    {
-        // Arrange
-        var cut = Render<ReuTooltip>(parameters => parameters.AddChildContent("Local hint"));
-
-        // Act
-        await cut.InvokeAsync(() => cut.Instance.Show(Cursor));
-
-        // Assert
-        await Assert.That(cut.Find(".tooltip").TextContent.Trim()).IsEqualTo("Local hint");
-    }
-
-    [Test]
-    public async Task Hide_OnLocalTooltip_HidesContent()
-    {
-        // Arrange
-        var cut = Render<ReuTooltip>(parameters => parameters.AddChildContent("Local hint"));
-        await cut.InvokeAsync(() => cut.Instance.Show(Cursor));
-
-        // Act
-        await cut.InvokeAsync(cut.Instance.Hide);
-
-        // Assert
-        await Assert.That(cut.FindAll(".tooltip").Count).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task Show_OnGlobalTooltip_ShowsNothing()
-    {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-
-        // Act
-        await cut.InvokeAsync(() => cut.Instance.Show(Cursor));
-
-        // Assert
-        await Assert.That(cut.FindAll(".tooltip").Count).IsEqualTo(0);
-    }
-
-    [Test]
-    public async Task ShowGlobal_AfterTooltipDisposed_DoesNotThrow()
-    {
-        // Arrange
-        var cut = RenderGlobalTooltip();
-        await DisposeComponentsAsync();
-
-        // Act
-        var act = () => ReuTooltip.ShowGlobal(Cursor, "Hint");
+        var act = () => Render<ReuTooltip>(parameters => parameters.AddUnmatched("IsGlobal", true));
 
         // Assert
         await Assert.That(act).ThrowsNothing();
     }
 
     [Test]
-    [Skip("Known bug: statics are shared between circuits, and StateHasChanged from another circuit's dispatcher throws, skipping the remaining handlers")]
-    public async Task ShowGlobal_WithSecondCircuit_ShowsTooltipForThatCircuit()
+    public async Task Render_WithoutInteractivity_StillSetsTooltip()
     {
         // Arrange
-        await using var firstCircuit = new BunitContext();
-        firstCircuit.Render<ReuTooltip>(parameters => parameters.Add(x => x.IsGlobal, true));
-        var cut = RenderGlobalTooltip();
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
 
         // Act
-        await cut.InvokeAsync(() => ReuTooltip.ShowGlobal(Cursor, "Hint"));
+        var cut = Render<ReuButton>(parameters => parameters.Add(x => x.Tooltip, "Hint"));
 
         // Assert
-        await Assert.That(cut.FindAll(".tooltip.global").Count).IsEqualTo(1);
+        await Assert.That(cut.Find("button").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
+    }
+
+    [Test]
+    public async Task Render_ButtonWithoutTooltip_LeavesAttributeOut()
+    {
+        // Act
+        var cut = Render<ReuButton>();
+
+        // Assert
+        await Assert.That(cut.Find("button").HasAttribute(TooltipAttribute)).IsFalse();
+    }
+
+    [Test]
+    public async Task Render_DisabledButtonWithTooltip_KeepsTooltip()
+    {
+        // Act
+        var cut = Render<ReuButton>(parameters => parameters.Add(x => x.Tooltip, "Hint").Add(x => x.Enable, false));
+
+        // Assert
+        await Assert.That(cut.Find("button").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
+    }
+
+    [Test]
+    public async Task Render_ButtonWithHref_SetsTooltipOnLink()
+    {
+        // Act
+        var cut = Render<ReuButton>(parameters => parameters.Add(x => x.Tooltip, "Hint").Add(x => x.Href, "/page"));
+
+        // Assert
+        await Assert.That(cut.Find("a").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
+    }
+
+    [Test]
+    public async Task Render_ButtonWithNavLink_SetsTooltipOnLink()
+    {
+        // Act
+        var cut = Render<ReuButton>(parameters => parameters
+            .Add(x => x.Tooltip, "Hint")
+            .Add(x => x.Href, "/page")
+            .Add(x => x.NavLink, true));
+
+        // Assert
+        await Assert.That(cut.FindComponent<NavLink>().Find("a").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
+    }
+
+    [Test]
+    public async Task Render_CheckboxWithTooltip_SetsTooltipOnLabel()
+    {
+        // Act
+        var cut = Render<ReuCheckbox>(parameters => parameters.Add(x => x.Tooltip, "Hint"));
+
+        // Assert
+        await Assert.That(cut.Find("label").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
+    }
+
+    [Test]
+    public async Task Render_UploadButtonWithTooltip_SetsTooltipOnButton()
+    {
+        // Arrange
+        JSInterop.SetupModule("./_content/Reuniverse.Razor/ReuUploadButton.razor.js");
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+
+        // Act
+        var cut = Render<ReuUploadButton>(parameters => parameters.Add(x => x.Tooltip, "Hint"));
+
+        // Assert
+        await Assert.That(cut.Find("button").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
+    }
+
+    [Test]
+    public async Task Render_ObjectTreeActions_DescribeTheirAction()
+    {
+        // Act
+        var cut = RenderObjectTree(new Model());
+
+        // Assert
+        await Assert.That(cut.MemberRow(nameof(Model.Child)).QuerySelector(".box-value.clickable")!.GetAttribute(TooltipAttribute)).IsEqualTo("Create a new instance");
+        await Assert.That(cut.MemberRow(nameof(Model.Nullable)).QuerySelector(".box-value.clickable")!.GetAttribute(TooltipAttribute)).IsEqualTo("Set to empty string");
+    }
+
+    [Test]
+    public async Task Render_ObjectTreeList_DescribesAddAndRemove()
+    {
+        // Act
+        var cut = RenderObjectTree(new List<int> { 1 });
+
+        // Assert
+        await Assert.That(cut.Find(".add").GetAttribute(TooltipAttribute)).IsEqualTo("Add element");
+        await Assert.That(cut.Find(".remove").GetAttribute(TooltipAttribute)).IsEqualTo("Remove element");
     }
 }

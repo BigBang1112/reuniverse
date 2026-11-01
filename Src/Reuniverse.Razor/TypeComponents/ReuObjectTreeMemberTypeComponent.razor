@@ -24,9 +24,7 @@
     {
         <span class="box-value clickable"
               @onclick="Reveal"
-              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
-              @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal">
+              data-reu-tooltip="Reveal the actual value">
             @renderFragment
         </span>
     }
@@ -48,9 +46,7 @@
         {
             <span class="box-value clickable"
                   @onclick="CreateInstance"
-                  @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Create a new instance"))"
-                  @onmousemove="ReuTooltip.MoveGlobal"
-                  @onmouseout="ReuTooltip.HideGlobal">
+                  data-reu-tooltip="Create a new instance">
                 @(Value.Property.CanRead ? "null" : "(cannot get)")
             </span>
         }
@@ -78,9 +74,7 @@
     {
         <span class="box-value clickable remove"
               @onclick="RemoveValueAsync"
-              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to null"))"
-              @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal">✕</span>
+              data-reu-tooltip="Set to null">✕</span>
     }
 
     @if (prevValue is not null)
@@ -111,7 +105,6 @@ catch (Exception ex)
     private void Reveal()
     {
         revealed = true;
-        ReuTooltip.HideGlobal();
     }
 
     private bool TryGetValueComponent(out Type? componentType)
@@ -176,7 +169,6 @@ catch (Exception ex)
             History?.RecordProperty(Value.Parent, Value.Property, oldValue, newInstance);
 
             await ValueChanged.InvokeAsync();
-            ReuTooltip.HideGlobal();
         }
         catch (Exception ex)
         {
@@ -276,7 +268,6 @@ catch (Exception ex)
             Value.Property.SetValue(Value.Parent, value);
             History?.RecordProperty(Value.Parent, Value.Property, prevValue, value);
             await ValueChanged.InvokeAsync();
-            ReuTooltip.HideGlobal();
         }
         catch (TargetInvocationException ex)
         {

@@ -18,9 +18,7 @@
 {
     <span class="box-value clickable"
     @onclick="Reveal"
-    @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
-    @onmousemove="ReuTooltip.MoveGlobal"
-    @onmouseout="ReuTooltip.HideGlobal">
+    data-reu-tooltip="Reveal the actual value">
         @renderFragment
     </span>
 }
@@ -68,9 +66,7 @@ else
 {
     <span class="box-value clickable remove"
           @onclick="RemoveValueAsync"
-          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Remove element"))"
-          @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">✕</span>
+          data-reu-tooltip="Remove element">✕</span>
 }
 @if (Exception is not null)
 {
@@ -85,7 +81,6 @@ else
     private void Reveal()
     {
         revealed = true;
-        ReuTooltip.HideGlobal();
     }
 
     private bool TryGetValueComponent(out Type? componentType)
@@ -131,7 +126,6 @@ else
             }
 
             await ValueChanged.InvokeAsync(Value);
-            ReuTooltip.HideGlobal();
         }
         catch (Exception ex)
         {
