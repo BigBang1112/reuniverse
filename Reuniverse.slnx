@@ -8,6 +8,9 @@
   <Folder Name="/Src/">
     <Project Path="Src/Reuniverse.Razor/Reuniverse.Razor.csproj" Id="acf7cbb6-b175-43e0-925a-93eabc013962" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Reuniverse.Razor.Tests/Reuniverse.Razor.Tests.csproj" />
+  </Folder>
   <Folder Name="/Templates/">
     <Project Path="Templates/Reuniverse.Templates.csproj" />
   </Folder>

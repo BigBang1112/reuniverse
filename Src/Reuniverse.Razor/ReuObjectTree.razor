@@ -86,26 +86,18 @@
             }
         }
 
-        IEnumerable<IGrouping<Type?, object?>?> groupedChildren;
+        // a pure enumerable may never end, and large grouping creates thousands of object tree elements before they are even visible,
+        // so only the members are grouped there, and the elements are paged after them
+        var groupMembersOnly = isPureEnumerable || totalCount > 1000;
+        var groupableChildren = groupMembersOnly ? Children.TakeWhile(child => child is ReuObjectTreeMember) : Children;
 
-        if (totalCount > 1000)
+        IEnumerable<IGrouping<Type?, object?>?> groupedChildren = groupableChildren.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
+            .Where(group => group.Key != typeof(object) && group.Key != typeof(ValueType))
+            .OrderByDescending(group => group.Key, BaseTypeComparer.Instance);
+
+        if (groupMembersOnly)
         {
-            // large grouping creates thousands of object tree elements before they are even visible
-            groupedChildren = [null];
-        }
-        else
-        {
-            // a pure enumerable may never end, so only its members are grouped, and its elements are paged after them
-            var groupableChildren = isPureEnumerable ? Children.TakeWhile(child => child is ReuObjectTreeMember) : Children;
-
-            groupedChildren = groupableChildren.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
-                .Where(group => group.Key != typeof(object) && group.Key != typeof(ValueType))
-                .OrderByDescending(group => group.Key, BaseTypeComparer.Instance);
-
-            if (isPureEnumerable)
-            {
-                groupedChildren = groupedChildren.Append(null);
-            }
+            groupedChildren = groupedChildren.Append(null);
         }
 
         var isFirstGroup = true;
@@ -114,8 +106,8 @@
         <div class="items @(skipRowFadeIn ? "no-fade" : "")">
             @foreach (var group in groupedChildren)
             {
-                // in case large grouping was skipped, directly use Children
-                var actualGroup = (group ?? Children).Where(child => !ProvideIgnore(child));
+                // only the members were grouped, so the elements are what is left after them
+                var actualGroup = (group ?? Children.SkipWhile(child => child is ReuObjectTreeMember)).Where(child => !ProvideIgnore(child));
 
                 // element count after filtering, used for paging
                 var shownCount = totalCount ?? 0;
