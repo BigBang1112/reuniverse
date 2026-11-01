@@ -47,6 +47,7 @@
                 var parameters = new Dictionary<string, object?>
                 {
                     ["ReadOnlyValue"] = Value,
+                    ["TypeValueComponents"] = ResolvedTypeValueComponents,
                     ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange)
                 };
 
@@ -366,16 +367,16 @@
         }
     }
 
-    // cached so the children provider (reflection + enumeration) runs once per parameter set or update instead of multiple times per render
+    // cached so the children provider (reflection + enumeration) runs once per render instead of multiple times per render
     private BufferedEnumerable<object?>? children;
 
     public IEnumerable<object?> Children => Value is null ? [] : children ??= new(ChildrenProvider(Value));
 
-    public override Task SetParametersAsync(ParameterView parameters)
+    protected override bool ShouldRender()
     {
-        // the parent re-rendered, the value or its contents may have changed
+        // the value or its contents may have changed, and resuming a partial enumeration of a modified collection would throw
         InvalidateChildren();
-        return base.SetParametersAsync(parameters);
+        return true;
     }
 
     private void InvalidateChildren()
@@ -596,7 +597,6 @@
     /// </summary>
     public void Update()
     {
-        InvalidateChildren();
         StateHasChanged();
     }
 

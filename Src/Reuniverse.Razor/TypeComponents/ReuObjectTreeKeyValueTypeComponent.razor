@@ -45,6 +45,7 @@ else if (TryGetValueComponent(Value.Value, out var valueComponentType))
     var parameters = new Dictionary<string, object?>
     {
         ["KeyValue"] = Value,
+        ["TypeValueComponents"] = TypeValueComponents,
         ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
     };
 
