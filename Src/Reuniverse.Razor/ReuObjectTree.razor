@@ -247,6 +247,11 @@
             }
         </div>
     }
+
+    @if (childrenException is not null)
+    {
+        <div class="exception">@childrenException.Message</div>
+    }
 </div>
 
 @code {
@@ -428,7 +433,43 @@
     // cached so the children provider (reflection + enumeration) runs once per parameter set or update instead of multiple times per render
     private BufferedEnumerable<object?>? children;
 
-    public IEnumerable<object?> Children => Value is null ? [] : children ??= new(ChildrenProvider(Value));
+    public IEnumerable<object?> Children => Value is null ? [] : children ??= new(EnumerateChildren(Value));
+
+    // shown after the elements, as enumeration can fail partway through rendering them
+    private Exception? childrenException;
+
+    // children are enumerated during render, where an exception would take down the whole circuit
+    private IEnumerable<object?> EnumerateChildren(object value)
+    {
+        IEnumerator<object?>? enumerator = null;
+
+        try
+        {
+            while (true)
+            {
+                try
+                {
+                    enumerator ??= ChildrenProvider(value).GetEnumerator();
+
+                    if (!enumerator.MoveNext())
+                    {
+                        yield break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    childrenException = ex.InnerException ?? ex;
+                    yield break;
+                }
+
+                yield return enumerator.Current;
+            }
+        }
+        finally
+        {
+            enumerator?.Dispose();
+        }
+    }
 
     public override Task SetParametersAsync(ParameterView parameters)
     {
@@ -452,6 +493,7 @@
     {
         children?.Dispose();
         children = null;
+        childrenException = null;
     }
 
     public void Dispose()
@@ -571,6 +613,12 @@
             foreach (var prop in parentType.GetProperties().OrderBy(x => x.Name))
             {
                 if (prop.GetIndexParameters().Length > 0)
+                {
+                    continue;
+                }
+
+                // ref structs like Span<T> cannot be boxed, so reflection cannot read them
+                if (prop.PropertyType.IsByRefLike)
                 {
                     continue;
                 }
