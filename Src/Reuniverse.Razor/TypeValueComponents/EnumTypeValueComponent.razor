@@ -64,16 +64,17 @@ else
     var value = Value;
     var containsCurrentValue = enumValues.Cast<object>().Any(v => v.Equals(value));
 
-    <select disabled="@IsReadOnly" @onchange="OnChange">
+    @* bound on the select, as selected attributes do not update an option the user has already changed *@
+    <select value="@ToBits(value)" disabled="@IsReadOnly" @onchange="OnChange">
 
         @if (!containsCurrentValue)
         {
-            <option value="@ToBits(value)" selected>@value</option>
+            <option value="@ToBits(value)">@value</option>
         }
 
         @foreach (var enumValue in enumValues)
         {
-            <option value="@ToBits(enumValue)" selected="@enumValue.Equals(value)">@enumValue</option>
+            <option value="@ToBits(enumValue)">@enumValue</option>
         }
 
     </select>
@@ -90,7 +91,8 @@ else
         get
         {
             // the declared type can be object or Enum, so the runtime type takes precedence
-            var type = Property is null ? Item?.Value?.GetType() : Value?.GetType() ?? Property.PropertyType;
+            // the key editor of a dictionary has no element yet, only the default value
+            var type = Property is null ? Item?.Value?.GetType() ?? DefaultValue?.GetType() : Value?.GetType() ?? Property.PropertyType;
             type = type is null ? null : Nullable.GetUnderlyingType(type) ?? type;
             return type is { IsEnum: true } ? type : null;
         }

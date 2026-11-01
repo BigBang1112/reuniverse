@@ -113,7 +113,7 @@ else
 
     private bool CanRemoveValue()
     {
-        return Value.Parent is System.Collections.IDictionary;
+        return Value.Parent is System.Collections.IDictionary { IsReadOnly: false, IsFixedSize: false };
     }
 
     private async Task RemoveValueAsync()

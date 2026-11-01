@@ -102,7 +102,8 @@ else
 
     private bool CanRemoveValue()
     {
-        return Value.Parent is System.Collections.IList and not Array;
+        // arrays are fixed size, immutable and read-only collections are read-only
+        return Value.Parent is System.Collections.IList { IsReadOnly: false, IsFixedSize: false };
     }
 
     private async Task RemoveValueAsync()
@@ -121,7 +122,12 @@ else
 
         try
         {
-            list.RemoveAt(Value.Index);
+            // the list could have changed since rendering or while confirming, so the index may be another element now
+            if (Value.Index < list.Count && Equals(list[Value.Index], Value.Value))
+            {
+                list.RemoveAt(Value.Index);
+            }
+
             await ValueChanged.InvokeAsync(Value);
             ReuTooltip.HideGlobal();
         }
