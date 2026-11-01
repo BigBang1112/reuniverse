@@ -2,22 +2,19 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
-@if (IsVisible)
-{
-    <div class="upload-screen @CssClass">
-        <ReuUploadArea OnUpload="Upload"
-                       OnFileTooLarge="OnFileTooLarge"
-                       OnFileExceedCount="OnFileExceedCount"
-                       MaxFileCount="MaxFileCount"
-                       MaxFileSize="MaxFileSize"
-                       Accept="@Accept"
-                       Streamed="Streamed"
-                       OnStream="Stream"
-                       CssClass="@CssClassArea">
-            @ChildContent
-        </ReuUploadArea>
-    </div>
-}
+<div class="upload-screen @(IsVisible ? "" : "hidden") @CssClass">
+    <ReuUploadArea OnUpload="Upload"
+                   OnFileTooLarge="OnFileTooLarge"
+                   OnFileExceedCount="OnFileExceedCount"
+                   MaxFileCount="MaxFileCount"
+                   MaxFileSize="MaxFileSize"
+                   Accept="@Accept"
+                   Streamed="Streamed"
+                   OnStream="Stream"
+                   CssClass="@CssClassArea">
+        @ChildContent
+    </ReuUploadArea>
+</div>
 
 @code {
     private IJSObjectReference? module;
