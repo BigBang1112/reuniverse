@@ -62,7 +62,8 @@
     </div>
     @if (IsExpanded && Children.Any())
     {
-        var memberValue = (Value as IReuObjectTreeElement)?.Value;
+        // the root tree holds the raw object instead of an element
+        var memberValue = Value is IReuObjectTreeElement treeElement ? treeElement.Value : Value;
         var totalCount = memberValue switch
         {
             System.Collections.ICollection collection => collection.Count,
@@ -94,15 +95,23 @@
         }
         else
         {
-            groupedChildren = Children.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
+            // a pure enumerable may never end, so only its members are grouped, and its elements are paged after them
+            var groupableChildren = isPureEnumerable ? Children.TakeWhile(child => child is ReuObjectTreeMember) : Children;
+
+            groupedChildren = groupableChildren.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
                 .Where(group => group.Key != typeof(object) && group.Key != typeof(ValueType))
                 .OrderByDescending(group => group.Key, BaseTypeComparer.Instance);
+
+            if (isPureEnumerable)
+            {
+                groupedChildren = groupedChildren.Append(null);
+            }
         }
 
         var isFirstGroup = true;
         var usedChildKeys = new HashSet<(object?, int)>();
 
-        <div class="items">
+        <div class="items @(skipRowFadeIn ? "no-fade" : "")">
             @foreach (var group in groupedChildren)
             {
                 // in case large grouping was skipped, directly use Children
@@ -110,6 +119,8 @@
 
                 // element count after filtering, used for paging
                 var shownCount = totalCount ?? 0;
+
+                var hasNextPage = false;
 
                 if (!isFirstGroup && group?.Key is not null)
                 {
@@ -164,7 +175,28 @@
                     }
                     else if (isPureEnumerable)
                     {
-                        
+                        // the end is unknown, so only this page and one element to detect the next page are requested
+                        var pageElements = Children.SkipWhile(child => child is ReuObjectTreeMember)
+                            .Skip(CurrentPage * PageSize)
+                            .Take(PageSize + 1)
+                            .ToList();
+
+                        hasNextPage = pageElements.Count > PageSize;
+
+                        // ignored after paging, as looking for a full page of elements could otherwise never finish
+                        actualGroup = pageElements.Take(PageSize).Where(child => !ProvideIgnore(child));
+
+                        @if (CurrentPage > 0 || hasNextPage)
+                        {
+                            <div class="pagination-info">
+                                <div class="pagination-controls">
+                                    <button class="page-btn" @onclick="() => GoToFirstPage()" disabled="@(CurrentPage == 0)">⏮</button>
+                                    <button class="page-btn" @onclick="() => GoToPreviousPage()" disabled="@(CurrentPage == 0)">◀</button>
+                                    <code class="page-info">@(CurrentPage + 1)/?</code>
+                                    <button class="page-btn" @onclick="() => GoToNextPage()" disabled="@(!hasNextPage)">▶</button>
+                                </div>
+                            </div>
+                        }
                     }
                 }
 
@@ -205,9 +237,11 @@
                             </div>
                         }
                     }
-                    else if (isPureEnumerable)
+                    else if (isPureEnumerable && (CurrentPage > 0 || hasNextPage))
                     {
-                        
+                        <div class="more-items-indicator">
+                            @(hasNextPage ? "More elements not shown" : "No more elements")
+                        </div>
                     }
                 }
             }
@@ -363,10 +397,24 @@
     [Parameter]
     public Func<object?, RenderFragment?>? ExtrasProvider { get; set; }
 
-    private int CurrentPage { get; set; }
+    private int CurrentPage
+    {
+        get;
+        set
+        {
+            skipRowFadeIn |= field != value;
+            field = value;
+        }
+    }
+
+    // rows replaced by paging or searching are new elements, but they should fade in only when expanding
+    private bool skipRowFadeIn;
 
     public void ToggleExpanded()
     {
+        InvalidateChildren();
+        skipRowFadeIn = false;
+
         try
         {
             IsExpanded = !IsExpanded;
@@ -377,15 +425,26 @@
         }
     }
 
-    // cached so the children provider (reflection + enumeration) runs once per render instead of multiple times per render
+    // cached so the children provider (reflection + enumeration) runs once per parameter set or update instead of multiple times per render
     private BufferedEnumerable<object?>? children;
 
     public IEnumerable<object?> Children => Value is null ? [] : children ??= new(ChildrenProvider(Value));
 
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // the parent re-rendered, the value or its contents may have changed
+        InvalidateChildren();
+        return base.SetParametersAsync(parameters);
+    }
+
     protected override bool ShouldRender()
     {
-        // the value or its contents may have changed, and resuming a partial enumeration of a modified collection would throw
-        InvalidateChildren();
+        // resuming a partial enumeration of a collection modified in the meantime would throw
+        if (children is { IsCompleted: false })
+        {
+            InvalidateChildren();
+        }
+
         return true;
     }
 
@@ -607,6 +666,7 @@
     /// </summary>
     public void Update()
     {
+        InvalidateChildren();
         StateHasChanged();
     }
 
@@ -641,6 +701,11 @@
         }
     }
 
+    private void GoToNextPage()
+    {
+        CurrentPage++;
+    }
+
     private void GoToNextPage(int totalCount)
     {
         var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
@@ -666,6 +731,8 @@
 
     private void OnSearch(string? searchTerm)
     {
+        skipRowFadeIn = true;
+
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             this.searchTerm = null;

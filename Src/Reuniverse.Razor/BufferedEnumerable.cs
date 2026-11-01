@@ -12,6 +12,11 @@ internal sealed class BufferedEnumerable<T>(IEnumerable<T> source) : IEnumerable
     private IEnumerator<T>? sourceEnumerator;
     private bool completed;
 
+    /// <summary>
+    /// Whether the source is no longer being enumerated, so modifying it cannot break further enumerations.
+    /// </summary>
+    public bool IsCompleted => completed;
+
     public IEnumerator<T> GetEnumerator()
     {
         // index based, so multiple enumerators can interleave over the shared buffer
