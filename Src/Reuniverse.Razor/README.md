@@ -335,6 +335,7 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - Allows HTML content (has `ChildContent`). Place `<ReuNavItem>` elements inside.
 - `Brand` - The brand/site name shown on the left. **(required)**
 - `BurgerImageSrc` - Optional custom image source for the burger menu icon.
+- `IsAbsolute` - Whether to place the bar over the page content instead of above it.
 - `CssClass` - Additional CSS classes to apply to the nav element.
 - Additional attributes are passed to the nav element.
 
@@ -346,9 +347,9 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - `IsNavLink` - Whether to render as a Blazor `NavLink` for active-state tracking. (default: `true`)
 - `NavLinkMatch` - The `NavLinkMatch` rule used when `IsNavLink` is `true`.
 - `IconType` - A built-in `IconType` enum value for the icon.
-- `IconSrc` - A custom icon image source (used when `IconType` is not set).
-- `IconWidth` - Icon width in pixels. (default: 24)
-- `IconHeight` - Icon height in pixels. (default: 24)
+- `IconSrc` - A custom icon image source (used when `IconType` is not set). It is shown as it is, so it should suit both themes.
+- `IconWidth` - Icon width in pixels. (default: 32)
+- `IconHeight` - Icon height in pixels. (default: 32)
 - `IconOnly` - Whether to show only the icon with no label text.
 - `Title` - Tooltip/title text for the nav item.
 - `CssClass` - Additional CSS classes to apply to the nav item element.

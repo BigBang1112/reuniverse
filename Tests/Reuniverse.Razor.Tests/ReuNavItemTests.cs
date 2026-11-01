@@ -31,7 +31,7 @@ public class ReuNavItemTests : BunitContext
         var cut = Render<ReuNavItem>(parameters => parameters.Add(x => x.IconType, IconType.GitHub));
 
         // Assert
-        await Assert.That(cut.Find("img").GetAttribute("src")).IsEqualTo("_content/Reuniverse.Razor/icons/github.svg");
+        await Assert.That(cut.Find(".icon").GetAttribute("style")).Contains("_content/Reuniverse.Razor/icons/github.svg");
     }
 
     [Test]
@@ -45,13 +45,57 @@ public class ReuNavItemTests : BunitContext
     }
 
     [Test]
+    public async Task Render_WithIconType_DescribesIconForScreenReaders()
+    {
+        // Act
+        var cut = Render<ReuNavItem>(parameters => parameters.Add(x => x.IconType, IconType.GitHub).Add(x => x.Name, "GitHub"));
+
+        // Assert
+        await Assert.That(cut.Find(".icon").GetAttribute("role")).IsEqualTo("img");
+        await Assert.That(cut.Find(".icon").GetAttribute("aria-label")).IsEqualTo("GitHub");
+    }
+
+    [Test]
+    public async Task Render_WithIconSize_AppliesSize()
+    {
+        // Act
+        var cut = Render<ReuNavItem>(parameters => parameters
+            .Add(x => x.IconType, IconType.GitHub)
+            .Add(x => x.IconWidth, 28)
+            .Add(x => x.IconHeight, 20));
+
+        // Assert
+        await Assert.That(cut.Find(".icon").GetAttribute("style")).Contains("--icon-width: 28px; --icon-height: 20px;");
+    }
+
+    [Test]
+    public async Task Render_WithoutIcon_KeepsLabelVisibleInIconLayout()
+    {
+        // Act
+        var cut = Render<ReuNavItem>(parameters => parameters.Add(x => x.Name, "Home"));
+
+        // Assert
+        await Assert.That(cut.Find(".nav-label").ClassList.Contains("nav-label-only")).IsTrue();
+    }
+
+    [Test]
+    public async Task Render_WithIcon_LetsLayoutHideLabel()
+    {
+        // Act
+        var cut = Render<ReuNavItem>(parameters => parameters.Add(x => x.Name, "Home").Add(x => x.IconType, IconType.Home));
+
+        // Assert
+        await Assert.That(cut.Find(".nav-label").ClassList.Contains("nav-label-only")).IsFalse();
+    }
+
+    [Test]
     public async Task Render_WithoutIcon_LeavesIconOut()
     {
         // Act
         var cut = Render<ReuNavItem>(parameters => parameters.Add(x => x.Name, "Home"));
 
         // Assert
-        await Assert.That(cut.FindAll("img").Count).IsEqualTo(0);
+        await Assert.That(cut.FindAll(".icon").Count).IsEqualTo(0);
     }
 
     [Test]

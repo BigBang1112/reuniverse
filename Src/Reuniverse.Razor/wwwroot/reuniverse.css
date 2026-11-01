@@ -713,6 +713,16 @@ footer.reu-footer {
     color: var(--color-green);
 }
 
+/* A single-color SVG that takes the color of the text, so it follows the theme.
+   The element sets mask-image itself, as a url() in a variable would resolve against this file. */
+.reu-mask-icon {
+    display: inline-block;
+    background-color: var(--reu-icon-color, currentColor);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+}
+
 /* Tooltip, created by reuniverse.js for data-reu-tooltip */
 .reu-tooltip {
     position: fixed;

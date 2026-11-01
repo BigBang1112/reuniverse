@@ -6,9 +6,16 @@
             <a class="brand" href="">@Brand</a>
         </div>
 
-        <input id="nav-toggle" type="checkbox" />
-        <label for="nav-toggle" class="nav-toggle">
-            <img src="@(string.IsNullOrEmpty(BurgerImageSrc) ? $"{Consts.BaseDir}/icons/menu.svg" : BurgerImageSrc)" alt="Menu" width="32" height="32" />
+        <label class="nav-toggle">
+            <input type="checkbox" aria-label="Menu" />
+            @if (string.IsNullOrEmpty(BurgerImageSrc))
+            {
+                <span class="nav-toggle-icon reu-mask-icon" style="mask-image: url('@(Consts.BaseDir)/icons/menu.svg');"></span>
+            }
+            else
+            {
+                <img src="@BurgerImageSrc" alt="" width="32" height="32" />
+            }
         </label>
 
         <nav>
@@ -30,6 +37,10 @@
     [Parameter]
     public string? CssClass { get; set; }
 
+    /// <summary>
+    /// Whether to place the bar over the page content instead of above it.
+    /// </summary>
+    [Parameter]
     public bool IsAbsolute { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]

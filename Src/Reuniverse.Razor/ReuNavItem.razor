@@ -3,29 +3,11 @@
 <div class="nav-item @CssClass" title="@(Title ?? Name)" @attributes="AdditionalAttributes">
     @if (IsNavLink)
     {
-        <NavLink class="@($"nav-link{(IconOnly ? "" : " wide")}{(IconType == IconType.Discord ? " reu-discord" : "")}{(IconType == IconType.NuGet ? " reu-nuget" : "")}")" href="@Href" Match="NavLinkMatch">
-            @if (!string.IsNullOrEmpty(IconSrcFromType))
-            {
-                <img src="@IconSrcFromType" alt="@(AltName ?? Name)" class="icon@(IconOnly ? " nav-icon-standalone" : "")" width="@IconWidth" height="@IconHeight" />
-            }
-            @if (!string.IsNullOrEmpty(Name))
-            {
-                <span class="@(IconOnly ? "nav-item-label" : null)">@Name</span>
-            }
-        </NavLink>
+        <NavLink class="@LinkClass" href="@Href" Match="NavLinkMatch">@LinkContent</NavLink>
     }
     else
     {
-        <a class="nav-link @(IconOnly ? "" : "wide") @(IconType == IconType.Discord ? "reu-discord" : "") @(IconType == IconType.NuGet ? "reu-nuget" : "")" href="@Href">
-            @if (!string.IsNullOrEmpty(IconSrcFromType))
-            {
-                <img src="@IconSrcFromType" alt="@(AltName ?? Name)" class="icon@(IconOnly ? " nav-icon-standalone" : "")" width="@IconWidth" height="@IconHeight" />
-            }
-            @if (!string.IsNullOrEmpty(Name))
-            {
-                <span class="@(IconOnly ? "nav-item-label" : null)">@Name</span>
-            }
-        </a>
+        <a class="@LinkClass" href="@Href">@LinkContent</a>
     }
 </div>
 
@@ -69,9 +51,38 @@
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    private string? IconSrcFromType => IconType switch
+    private bool HasBundledIcon => IconType != IconType.None;
+    private bool HasIcon => HasBundledIcon || !string.IsNullOrEmpty(IconSrc);
+
+    private string IconClass => IconOnly ? "icon nav-icon-standalone" : "icon";
+    private string IconSizeStyle => $"--icon-width: {IconWidth}px; --icon-height: {IconHeight}px;";
+
+    // without an icon, the label is the only thing left to show in the icon layout
+    private string LabelClass => IconOnly ? "nav-label nav-item-label" : HasIcon ? "nav-label" : "nav-label nav-label-only";
+
+    private string LinkClass => string.Join(' ', new[]
     {
-        IconType.None => IconSrc,
-        _ => $"{Consts.BaseDir}/icons/{IconType.ToString().ToLowerInvariant()}.svg"
-    };
+        "nav-link",
+        IconOnly ? null : "wide",
+        IconType == IconType.Discord ? "reu-discord" : null,
+        IconType == IconType.NuGet ? "reu-nuget" : null
+    }.OfType<string>());
+
+    private RenderFragment LinkContent => @<text>
+        @if (HasBundledIcon)
+        {
+            <span class="@IconClass reu-mask-icon"
+                  role="img"
+                  aria-label="@(AltName ?? Name)"
+                  style="@($"mask-image: url('{Consts.BaseDir}/icons/{IconType.ToString().ToLowerInvariant()}.svg'); {IconSizeStyle}")"></span>
+        }
+        else if (HasIcon)
+        {
+            <img src="@IconSrc" alt="@(AltName ?? Name)" class="@IconClass" style="@IconSizeStyle" width="@IconWidth" height="@IconHeight" />
+        }
+        @if (!string.IsNullOrEmpty(Name))
+        {
+            <span class="@LabelClass">@Name</span>
+        }
+    </text>;
 }

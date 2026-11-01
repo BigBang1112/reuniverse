@@ -1,3 +1,4 @@
+/* The --reu-nav-* variables come from the layout ReuNavMenu is in. */
 ::deep .nav-link {
     color: var(--color-text-primary);
     background-color: var(--color-nav-item-bg);
@@ -5,11 +6,12 @@
     border-radius: 4px;
     height: 2.5rem;
     min-width: 3rem;
+    padding-inline: var(--reu-nav-link-padding, 0);
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: var(--reu-nav-link-justify, center);
     text-decoration: none;
-    transition: background-color 0.05s ease, color 0.05s ease, min-width 0.2s ease;
+    transition: var(--reu-nav-link-transition, background-color 0.05s ease, color 0.05s ease, min-width 0.2s ease);
     backdrop-filter: blur(5px);
     box-sizing: border-box;
 }
@@ -20,31 +22,37 @@
     }
 
     ::deep .nav-link.wide {
-        min-width: 8rem;
+        min-width: var(--reu-nav-wide-min-width, 8rem);
     }
 
-    ::deep .nav-link .nav-item-label {
-        display: none;
+    ::deep .nav-link.reu-discord, ::deep .nav-link.reu-nuget {
+        --reu-icon-color: #FFF;
     }
 
-    ::deep .nav-link img.icon {
-        display: none;
+.nav-label {
+    display: var(--reu-nav-label-display, inline);
+}
+
+    .nav-label.nav-item-label {
+        display: var(--reu-nav-hidden-label-display, none);
     }
 
-    ::deep .nav-link img.icon.nav-icon-standalone {
+    .nav-label.nav-label-only {
+        display: inline;
+    }
+
+.icon {
+    display: var(--reu-nav-icon-display, none);
+    flex: none;
+    width: var(--reu-nav-icon-size, var(--icon-width));
+    height: var(--reu-nav-icon-size, var(--icon-height));
+    margin-right: var(--reu-nav-icon-gap, 0);
+}
+
+    .icon.nav-icon-standalone {
         display: block;
     }
 
-::deep .nav-link img {
-    transition: filter 0.2s ease;
-}
-
 ::deep a.active, ::deep button.active {
     background-color: var(--color-nav-item-active) !important;
-}
-
-
-[data-theme="light"] .nav-link:not(.reu-discord):not(.reu-nuget) img,
-.reu-theme-light .nav-link:not(.reu-discord):not(.reu-nuget) img {
-    filter: invert(1);
 }

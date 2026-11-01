@@ -77,7 +77,7 @@ public abstract class BrowserTestBase
             return;
         }
 
-        var file = Path.Combine(AppContext.BaseDirectory, "Scripts", path.TrimStart('/'));
+        var file = Path.Combine(AppContext.BaseDirectory, "Scripts", Path.GetFileName(path));
 
         if (!File.Exists(file))
         {

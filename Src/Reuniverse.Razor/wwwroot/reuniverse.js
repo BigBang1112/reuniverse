@@ -11,41 +11,26 @@
 //   otherwise                -> burger menu
 //
 // If this script never loads, the navbar falls back to the static width-based
-// media queries (the `.navbar:not(.reu-nav-responsive)` rules) that ship in the CSS.
+// media queries (the `.navbar:not([data-reu-nav-mode])` rules) that ship in the CSS.
 (function () {
     "use strict";
 
-    function enhanceNavMenu(navbar) {
-        if (navbar.classList.contains("reu-nav-responsive")) {
-            return;
-        }
+    const modeAttribute = "data-reu-nav-mode";
+    const openAttribute = "data-reu-nav-open";
+    const sizingAttribute = "data-reu-nav-sizing";
 
-        const container = navbar.querySelector(".reu-container");
-        const nav = navbar.querySelector("nav");
+    // Kept apart from the element, as Blazor enhanced navigation resets everything
+    // rendered on it, and each navbar must only ever be set up once.
+    const controllers = new WeakMap();
 
-        if (!container || !nav) {
-            return;
-        }
-
-        const burgerCheckbox = navbar.querySelector("#nav-toggle");
-        const burgerLabel = navbar.querySelector("label[for='nav-toggle']");
-
-        // Switch from the media-query fallback to JS-driven, content-aware layout.
-        navbar.classList.add("reu-nav-responsive");
+    function createController(navbar, container, nav) {
+        const burgerCheckbox = navbar.querySelector(".nav-toggle input");
 
         let frame = 0;
 
         function syncBurgerOpenState() {
-            if (!burgerCheckbox) {
-                return;
-            }
-
-            const isOpen = burgerCheckbox.checked && navbar.classList.contains("reu-nav-menu");
-            navbar.classList.toggle("reu-nav-menu-open", isOpen);
-
-            if (burgerLabel) {
-                burgerLabel.setAttribute("aria-expanded", isOpen ? "true" : "false");
-            }
+            const isOpen = !!burgerCheckbox && burgerCheckbox.checked && navbar.getAttribute(modeAttribute) === "menu";
+            navbar.toggleAttribute(openAttribute, isOpen);
         }
 
         function closeBurger() {
@@ -60,14 +45,10 @@
         // Measures the width the bar needs in a given mode by letting the
         // container shrink to its content's natural (max-content) width. This is
         // the combined width of all buttons plus the brand, gaps and padding.
-        // Callers run this inside the "reu-nav-sizing" state so the temporary
-        // layout never animates.
-        function requiredWidth(modeClass) {
-            navbar.classList.remove("reu-nav-icons", "reu-nav-menu");
-
-            if (modeClass) {
-                navbar.classList.add(modeClass);
-            }
+        // Callers run this inside the sizing state so the temporary layout never
+        // animates.
+        function requiredWidth(mode) {
+            navbar.setAttribute(modeAttribute, mode);
 
             const previousWidth = container.style.width;
             container.style.width = "max-content";
@@ -78,8 +59,7 @@
         }
 
         function requiredBurgerWidth() {
-            navbar.classList.remove("reu-nav-icons", "reu-nav-menu", "reu-nav-menu-open");
-            navbar.classList.add("reu-nav-menu");
+            navbar.setAttribute(modeAttribute, "menu");
 
             const previousWidth = nav.style.width;
             nav.style.width = "max-content";
@@ -94,34 +74,32 @@
 
             // Disable every transition in the navbar while we probe and switch
             // modes so none of the intermediate states paint or animate.
-            navbar.classList.add("reu-nav-sizing");
+            navbar.setAttribute(sizingAttribute, "");
 
-            const fullWidth = requiredWidth(null);
-            const iconsWidth = requiredWidth("reu-nav-icons");
+            const fullWidth = requiredWidth("labels");
+            const iconsWidth = requiredWidth("icons");
             const burgerWidth = requiredBurgerWidth();
 
             navbar.style.setProperty("--reu-nav-menu-width", `${Math.ceil(burgerWidth)}px`);
 
-            navbar.classList.remove("reu-nav-icons", "reu-nav-menu");
+            navbar.setAttribute(modeAttribute, "labels");
             const available = container.getBoundingClientRect().width;
+            const mode = available < iconsWidth ? "menu" : available < fullWidth ? "icons" : "labels";
 
-            if (available < iconsWidth) {
-                navbar.classList.add("reu-nav-menu");
-            } else if (available < fullWidth) {
-                navbar.classList.add("reu-nav-icons");
-            }
+            navbar.setAttribute(modeAttribute, mode);
 
-            if (!navbar.classList.contains("reu-nav-menu")) {
-                closeBurger();
-            } else {
+            if (mode === "menu") {
                 syncBurgerOpenState();
+            } else {
+                closeBurger();
+                navbar.removeAttribute(openAttribute);
             }
 
             // Flush the final layout while transitions are still off, then
             // re-enable them so the baseline matches the result and nothing
             // animates back.
             container.getBoundingClientRect();
-            navbar.classList.remove("reu-nav-sizing");
+            navbar.removeAttribute(sizingAttribute);
         }
 
         function schedule() {
@@ -131,71 +109,67 @@
         }
 
         // React to viewport changes (navbar width tracks the viewport, so
-        // observing it never feeds back from our own internal class toggles).
-        const resizeObserver = new ResizeObserver(schedule);
-        resizeObserver.observe(navbar);
+        // observing it never feeds back from our own attribute changes).
+        new ResizeObserver(schedule).observe(navbar);
 
         // Recompute when items are added/removed or their text changes.
-        const mutationObserver = new MutationObserver(schedule);
-        mutationObserver.observe(nav, { childList: true, subtree: true, characterData: true });
+        new MutationObserver(schedule).observe(nav, { childList: true, subtree: true, characterData: true });
+
+        // Blazor enhanced navigation keeps the element but resets its attributes.
+        new MutationObserver(function () {
+            if (!navbar.hasAttribute(modeAttribute)) {
+                schedule();
+            }
+        }).observe(navbar, { attributes: true, attributeFilter: [modeAttribute] });
 
         // Close the burger dropdown after navigating.
         nav.addEventListener("click", function (event) {
-            if (burgerCheckbox && event.target.closest("a")) {
+            if (event.target.closest("a")) {
                 closeBurger();
             }
         });
 
         if (burgerCheckbox) {
             burgerCheckbox.addEventListener("change", syncBurgerOpenState);
-            syncBurgerOpenState();
-
-            document.addEventListener("pointerdown", function (event) {
-                if (!burgerCheckbox.checked || !navbar.classList.contains("reu-nav-menu")) {
-                    return;
-                }
-
-                if (!navbar.contains(event.target)) {
-                    closeBurger();
-                }
-            });
-
-            document.addEventListener("keydown", function (event) {
-                if (event.key === "Escape") {
-                    closeBurger();
-                }
-            });
         }
 
         update();
+
+        return { schedule, closeBurger };
+    }
+
+    function enhanceNavMenu(navbar) {
+        if (controllers.has(navbar)) {
+            return;
+        }
+
+        const container = navbar.querySelector(".reu-container");
+        const nav = navbar.querySelector("nav");
+
+        if (container && nav) {
+            controllers.set(navbar, createController(navbar, container, nav));
+        }
     }
 
     function enhanceAll(root) {
-        (root || document).querySelectorAll(".navbar").forEach(enhanceNavMenu);
+        root.querySelectorAll(".navbar").forEach(enhanceNavMenu);
+    }
+
+    function forEachController(action) {
+        document.querySelectorAll(".navbar").forEach(function (navbar) {
+            const controller = controllers.get(navbar);
+
+            if (controller) {
+                action(controller, navbar);
+            }
+        });
     }
 
     function start() {
         enhanceAll(document);
 
-        if (window.Blazor && typeof window.Blazor.addEventListener === "function") {
-            window.Blazor.addEventListener("enhancedload", function () {
-                document.querySelectorAll(".navbar:not(.reu-nav-responsive)").forEach(function (navbar) {
-                    enhanceNavMenu(navbar);
-
-                    // Trigger the navbar's mutation observer after enhanced navigation.
-                    const nav = navbar.querySelector("nav");
-                    if (nav) {
-                        const marker = document.createComment("");
-                        nav.append(marker);
-                        marker.remove();
-                    }
-                });
-            });
-        }
-
-        // Enhance navbars that appear later (e.g. Blazor enhanced navigation or
-        // interactive rendering replacing the DOM).
-        const observer = new MutationObserver(function (mutations) {
+        // Enhance navbars that appear later (e.g. interactive rendering replacing the DOM).
+        new MutationObserver(function (mutations) {
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType !== 1) {
@@ -207,8 +181,30 @@
                     enhanceAll(node);
                 }
             }
+        }).observe(document.body, { childList: true, subtree: true });
+
+        document.addEventListener("pointerdown", function (event) {
+            forEachController(function (controller, navbar) {
+                if (!navbar.contains(event.target)) {
+                    controller.closeBurger();
+                }
+            });
         });
-        observer.observe(document.body, { childList: true, subtree: true });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                forEachController(function (controller) {
+                    controller.closeBurger();
+                });
+            }
+        });
+
+        // A web font arriving changes how much room the labels need.
+        document.fonts.addEventListener("loadingdone", function () {
+            forEachController(function (controller) {
+                controller.schedule();
+            });
+        });
     }
 
     if (document.readyState === "loading") {

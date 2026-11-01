@@ -12,10 +12,9 @@ public class NavbarScriptTests : BrowserTestBase
             .nav-brand { flex: none; width: 100px; }
             nav { display: flex; flex: none; }
             nav a { display: block; flex: none; width: 150px; }
-            .navbar.reu-nav-icons nav a { width: 40px; }
-            .navbar.reu-nav-menu nav { position: absolute; top: 3rem; left: 0; visibility: hidden; }
-            .navbar.reu-nav-menu-open nav { visibility: visible; }
-            #nav-toggle { display: none; }
+            .navbar[data-reu-nav-mode="icons"] nav a { width: 40px; }
+            .navbar[data-reu-nav-mode="menu"] nav { position: absolute; top: 3rem; left: 0; visibility: hidden; }
+            .navbar[data-reu-nav-open] nav { visibility: visible; }
         </style>
         <script src="/reuniverse.js" defer></script>
         """;
@@ -24,8 +23,7 @@ public class NavbarScriptTests : BrowserTestBase
         <div class="navbar">
             <div class="reu-container">
                 <div class="nav-brand">Brand</div>
-                <input id="nav-toggle" type="checkbox" />
-                <label for="nav-toggle" class="nav-toggle">Menu</label>
+                <label class="nav-toggle"><input type="checkbox" aria-label="Menu" />Menu</label>
                 <nav>
                     <a href="#one">One</a>
                     <a href="#two">Two</a>
@@ -36,79 +34,72 @@ public class NavbarScriptTests : BrowserTestBase
         <p id="away">Away</p>
         """;
 
-    private const string FakeBlazor = """
-        <script>
-            window.enhancedLoadHandlers = [];
-            window.Blazor = { addEventListener: (name, handler) => window.enhancedLoadHandlers.push(handler) };
-        </script>
+    private const string SecondNavbar = """
+        <div class="navbar" id="second">
+            <div class="reu-container">
+                <label class="nav-toggle"><input type="checkbox" aria-label="Menu" />Menu</label>
+                <nav><a href="#one">One</a></nav>
+            </div>
+        </div>
         """;
 
-    private async Task OpenAsync(int width, string head = "")
+    private async Task OpenAsync(int width)
     {
         await Page.SetViewportSizeAsync(width, 600);
-        await GoToAsync(Navbar, head + Styles);
+        await GoToAsync(Navbar, Styles);
     }
 
-    private Task<bool> HasClassAsync(string name)
+    private Task<string?> GetModeAsync(string selector = ".navbar")
     {
-        return Page.EvaluateAsync<bool>($"""document.querySelector(".navbar").classList.contains("{name}")""");
+        return Page.EvaluateAsync<string?>($"""document.querySelector("{selector}").getAttribute("data-reu-nav-mode")""");
     }
 
-    private Task WaitForClassAsync(string name, bool present = true)
+    private Task<bool> IsOpenAsync(string selector = ".navbar")
     {
-        return Page.WaitForFunctionAsync($"""document.querySelector(".navbar").classList.contains("{name}") === {(present ? "true" : "false")}""");
+        return Page.EvaluateAsync<bool>($"""document.querySelector("{selector}").hasAttribute("data-reu-nav-open")""");
     }
 
-    private async Task ResizeAsync(int width)
+    private Task WaitForModeAsync(string mode)
     {
-        await Page.SetViewportSizeAsync(width, 600);
+        return Page.WaitForFunctionAsync($"""document.querySelector(".navbar").getAttribute("data-reu-nav-mode") === "{mode}" """);
     }
+
+    private Task ResizeAsync(int width) => Page.SetViewportSizeAsync(width, 600);
+
+    private Task ClickBurgerAsync() => Page.Locator(".nav-toggle").First.ClickAsync();
 
     private async Task OpenBurgerAsync()
     {
         await OpenAsync(200);
-        await Page.Locator("label[for='nav-toggle']").ClickAsync();
+        await ClickBurgerAsync();
+    }
+
+    private Task ResetAttributesAsync()
+    {
+        return Page.EvaluateAsync("""
+            () => {
+                const navbar = document.querySelector(".navbar");
+
+                for (const name of navbar.getAttributeNames()) {
+                    if (name.startsWith("data-reu-nav")) {
+                        navbar.removeAttribute(name);
+                    }
+                }
+            }
+            """);
     }
 
     [Test]
-    public async Task Load_WithRoomForLabels_ShowsLabels()
+    [Arguments(1000, "labels")]
+    [Arguments(400, "icons")]
+    [Arguments(200, "menu")]
+    public async Task Load_WithAvailableWidth_PicksFittingMode(int width, string expectedMode)
     {
         // Act
-        await OpenAsync(1000);
+        await OpenAsync(width);
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-icons")).IsFalse();
-        await Assert.That(await HasClassAsync("reu-nav-menu")).IsFalse();
-    }
-
-    [Test]
-    public async Task Load_Always_SwitchesToResponsiveLayout()
-    {
-        // Act
-        await OpenAsync(1000);
-
-        // Assert
-        await Assert.That(await HasClassAsync("reu-nav-responsive")).IsTrue();
-    }
-
-    [Test]
-    public async Task Load_WithRoomForIconsOnly_ShowsIcons()
-    {
-        // Act
-        await OpenAsync(400);
-
-        // Assert
-        await Assert.That(await HasClassAsync("reu-nav-icons")).IsTrue();
-    }
-
-    [Test]
-    public async Task Load_WithoutRoomForIcons_ShowsBurger()
-    {
-        // Act
-        await OpenAsync(200);
-
-        // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu")).IsTrue();
+        await Assert.That(await GetModeAsync()).IsEqualTo(expectedMode);
     }
 
     [Test]
@@ -122,6 +113,26 @@ public class NavbarScriptTests : BrowserTestBase
     }
 
     [Test]
+    public async Task Load_WithoutContainer_LeavesElementAlone()
+    {
+        // Act
+        await GoToAsync("""<div class="navbar"><nav></nav></div>""", Styles);
+
+        // Assert
+        await Assert.That(await GetModeAsync()).IsNull();
+    }
+
+    [Test]
+    public async Task Update_AfterFinishing_LeavesNoSizingState()
+    {
+        // Act
+        await OpenAsync(400);
+
+        // Assert
+        await Assert.That(await Page.EvaluateAsync<bool>("""document.querySelector(".navbar").hasAttribute("data-reu-nav-sizing")""")).IsFalse();
+    }
+
+    [Test]
     public async Task Resize_ToNarrowWindow_SwitchesToIcons()
     {
         // Arrange
@@ -129,10 +140,10 @@ public class NavbarScriptTests : BrowserTestBase
 
         // Act
         await ResizeAsync(400);
-        await WaitForClassAsync("reu-nav-icons");
+        await WaitForModeAsync("icons");
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu")).IsFalse();
+        await Assert.That(await GetModeAsync()).IsEqualTo("icons");
     }
 
     [Test]
@@ -143,10 +154,10 @@ public class NavbarScriptTests : BrowserTestBase
 
         // Act
         await ResizeAsync(1000);
-        await WaitForClassAsync("reu-nav-menu", present: false);
+        await WaitForModeAsync("labels");
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-icons")).IsFalse();
+        await Assert.That(await GetModeAsync()).IsEqualTo("labels");
     }
 
     [Test]
@@ -157,10 +168,25 @@ public class NavbarScriptTests : BrowserTestBase
 
         // Act
         await Page.EvaluateAsync("""document.querySelector("nav").insertAdjacentHTML("beforeend", '<a href="#four">Four</a>')""");
-        await WaitForClassAsync("reu-nav-icons");
+        await WaitForModeAsync("icons");
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu")).IsFalse();
+        await Assert.That(await GetModeAsync()).IsEqualTo("icons");
+    }
+
+    [Test]
+    public async Task FontLoaded_MakingLabelsWider_SwitchesToIcons()
+    {
+        // Arrange
+        await OpenAsync(600);
+        await Page.EvaluateAsync("""document.querySelectorAll("nav a").forEach(link => link.style.width = "200px")""");
+
+        // Act
+        await Page.EvaluateAsync("""document.fonts.dispatchEvent(new Event("loadingdone"))""");
+        await Page.WaitForFunctionAsync("""document.querySelector(".navbar").getAttribute("data-reu-nav-mode") !== "labels" """);
+
+        // Assert
+        await Assert.That(await GetModeAsync()).IsNotEqualTo("labels");
     }
 
     [Test]
@@ -170,17 +196,7 @@ public class NavbarScriptTests : BrowserTestBase
         await OpenBurgerAsync();
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu-open")).IsTrue();
-    }
-
-    [Test]
-    public async Task ClickBurger_WhenClosed_MarksLabelExpanded()
-    {
-        // Act
-        await OpenBurgerAsync();
-
-        // Assert
-        await Assert.That(await Page.Locator("label[for='nav-toggle']").GetAttributeAsync("aria-expanded")).IsEqualTo("true");
+        await Assert.That(await IsOpenAsync()).IsTrue();
     }
 
     [Test]
@@ -190,10 +206,24 @@ public class NavbarScriptTests : BrowserTestBase
         await OpenBurgerAsync();
 
         // Act
-        await Page.Locator("label[for='nav-toggle']").ClickAsync();
+        await ClickBurgerAsync();
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu-open")).IsFalse();
+        await Assert.That(await IsOpenAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task PressSpace_OnFocusedBurger_OpensMenu()
+    {
+        // Arrange
+        await OpenAsync(200);
+        await Page.Locator(".nav-toggle input").FocusAsync();
+
+        // Act
+        await Page.Keyboard.PressAsync("Space");
+
+        // Assert
+        await Assert.That(await IsOpenAsync()).IsTrue();
     }
 
     [Test]
@@ -206,7 +236,7 @@ public class NavbarScriptTests : BrowserTestBase
         await Page.Locator("nav a").First.ClickAsync();
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu-open")).IsFalse();
+        await Assert.That(await IsOpenAsync()).IsFalse();
     }
 
     [Test]
@@ -219,7 +249,7 @@ public class NavbarScriptTests : BrowserTestBase
         await Page.Keyboard.PressAsync("Escape");
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu-open")).IsFalse();
+        await Assert.That(await IsOpenAsync()).IsFalse();
     }
 
     [Test]
@@ -232,7 +262,7 @@ public class NavbarScriptTests : BrowserTestBase
         await Page.Mouse.ClickAsync(100, 500);
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu-open")).IsFalse();
+        await Assert.That(await IsOpenAsync()).IsFalse();
     }
 
     [Test]
@@ -245,7 +275,7 @@ public class NavbarScriptTests : BrowserTestBase
         await Page.Locator(".nav-brand").ClickAsync();
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-menu-open")).IsTrue();
+        await Assert.That(await IsOpenAsync()).IsTrue();
     }
 
     [Test]
@@ -256,10 +286,25 @@ public class NavbarScriptTests : BrowserTestBase
 
         // Act
         await ResizeAsync(1000);
-        await WaitForClassAsync("reu-nav-menu", present: false);
+        await WaitForModeAsync("labels");
 
         // Assert
-        await Assert.That(await Page.Locator("#nav-toggle").IsCheckedAsync()).IsFalse();
+        await Assert.That(await IsOpenAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task ClickBurger_WithTwoNavbars_OpensOnlyThatOne()
+    {
+        // Arrange
+        await Page.SetViewportSizeAsync(200, 600);
+        await GoToAsync(Navbar + SecondNavbar, Styles);
+
+        // Act
+        await Page.Locator("#second .nav-toggle").ClickAsync();
+
+        // Assert
+        await Assert.That(await Page.Locator("#second input").IsCheckedAsync()).IsTrue();
+        await Assert.That(await Page.Locator(".navbar:not(#second) input").IsCheckedAsync()).IsFalse();
     }
 
     [Test]
@@ -270,54 +315,64 @@ public class NavbarScriptTests : BrowserTestBase
 
         // Act
         await Page.EvaluateAsync($$"""document.body.insertAdjacentHTML("beforeend", `{{Navbar}}`)""");
-        await WaitForClassAsync("reu-nav-responsive");
+        await Page.WaitForFunctionAsync("""document.querySelector(".navbar").hasAttribute("data-reu-nav-mode")""");
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-responsive")).IsTrue();
+        await Assert.That(await GetModeAsync()).IsEqualTo("labels");
     }
 
     [Test]
-    public async Task EnhancedLoad_AfterClassWasReset_EnhancesNavbarAgain()
+    public async Task ResetAttributes_LikeEnhancedNavigation_RestoresMode()
     {
         // Arrange
-        await OpenAsync(1000, FakeBlazor);
-        await Page.EvaluateAsync("""document.querySelector(".navbar").className = "navbar" """);
+        await OpenAsync(400);
 
         // Act
-        await Page.EvaluateAsync("window.enhancedLoadHandlers.forEach(handler => handler())");
+        await ResetAttributesAsync();
+        await WaitForModeAsync("icons");
 
         // Assert
-        await Assert.That(await HasClassAsync("reu-nav-responsive")).IsTrue();
+        await Assert.That(await GetModeAsync()).IsEqualTo("icons");
     }
 
     [Test]
-    [Skip("Known bug: the only guard is a class that enhanced navigation resets, so every navigation adds another set of listeners and observers")]
-    public async Task EnhancedLoad_Repeatedly_DoesNotStackListeners()
+    public async Task ResetAttributes_Repeatedly_DoesNotStackListeners()
     {
         // Arrange
         await Page.AddInitScriptAsync("""
-            window.keydownListeners = 0;
+            window.documentListeners = 0;
             const add = document.addEventListener.bind(document);
-            document.addEventListener = (name, ...rest) => {
-                if (name === "keydown") {
-                    window.keydownListeners++;
-                }
-
-                add(name, ...rest);
+            document.addEventListener = (...args) => {
+                window.documentListeners++;
+                add(...args);
             };
             """);
-        await OpenAsync(1000, FakeBlazor);
-        var before = await Page.EvaluateAsync<int>("window.keydownListeners");
+        await OpenAsync(1000);
+        var before = await Page.EvaluateAsync<int>("window.documentListeners");
 
         // Act
-        await Page.EvaluateAsync("""
-            for (let i = 0; i < 3; i++) {
-                document.querySelector(".navbar").className = "navbar";
-                window.enhancedLoadHandlers.forEach(handler => handler());
-            }
-            """);
+        for (var i = 0; i < 3; i++)
+        {
+            await ResetAttributesAsync();
+            await WaitForModeAsync("labels");
+        }
 
         // Assert
-        await Assert.That(await Page.EvaluateAsync<int>("window.keydownListeners")).IsEqualTo(before);
+        await Assert.That(await Page.EvaluateAsync<int>("window.documentListeners")).IsEqualTo(before);
+    }
+
+    [Test]
+    public async Task ClickBurger_AfterResetAttributes_StillWorks()
+    {
+        // Arrange
+        await OpenAsync(200);
+        await ResetAttributesAsync();
+        await WaitForModeAsync("menu");
+
+        // Act
+        await ClickBurgerAsync();
+
+        // Assert
+        await Assert.That(await IsOpenAsync()).IsTrue();
     }
 }
