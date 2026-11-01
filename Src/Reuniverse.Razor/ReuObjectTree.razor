@@ -100,6 +100,7 @@
         }
 
         var isFirstGroup = true;
+        var usedChildKeys = new HashSet<(object?, int)>();
 
         <div class="items">
             @foreach (var group in groupedChildren)
@@ -161,7 +162,8 @@
 
                 foreach (var child in actualGroup)
                 {
-                    <ReuObjectTree Parent="Value"
+                    <ReuObjectTree @key="GetChildKey(child, usedChildKeys)"
+                                    Parent="Value"
                                     ParentTree="this"
                                     Value="child"
                                     HideType="HideType"
@@ -605,18 +607,17 @@
     /// </summary>
     public void UpdateAll()
     {
-        if (ParentTree is null)
-        {
-            Update();
-            return;
-        }
+        GetRootTree().Update();
+    }
 
-        var rootTree = ParentTree;
+    private ReuObjectTree GetRootTree()
+    {
+        var rootTree = this;
         while (rootTree.ParentTree is not null)
         {
             rootTree = rootTree.ParentTree;
         }
-        rootTree.Update();
+        return rootTree;
     }
 
     private void GoToFirstPage()
@@ -681,7 +682,29 @@
 
         UpdateAll();
 
-        await SelectedObjectChanged.InvokeAsync(SelectedObject);
+        // only the root tree receives the callback from the consumer
+        await GetRootTree().SelectedObjectChanged.InvokeAsync(SelectedObject);
+    }
+
+    // keys by position in the object rather than by element equality, as editing a value would change the key and collapse the element
+    private static (object? Key, int Occurrence) GetChildKey(object? child, HashSet<(object?, int)> usedKeys)
+    {
+        object? key = child switch
+        {
+            ReuObjectTreeMember member => member.Property,
+            ReuObjectTreeItem item => item.Index,
+            ReuObjectTreeKeyValue keyValue => keyValue.Key,
+            _ => child
+        };
+
+        // sibling keys must be unique, but custom ChildrenProvider can yield duplicates
+        var occurrence = 0;
+        while (!usedKeys.Add((key, occurrence)))
+        {
+            occurrence++;
+        }
+
+        return (key, occurrence);
     }
 
     private bool ProvideFade(object? child)
