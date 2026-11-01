@@ -1,19 +1,115 @@
-﻿.components {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 1rem 2rem;
+﻿h1 {
+    margin: 2rem 0 1rem 0;
 }
+
+.components {
+    display: grid;
+    grid-template-columns: minmax(min(30%, 19rem), 1fr) auto;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+}
+
+    .components > * {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--color-border);
+        align-content: center;
+    }
+
+    .components > :nth-child(-n + 2) {
+        border-top: none;
+    }
+
+    .components > :nth-child(2n - 1) {
+        background: var(--color-overlay-weak);
+    }
 
     .components > :nth-child(2n) {
         min-width: 0;
     }
 
+    .components > :first-child {
+        border-top-left-radius: 0.5rem;
+    }
+
+    .components > :nth-last-child(2) {
+        border-bottom-left-radius: 0.5rem;
+    }
+
+    .components h2 {
+        margin: 0;
+        font-family: var(--font-mono), monospace;
+        font-size: 100%;
+        font-weight: 500;
+    }
+
+        .components h2:not(:last-child) {
+            margin-bottom: 0.75rem;
+        }
+
+    .components ::deep label + label {
+        margin-top: 0.5rem;
+    }
+
+    .components ::deep .reu-expansion-panels {
+        gap: 0.5rem;
+    }
+
+    .components ::deep .reu-button, .modal-actions ::deep .reu-button {
+        padding-inline: 0.75rem;
+    }
+
+    .components ::deep .reu-list + .reu-list {
+        margin-top: 0.5rem;
+    }
+
+    .components ::deep .reu-list-item {
+        padding: 0.2rem 0.6rem;
+    }
+
+    .components ::deep .upload-area {
+        min-width: 0;
+    }
+
+.upload-text {
+    padding: 1.5rem 0;
+    color: var(--color-text-secondary);
+}
+
+.modal-actions {
+    display: contents;
+}
+
 @media (max-width: 700px) {
     .components {
         grid-template-columns: auto;
-        gap: 0.5rem 0;
         text-align: center;
+    }
+
+        .components > * {
+            padding: 0.75rem 1rem;
+        }
+
+        .components > :nth-child(2n) {
+            border-top: none;
+            text-align: left;
+        }
+
+        .components > :first-child {
+            border-top-right-radius: 0.5rem;
+        }
+
+        .components > :nth-last-child(2) {
+            border-bottom-left-radius: 0;
+        }
+}
+
+@media (max-width: 500px) {
+    .components ::deep .listing {
+        grid-template-columns: 1fr auto;
+    }
+
+    .components ::deep .col-modified {
+        display: none;
     }
 }
 

@@ -19,7 +19,7 @@
     --color-border-subtle: #3338;
     --color-border-strong: #555;
     /* Decorative / surface overlays (subtle lightening on dark) */
-    --color-overlay-weak: #FFF1;
+    --color-overlay-weak: #AAA1;
     --color-overlay-medium: #FFF2;
     --color-overlay-strong: #FFF5;
     /* Spinner / loader fill */
@@ -71,6 +71,8 @@
     --color-tooltip-text: #FFF;
     /* Modal Colors */
     --color-modal-bg: #111C;
+    --color-modal-surface: #181818;
+    --color-modal-button-bg: #222;
     /* Object Tree Colors */
     --color-object-tree-box-bg: #222;
     --color-object-tree-box: #2224;
@@ -153,6 +155,8 @@
     --color-tooltip-text: #FFF;
     /* Modal Colors */
     --color-modal-bg: #FFFFFFCC;
+    --color-modal-surface: #F0F0F2;
+    --color-modal-button-bg: #FFFFFFAA;
     /* Object Tree Colors */
     --color-object-tree-box-bg: #E9E9EC;
     --color-object-tree-box: #00000004;

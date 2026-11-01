@@ -3,8 +3,6 @@
 
 <PageTitle>Components - Reuniverse</PageTitle>
 
-<h1>Components</h1>
-
 <div class="components">
     <div>
         <h2>&lt;ReuCheckbox&gt;</h2>
@@ -101,14 +99,14 @@
     </div>
     <div>
         <ReuList Panel="true" Wrap="true">
-            <ReuListItem><img alt="TMSX" width="48" height="48" /></ReuListItem>
-            <ReuListItem><img alt="TMNESWC" width="48" height="48" /></ReuListItem>
-            <ReuListItem><img alt="TMUF" width="48" height="48" /></ReuListItem>
-            <ReuListItem><img alt="TMT" width="48" height="48" /></ReuListItem>
-            <ReuListItem><img alt="MP4" width="48" height="48" /></ReuListItem>
-            <ReuListItem><img alt="TM2020" width="48" height="48" /></ReuListItem>
+            <ReuListItem>TMSX</ReuListItem>
+            <ReuListItem>TMNESWC</ReuListItem>
+            <ReuListItem>TMUF</ReuListItem>
+            <ReuListItem>TMT</ReuListItem>
+            <ReuListItem>MP4</ReuListItem>
+            <ReuListItem>TM2020</ReuListItem>
         </ReuList>
-        <ReuList Panel="true" Vertical="true" Grow="false" style="height: 50px">
+        <ReuList Panel="true" Vertical="true" Grow="false" style="height: 100px">
             <ReuListItem>A</ReuListItem>
             <ReuListItem>B</ReuListItem>
             <ReuListItem>C</ReuListItem>
@@ -127,7 +125,7 @@
         <h2>&lt;ReuUploadArea&gt;</h2>
     </div>
     <div>
-        <ReuUploadArea></ReuUploadArea>
+        <ReuUploadArea><span class="upload-text">Drop files here or click to browse</span></ReuUploadArea>
     </div>
     <div>
         <h2>&lt;ReuLoader&gt;</h2>
@@ -205,8 +203,10 @@
         <p style="color: var(--color-text-secondary); margin-top: 0.5rem;">Scrollable when content overflows, backdrop click or ✕ to close.</p>
     </ChildContent>
     <FooterContent>
-        <ReuButton OnClick="() => modalOpen = false">Close</ReuButton>
-        <ReuButton Variant="ReuButtonVariant.Blue" OnClick="() => modalOpen = false">Confirm</ReuButton>
+        <div class="modal-actions">
+            <ReuButton OnClick="() => modalOpen = false">Close</ReuButton>
+            <ReuButton Variant="ReuButtonVariant.Blue" OnClick="() => modalOpen = false">Confirm</ReuButton>
+        </div>
     </FooterContent>
 </ReuModal>
 
@@ -378,6 +378,11 @@
     private ILogger Logger => logProvider.CreateLogger("Showcase.Components");
     private string? clickedException;
     private string? clickedParameter;
+
+    protected override void OnInitialized()
+    {
+        LogSamples();
+    }
 
     private void LogSamples()
     {

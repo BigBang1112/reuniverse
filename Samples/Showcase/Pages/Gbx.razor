@@ -14,20 +14,25 @@
 
 <PageTitle>Gbx - Reuniverse</PageTitle>
 
-<ReuUploadButton OnUpload="OnUpload" Accept=".Gbx">Open Gbx</ReuUploadButton>
-<div style="overflow: auto; margin: 1rem 0">
+<p>Browse the object tree of a Gbx file. Open one, or drop it anywhere on this page.</p>
+
+<div class="toolbar">
+    <ReuUploadButton OnUpload="OnUpload" Accept=".Gbx">Open Gbx</ReuUploadButton>
     <ReuCheckbox IsCheckedChanged="isChecked => showTypes = isChecked" IsChecked="@showTypes">Types</ReuCheckbox>
     <ReuCheckbox IsCheckedChanged="isChecked => ignore = isChecked" IsChecked="@ignore">Ignore instead of fade</ReuCheckbox>
 </div>
-<div style="overflow: auto">
-    <ReuObjectTree AdditionalTypeValueComponents="additionalTypeValueComponents"
-                   Value="gbx" 
-                   HideType="!showTypes"
-                   IsExpandedByDefault="true"
-                   FadeProvider="ProvideFade"
-                   IgnoreProvider="ProvideIgnore"
-                   VisualizationProvider="ProvideVisualization"
-                   ExtrasProvider="ProvideExtra"></ReuObjectTree>
+<div class="tree">
+    @if (gbx is not null)
+    {
+        <ReuObjectTree AdditionalTypeValueComponents="additionalTypeValueComponents"
+                       Value="gbx"
+                       HideType="!showTypes"
+                       IsExpandedByDefault="true"
+                       FadeProvider="ProvideFade"
+                       IgnoreProvider="ProvideIgnore"
+                       VisualizationProvider="ProvideVisualization"
+                       ExtrasProvider="ProvideExtra"></ReuObjectTree>
+    }
     <datalist id="collectionIds">
         @foreach (var (collId, name) in CollectionManager.Collections)
         {
