@@ -1,17 +1,26 @@
 @using Microsoft.AspNetCore.Components.Routing
 
-<div class="nav-item @CssClass" title="@(Title ?? Name)" @attributes="AdditionalAttributes">
-    @if (IsNavLink)
-    {
-        <NavLink class="@LinkClass" href="@Href" Match="NavLinkMatch">@LinkContent</NavLink>
-    }
-    else
-    {
-        <a class="@LinkClass" href="@Href">@LinkContent</a>
-    }
-</div>
+@if (ChildContent is null)
+{
+    @Item
+}
+else
+{
+    <div class="nav-submenu">
+        @Item
+        <div class="nav-submenu-items">
+            @ChildContent
+        </div>
+    </div>
+}
 
 @code {
+    /// <summary>
+    /// Nested <see cref="ReuNavItem"/> elements, shown as a submenu when hovering or focusing this item.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
     [Parameter]
     public bool IsNavLink { get; set; } = true;
 
@@ -54,6 +63,9 @@
     private bool HasBundledIcon => IconType != IconType.None;
     private bool HasIcon => HasBundledIcon || !string.IsNullOrEmpty(IconSrc);
 
+    // without a link, this is the only way for the keyboard to reach the submenu
+    private string? LinkTabIndex => ChildContent is not null && Href is null ? "0" : null;
+
     private string IconClass => IconOnly ? "icon nav-icon-standalone" : "icon";
     private string IconSizeStyle => $"--icon-width: {IconWidth}px; --icon-height: {IconHeight}px;";
 
@@ -67,6 +79,18 @@
         IconType == IconType.Discord ? "reu-discord" : null,
         IconType == IconType.NuGet ? "reu-nuget" : null
     }.OfType<string>());
+
+    private RenderFragment Item => @<div class="nav-item @CssClass" title="@(Title ?? Name)" @attributes="AdditionalAttributes">
+        @* NavLink would count going nowhere as being on the current page *@
+        @if (IsNavLink && Href is not null)
+        {
+            <NavLink class="@LinkClass" href="@Href" Match="NavLinkMatch">@LinkContent</NavLink>
+        }
+        else
+        {
+            <a class="@LinkClass" href="@Href" tabindex="@LinkTabIndex">@LinkContent</a>
+        }
+    </div>;
 
     private RenderFragment LinkContent => @<text>
         @if (HasBundledIcon)

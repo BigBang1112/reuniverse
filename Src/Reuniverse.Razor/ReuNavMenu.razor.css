@@ -116,6 +116,13 @@ nav {
     --reu-nav-wide-min-width: 0;
     --reu-nav-link-justify: flex-start;
     --reu-nav-link-padding: 0.9rem 1rem;
+    --reu-nav-submenu-position: static;
+    --reu-nav-submenu-width: auto;
+    --reu-nav-submenu-padding: 5px 0 0 1rem;
+    --reu-nav-submenu-border: none;
+    --reu-nav-submenu-background: none;
+    --reu-nav-submenu-shadow: none;
+    --reu-nav-submenu-filter: none;
 }
 
     .navbar[data-reu-nav-mode="menu"] nav {
@@ -126,6 +133,9 @@ nav {
         top: calc(100% + 0.6rem);
         width: min(var(--reu-nav-menu-width, max-content), calc(100vw - 3rem));
         max-width: calc(100vw - 3rem);
+        max-height: calc(100vh - 6rem);
+        overflow-y: auto;
+        box-sizing: border-box;
         padding: 0.45rem;
         border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
         border-radius: 8px;
@@ -138,6 +148,10 @@ nav {
         transform: translateY(-0.5rem) scale(0.97);
         transform-origin: top right;
         transition: opacity 0.16s ease, transform 0.18s ease, visibility 0.18s step-end;
+        /* Submenus are always listed here, so they follow the menu. Their own visibility
+           can not be left to inherit, as a variable holding that keyword would inherit itself. */
+        --reu-nav-submenu-visibility: hidden;
+        --reu-nav-submenu-transition: visibility 0.18s step-end;
     }
 
     .navbar[data-reu-nav-mode="menu"] .nav-toggle {
@@ -154,6 +168,8 @@ nav {
         pointer-events: auto;
         transform: translateY(0) scale(1);
         transition: opacity 0.16s ease, transform 0.18s ease, visibility 0s;
+        --reu-nav-submenu-visibility: visible;
+        --reu-nav-submenu-transition: none;
     }
 
 /* Fallback for when the script does not run */
@@ -176,6 +192,15 @@ nav {
         --reu-nav-wide-min-width: 0;
         --reu-nav-link-justify: flex-start;
         --reu-nav-link-padding: 0.9rem 1rem;
+        --reu-nav-submenu-visibility: visible;
+        --reu-nav-submenu-transition: none;
+        --reu-nav-submenu-position: static;
+        --reu-nav-submenu-width: auto;
+        --reu-nav-submenu-padding: 5px 0 0 1rem;
+        --reu-nav-submenu-border: none;
+        --reu-nav-submenu-background: none;
+        --reu-nav-submenu-shadow: none;
+        --reu-nav-submenu-filter: none;
     }
 
         .navbar:not([data-reu-nav-mode]) nav {
@@ -184,6 +209,8 @@ nav {
             position: absolute;
             right: 1.5rem;
             top: calc(100% + 0.6rem);
+            max-height: calc(100vh - 6rem);
+            overflow-y: auto;
             padding: 0.45rem;
             border-radius: 8px;
             background: var(--color-overlay-bg);

@@ -352,6 +352,7 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - `IconHeight` - Icon height in pixels. (default: 32)
 - `IconOnly` - Whether to show only the icon with no label text.
 - `Title` - Tooltip/title text for the nav item.
+- `ChildContent` - Nested `<ReuNavItem>` elements, shown as a submenu. The item keeps its own `Href`, which is optional.
 - `CssClass` - Additional CSS classes to apply to the nav item element.
 - Additional attributes are passed to the nav item element.
 
@@ -363,6 +364,17 @@ Example:
     <ReuNavItem Name="Downloads" Href="downloads" IconType="IconType.Download" />
     <ReuNavItem Name="GitHub" Href="https://github.com/example/repo"
                 IconType="IconType.GitHub" IsNavLink="false" IconOnly="true" />
+</ReuNavMenu>
+```
+
+Submenus work without interactivity, so also with static SSR. They show on hover and on keyboard focus, and the burger menu lists them in place, always expanded. On touch screens outside of the burger menu, the first tap on the item shows the submenu and the second follows its link, which needs `reuniverse.js`. The parent is highlighted while one of its items is the current page.
+
+```cshtml
+<ReuNavMenu Brand="My App">
+    <ReuNavItem Name="Tools" Href="tools" IconType="IconType.Folder">
+        <ReuNavItem Name="Converter" Href="tools/converter" IconType="IconType.Webhook" />
+        <ReuNavItem Name="Viewer" Href="tools/viewer" />
+    </ReuNavItem>
 </ReuNavMenu>
 ```
 

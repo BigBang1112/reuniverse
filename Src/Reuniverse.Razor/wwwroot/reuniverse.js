@@ -18,6 +18,9 @@
     const modeAttribute = "data-reu-nav-mode";
     const openAttribute = "data-reu-nav-open";
     const sizingAttribute = "data-reu-nav-sizing";
+    const submenuSelector = ".nav-submenu";
+    const submenuStateAttribute = "data-reu-nav-submenu";
+    const submenuEdgeGap = 8;
 
     // Kept apart from the element, as Blazor enhanced navigation resets everything
     // rendered on it, and each navbar must only ever be set up once.
@@ -27,6 +30,10 @@
         const burgerCheckbox = navbar.querySelector(".nav-toggle input");
 
         let frame = 0;
+        let lastPointerType = "";
+
+        // Kept apart from the elements, as Blazor enhanced navigation resets their attributes.
+        const dismissedSubmenus = new Set();
 
         function syncBurgerOpenState() {
             const isOpen = !!burgerCheckbox && burgerCheckbox.checked && navbar.getAttribute(modeAttribute) === "menu";
@@ -40,6 +47,51 @@
 
             burgerCheckbox.checked = false;
             syncBurgerOpenState();
+        }
+
+        function resetSubmenu(submenu) {
+            submenu.removeAttribute(submenuStateAttribute);
+            dismissedSubmenus.delete(submenu);
+        }
+
+        // Hovering and keyboard focus are up to the CSS. What is left here is touch, which
+        // has neither, and hiding what those would otherwise keep showing.
+        function closeSubmenus(except) {
+            nav.querySelectorAll(`${submenuSelector}[${submenuStateAttribute}]`).forEach(function (submenu) {
+                if (!submenu.contains(except)) {
+                    resetSubmenu(submenu);
+                }
+            });
+        }
+
+        // Keeps a submenu hidden until the pointer and focus have left it, with focus
+        // going back to its item, as it would otherwise be lost along with the panel.
+        function dismissSubmenus() {
+            closeSubmenus();
+
+            nav.querySelectorAll(submenuSelector).forEach(function (submenu) {
+                if (!submenu.matches(":hover, :has(:focus-visible)")) {
+                    return;
+                }
+
+                if (submenu.querySelector(".nav-submenu-items :focus")) {
+                    submenu.querySelector(".nav-item a").focus();
+                }
+
+                submenu.setAttribute(submenuStateAttribute, "closed");
+                dismissedSubmenus.add(submenu);
+            });
+        }
+
+        // Panels extend to the left of their item, where a narrow screen can run out of room.
+        function keepPanelInView(panel) {
+            panel.style.translate = "";
+
+            const overflow = submenuEdgeGap - panel.getBoundingClientRect().left;
+
+            if (overflow > 0) {
+                panel.style.translate = `${overflow}px`;
+            }
         }
 
         // Measures the width the bar needs in a given mode by letting the
@@ -61,9 +113,10 @@
         function requiredBurgerWidth() {
             navbar.setAttribute(modeAttribute, "menu");
 
+            // The computed width ignores the scale the closed menu animates from.
             const previousWidth = nav.style.width;
             nav.style.width = "max-content";
-            const width = nav.getBoundingClientRect().width;
+            const width = parseFloat(getComputedStyle(nav).width);
             nav.style.width = previousWidth;
 
             return width;
@@ -71,6 +124,8 @@
 
         function update() {
             frame = 0;
+
+            const previousMode = navbar.getAttribute(modeAttribute);
 
             // Disable every transition in the navbar while we probe and switch
             // modes so none of the intermediate states paint or animate.
@@ -87,6 +142,16 @@
             const mode = available < iconsWidth ? "menu" : available < fullWidth ? "icons" : "labels";
 
             navbar.setAttribute(modeAttribute, mode);
+
+            if (mode !== previousMode) {
+                closeSubmenus();
+            }
+
+            dismissedSubmenus.forEach(function (submenu) {
+                submenu.setAttribute(submenuStateAttribute, "closed");
+            });
+
+            nav.querySelectorAll(".nav-submenu-items").forEach(keepPanelInView);
 
             if (mode === "menu") {
                 syncBurgerOpenState();
@@ -122,10 +187,49 @@
             }
         }).observe(navbar, { attributes: true, attributeFilter: [modeAttribute] });
 
+        nav.addEventListener("pointerdown", function (event) {
+            lastPointerType = event.pointerType;
+        });
+
         // Close the burger dropdown after navigating.
         nav.addEventListener("click", function (event) {
-            if (event.target.closest("a")) {
+            const link = event.target.closest("a");
+
+            if (!link) {
+                return;
+            }
+
+            const item = link.closest(`${submenuSelector} > .nav-item`);
+            const submenu = item ? item.parentElement : null;
+
+            // Touch has no hover, so the first tap shows the submenu and the second follows the link.
+            // Enter also arrives as a click, with a detail of 0.
+            if (submenu && lastPointerType === "touch" && event.detail > 0
+                && navbar.getAttribute(modeAttribute) !== "menu"
+                && submenu.getAttribute(submenuStateAttribute) !== "open") {
+                event.preventDefault();
+                submenu.setAttribute(submenuStateAttribute, "open");
+            } else if (link.hasAttribute("href")) {
                 closeBurger();
+                dismissSubmenus();
+            } else {
+                closeSubmenus();
+            }
+        });
+
+        // A dismissed submenu can show again once the pointer and focus have left it.
+        // Capturing, as leaving does not bubble.
+        nav.addEventListener("pointerleave", function (event) {
+            if (dismissedSubmenus.has(event.target) && !event.target.matches(":has(:focus-visible)")) {
+                resetSubmenu(event.target);
+            }
+        }, true);
+
+        nav.addEventListener("focusout", function (event) {
+            const submenu = event.target.closest(submenuSelector);
+
+            if (dismissedSubmenus.has(submenu) && !submenu.matches(":hover")) {
+                resetSubmenu(submenu);
             }
         });
 
@@ -135,7 +239,7 @@
 
         update();
 
-        return { schedule, closeBurger };
+        return { schedule, closeBurger, closeSubmenus, dismissSubmenus };
     }
 
     function enhanceNavMenu(navbar) {
@@ -175,6 +279,8 @@
 
         document.addEventListener("pointerdown", function (event) {
             forEachController(function (controller, navbar) {
+                controller.closeSubmenus(event.target);
+
                 if (!navbar.contains(event.target)) {
                     controller.closeBurger();
                 }
@@ -185,6 +291,7 @@
             if (event.key === "Escape") {
                 forEachController(function (controller) {
                     controller.closeBurger();
+                    controller.dismissSubmenus();
                 });
             }
         });
