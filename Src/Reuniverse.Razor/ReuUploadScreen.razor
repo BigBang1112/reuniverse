@@ -39,7 +39,7 @@
     public EventCallback<FileInfoEventArgs> OnFileExceedCount { get; set; }
 
     /// <summary>
-    /// Maximum number of files allowed to upload. Null is the default which means no limit. Make sure to set limits if in serverside interactivity!
+    /// Maximum number of files allowed in a single selection. Null is the default which means no limit. This does not limit the total number of files a client can upload, as each new selection starts over.
     /// </summary>
     [Parameter]
     public int? MaxFileCount { get; set; }

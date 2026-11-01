@@ -443,7 +443,7 @@ A drag-and-drop file upload area with click-to-upload functionality.
 - `OnUpload` - Callback invoked when files are uploaded.
 - `OnFileTooLarge` - Callback invoked when a file is too large.
 - `OnFileExceedCount` - Callback invoked when the file count exceeds the maximum.
-- `MaxFileCount` - Maximum number of files allowed to upload. Null means no limit. **Make sure to set limits if in serverside interactivity!**
+- `MaxFileCount` - Maximum number of files allowed in a single selection. Null means no limit. This does not limit the total number of files a client can upload, as each new selection starts over.
 - `MaxFileSize` - Maximum file size in bytes. Null means no limit. **Make sure to set limits if in serverside interactivity!**
 - `Accept` - A comma-separated list of one or more file types, or unique file type specifiers, describing which file types to allow.
 - `CssClass` - Additional CSS classes to apply to the upload area element.

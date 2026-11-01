@@ -99,7 +99,7 @@
     public EventCallback<FileInfoEventArgs> OnFileExceedCount { get; set; }
 
     /// <summary>
-    /// Maximum number of files allowed to upload. Null is the default which means no limit. Make sure to set limits if in serverside interactivity!
+    /// Maximum number of files allowed in a single selection. Null is the default which means no limit. This does not limit the total number of files a client can upload, as each new selection starts over.
     /// </summary>
     [Parameter]
     public int? MaxFileCount { get; set; }
@@ -149,7 +149,16 @@
     [JSInvokable]
     public async Task UploadAsync(string fileName, byte[] data, long lastModified, string type)
     {
-        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
+        var modified = DateTimeOffset.FromUnixTimeMilliseconds(lastModified);
+
+        // the JS check can be bypassed, as a client can invoke this method directly in serverside interactivity
+        if (MaxFileSize > 0 && data.Length > MaxFileSize)
+        {
+            await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, data.Length, modified, type));
+            return;
+        }
+
+        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, modified, type));
     }
 
     [JSInvokable]
