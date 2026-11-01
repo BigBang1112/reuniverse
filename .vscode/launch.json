@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Showcase: Debug (Edge)",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/Samples/Showcase",
+            "browser": "edge"
+        },
+        {
+            "name": "Showcase: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Samples/Showcase"
+        },
+        {
+            "name": "Showcase: Watch (Integrated Browser)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Samples/Showcase",
+            "env": {
+                "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "1"
+            },
+            "serverReadyAction": {
+                "action": "openIntegratedBrowser",
+                "pattern": "Now listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s"
+            }
+        }
+    ]
+}
