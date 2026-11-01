@@ -22,7 +22,7 @@
             }
         </div>
     </div>
-    <div class="listing" @onkeydown="HandleKeyDown">
+    <div class="listing">
         <div class="list-header">
             <span class="col-name">Name</span>
             <span class="col-modified">Date modified</span>
@@ -182,12 +182,6 @@
     {
         if (!DoubleClickToOpen) return;
         await OpenEntry(entry);
-    }
-
-    private async Task HandleKeyDown(KeyboardEventArgs e)
-    {
-        if (DoubleClickToOpen || e.Key != "Enter" || SelectedEntry is null) return;
-        await OpenEntry(SelectedEntry);
     }
 
     private async Task OpenEntry(IReuEntry entry)
