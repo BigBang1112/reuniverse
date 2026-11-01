@@ -108,7 +108,7 @@
                 // in case large grouping was skipped, directly use Children
                 var actualGroup = (group ?? Children).Where(child => !ProvideIgnore(child));
 
-                // element count after search filtering, used for paging
+                // element count after filtering, used for paging
                 var shownCount = totalCount ?? 0;
 
                 if (!isFirstGroup && group?.Key is not null)
@@ -125,10 +125,18 @@
                         if (!string.IsNullOrWhiteSpace(searchTerm))
                         {
                             actualGroup = actualGroup.Where(child => (child as IReuObjectTreeElement)?.Value?.ToString()?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true);
+                        }
+
+                        // counting enumerates every element, so ignored elements are counted only if grouping already did that
+                        if (!string.IsNullOrWhiteSpace(searchTerm) || (IgnoreProvider is not null && group is not null))
+                        {
                             shownCount = actualGroup.Count();
                         }
 
                         var totalPages = (int)Math.Ceiling((double)shownCount / PageSize);
+
+                        // the collection could have shrunk since the page was selected
+                        CurrentPage = Math.Clamp(CurrentPage, 0, Math.Max(0, totalPages - 1));
 
                         actualGroup = actualGroup.Skip(CurrentPage * PageSize).Take(PageSize);
 
