@@ -591,7 +591,7 @@ A virtualized, live log viewer for `Microsoft.Extensions.Logging` entries.
 
 - **Requires interactivity** to function properly.
 - `Provider` - A `ReuLoggerProvider` to subscribe to for live entries.
-- `Entries` - A static list of `ReuLogEntry` items to display (used when `Provider` is not set).
+- `Entries` - A static list of `ReuLogEntry` items to display (used when `Provider` is not set). Reloaded only when a different collection instance is passed, so pass a new collection or use `Add()` instead of changing the existing one.
 - `ShowTimestamp` - Whether to show the timestamp column. (default: `true`)
 - `MaxEntries` - Maximum number of entries to keep; oldest are discarded. (default: 1000)
 - `ItemSize` - Row height in pixels for virtualization. (default: 26)

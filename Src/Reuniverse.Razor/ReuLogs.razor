@@ -66,6 +66,8 @@
 
     /// <summary>
     /// An initial/static set of entries to display. Ignored once live entries arrive from <see cref="Provider"/>.
+    /// Entries are reloaded only when a different collection instance is passed, so changes made to the same collection are not picked up.
+    /// Pass a new collection, or use <see cref="Add"/> to append entries.
     /// </summary>
     [Parameter]
     public IEnumerable<ReuLogEntry>? Entries { get; set; }
@@ -525,7 +527,14 @@
 
         if (module is not null)
         {
-            await module.DisposeAsync();
+            try
+            {
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+
             module = null;
         }
     }

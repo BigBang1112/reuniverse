@@ -267,7 +267,7 @@ Example:
 A virtualized log viewer that displays log entries for all log levels. It can be hooked onto `ILogger` through a `ReuLoggerProvider`, or fed entries manually. **(requires interactivity)**
 
 - `Provider` - A `ReuLoggerProvider` to subscribe to for live log entries.
-- `Entries` - A static set of `ReuLogEntry` items to display when no `Provider` is set.
+- `Entries` - A static set of `ReuLogEntry` items to display when no `Provider` is set. Reloaded only when a different collection instance is passed, so pass a new collection or use `Add()` instead of changing the existing one.
 - `ItemSize` - The fixed height (in pixels) of every log row. (default: 26)
 - `MaxEntries` - The maximum number of entries to keep when receiving live entries. (default: 1000)
 - `ShowTimestamp` - Whether to show the timestamp column. (default: `true`)
