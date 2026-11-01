@@ -59,9 +59,19 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
         {
             if (Item is not null)
             {
-                if (Item.SetValue(value))
+                try
                 {
-                    ValueChanged.InvokeAsync();
+                    var changed = Item.SetValue(value);
+                    Exception = null;
+
+                    if (changed)
+                    {
+                        ValueChanged.InvokeAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Exception = ex;
                 }
 
                 return;
@@ -86,6 +96,10 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
                 {
                     Exception = ex.InnerException ?? ex;
                 }
+                catch (Exception ex)
+                {
+                    Exception = ex;
+                }
 
                 return;
             }
@@ -108,7 +122,7 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
                     return false;
                 }
 
-                if (Item.Parent is System.Collections.IList)
+                if (Item.Parent is System.Collections.IList { IsReadOnly: false })
                 {
                     return false;
                 }
