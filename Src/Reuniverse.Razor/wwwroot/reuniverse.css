@@ -12,7 +12,7 @@
     --color-footer-bg: #1A1A1A;
     /* Text */
     --color-text-primary: #FFF;
-    --color-text-secondary: #888;
+    --color-text-secondary: #AAA;
     --color-text-muted: #666;
     /* Borders */
     --color-border: #333;
@@ -116,7 +116,7 @@
     --color-footer-bg: #EEE;
     /* Text */
     --color-text-primary: #1A1A1A;
-    --color-text-secondary: #666;
+    --color-text-secondary: #444;
     --color-text-muted: #999;
     /* Borders */
     --color-border: #CCC;
