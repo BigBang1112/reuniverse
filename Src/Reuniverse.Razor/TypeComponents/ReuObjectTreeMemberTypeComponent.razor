@@ -36,7 +36,8 @@
         {
             ["Member"] = Value,
             ["TypeValueComponents"] = TypeValueComponents,
-            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged),
+            ["History"] = History
         };
 
         <DynamicComponent Type="componentType" Parameters="parameters" />
@@ -170,7 +171,9 @@ catch (Exception ex)
             }
 
             var newInstance = Activator.CreateInstance(propertyType);
+            var oldValue = Value.Value;
             Value.Property.SetValue(Value.Parent, newInstance);
+            History?.RecordProperty(Value.Parent, Value.Property, oldValue, newInstance);
 
             await ValueChanged.InvokeAsync();
             ReuTooltip.HideGlobal();
@@ -271,6 +274,7 @@ catch (Exception ex)
         try
         {
             Value.Property.SetValue(Value.Parent, value);
+            History?.RecordProperty(Value.Parent, Value.Property, prevValue, value);
             await ValueChanged.InvokeAsync();
             ReuTooltip.HideGlobal();
         }

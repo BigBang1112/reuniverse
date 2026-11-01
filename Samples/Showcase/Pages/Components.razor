@@ -183,9 +183,11 @@
     <div>
         <h2>&lt;ReuObjectTree&gt;</h2>
         <ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
+        <ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
+        <ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
     </div>
     <div style="overflow: auto">
-        <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true"></ReuObjectTree>
+        <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true" History="history"></ReuObjectTree>
     </div>
     <div>
         <h2>&lt;ReuModal&gt;</h2>
@@ -226,6 +228,8 @@
 <ReuTooltip IsGlobal="true"></ReuTooltip>
 
 @code {
+    private readonly ReuObjectTreeHistory history = new();
+
     User obj = new User
     {
         Id = Guid.NewGuid(),
@@ -381,6 +385,9 @@
 
     protected override void OnInitialized()
     {
+        // edits happen inside the tree, so the page would not update the buttons otherwise
+        history.Changed += StateHasChanged;
+
         LogSamples();
     }
 

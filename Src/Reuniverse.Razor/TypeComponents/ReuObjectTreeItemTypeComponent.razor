@@ -30,7 +30,8 @@ else if (TryGetValueComponent(out var componentType))
                 {
                     ["Item"] = Value,
                     ["TypeValueComponents"] = TypeValueComponents,
-                    ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+                    ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged),
+                    ["History"] = History
                 };
 
     <DynamicComponent Type="componentType" Parameters="parameters" />
@@ -126,6 +127,7 @@ else
             if (Value.Index < list.Count && Equals(list[Value.Index], Value.Value))
             {
                 list.RemoveAt(Value.Index);
+                History?.RecordElementRemoved(list, Value.Index, Value.Value);
             }
 
             await ValueChanged.InvokeAsync(Value);

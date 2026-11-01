@@ -46,7 +46,8 @@ else if (TryGetValueComponent(Value.Value, out var valueComponentType))
     {
         ["KeyValue"] = Value,
         ["TypeValueComponents"] = TypeValueComponents,
-        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged),
+        ["History"] = History
     };
 
     <DynamicComponent Type="valueComponentType" Parameters="parameters" />
@@ -132,7 +133,14 @@ else
 
         try
         {
-            dict.Remove(Value.Key);
+            // the value could have changed since rendering, so the history keeps the actual one
+            if (dict.Contains(Value.Key))
+            {
+                var removedValue = dict[Value.Key];
+                dict.Remove(Value.Key);
+                History?.RecordKeyRemoved(dict, Value.Key, removedValue);
+            }
+
             await ValueChanged.InvokeAsync(Value);
             ReuTooltip.HideGlobal();
         }

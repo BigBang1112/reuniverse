@@ -375,6 +375,26 @@ A component to display object properties in a tree structure.
 - `HideTypes` - If to hide type names in the tree.
 - `OnTypeClick` - Callback invoked when a type name is clicked.
 - `IsExpandedByDefault` - Whether the **root** object is expanded by default.
+- `History` - A `ReuObjectTreeHistory` that records the edits made through the tree, which can also be shared between trees. When not set, nothing is recorded.
+
+The tree does not show any undo controls itself, so call `Undo()` and `Redo()` from your own buttons or shortcuts. Edits happen inside the tree, so subscribe to `Changed` to keep `CanUndo` and `CanRedo` up to date on your page. Call `Clear()` when the tree starts showing a different object, as the steps still edit the previous one.
+
+```cshtml
+<ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
+<ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
+<ReuObjectTree Value="obj" History="history"></ReuObjectTree>
+
+@code {
+    private readonly ReuObjectTreeHistory history = new();
+
+    protected override void OnInitialized()
+    {
+        history.Changed += StateHasChanged;
+    }
+}
+```
+
+Custom value components can take part by calling `History.Record(description, undo, redo)`.
 
 Example:
 

@@ -78,7 +78,8 @@ else
         {
             var newElement = elementType == typeof(string) ? string.Empty : Activator.CreateInstance(elementType);
 
-            list.Add(newElement);
+            var index = list.Add(newElement);
+            History?.RecordElementAdded(list, index, newElement);
 
             await ValueChanged.InvokeAsync(Value);
 

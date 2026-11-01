@@ -21,7 +21,8 @@
                 [nameof(TypeComponentBase<>.OnSelect)] = EventCallback.Factory.Create(this, SelectAsync),
                 [nameof(TypeComponentBase<>.Selected)] = SelectedObject?.Equals(Value) ?? false,
                 [nameof(TypeComponentBase<>.VisualizationProvider)] = VisualizationProvider,
-                [nameof(TypeComponentBase<>.ExtrasProvider)] = ExtrasProvider
+                [nameof(TypeComponentBase<>.ExtrasProvider)] = ExtrasProvider,
+                [nameof(TypeComponentBase<>.History)] = GetRootTree().History
             };
 
             <DynamicComponent Type="componentType" Parameters="parameters" />
@@ -48,7 +49,8 @@
                 {
                     ["ReadOnlyValue"] = Value,
                     ["TypeValueComponents"] = ResolvedTypeValueComponents,
-                    ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange)
+                    ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange),
+                    ["History"] = GetRootTree().History
                 };
 
                 <DynamicComponent Type="valueComponentType" Parameters="parameters" />
@@ -327,6 +329,15 @@
     [Parameter]
     public EventCallback<Type> OnTypeClick { get; set; }
 
+    /// <summary>
+    /// Records the edits made through the tree so they can be undone and redone.
+    /// By default nothing is recorded. Only the root tree uses this, and the same instance can be passed to several trees.
+    /// </summary>
+    [Parameter]
+    public ReuObjectTreeHistory? History { get; set; }
+
+    private ReuObjectTreeHistory? subscribedHistory;
+
     public Exception? Exception { get; private set; }
 
     public bool IsExpandable => Value is not null && Children.Any();
@@ -487,6 +498,33 @@
     public void Dispose()
     {
         InvalidateChildren();
+        SubscribeToHistory(null);
+    }
+
+    private void SubscribeToHistory(ReuObjectTreeHistory? history)
+    {
+        if (ReferenceEquals(subscribedHistory, history))
+        {
+            return;
+        }
+
+        if (subscribedHistory is not null)
+        {
+            subscribedHistory.Applied -= OnHistoryApplied;
+        }
+
+        subscribedHistory = history;
+
+        if (subscribedHistory is not null)
+        {
+            subscribedHistory.Applied += OnHistoryApplied;
+        }
+    }
+
+    private void OnHistoryApplied()
+    {
+        // the step could have touched any level of the tree
+        _ = InvokeAsync(Update);
     }
 
     protected override void OnInitialized()
@@ -496,6 +534,8 @@
 
     protected override void OnParametersSet()
     {
+        SubscribeToHistory(History);
+
         ResolvedTypeComponents = AdditionalTypeComponents is null or { Count: 0 }
             ? TypeComponents
             : Merge(TypeComponents, AdditionalTypeComponents);

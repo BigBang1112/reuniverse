@@ -107,7 +107,10 @@ else
             // non-generic Add throws on null for value type values
             var defaultValue = valueType.IsValueType ? Activator.CreateInstance(valueType) : null;
 
-            dict.Add(keyComponent.Value, defaultValue);
+            var key = keyComponent.Value;
+
+            dict.Add(key, defaultValue);
+            History?.RecordKeyAdded(dict, key, defaultValue);
             keyComponent.Value = null;
 
             await ValueChanged.InvokeAsync(Value);

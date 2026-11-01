@@ -20,6 +20,8 @@
     <ReuUploadButton OnUpload="OnUpload" Accept=".Gbx">Open Gbx</ReuUploadButton>
     <ReuCheckbox IsCheckedChanged="isChecked => showTypes = isChecked" IsChecked="@showTypes">Types</ReuCheckbox>
     <ReuCheckbox IsCheckedChanged="isChecked => ignore = isChecked" IsChecked="@ignore">Ignore instead of fade</ReuCheckbox>
+    <ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
+    <ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
 </div>
 <div class="tree">
     @if (gbx is not null)
@@ -31,7 +33,8 @@
                        FadeProvider="ProvideFade"
                        IgnoreProvider="ProvideIgnore"
                        VisualizationProvider="ProvideVisualization"
-                       ExtrasProvider="ProvideExtra"></ReuObjectTree>
+                       ExtrasProvider="ProvideExtra"
+                       History="history"></ReuObjectTree>
     }
     <datalist id="collectionIds">
         @foreach (var (collId, name) in CollectionManager.Collections)
@@ -45,6 +48,8 @@
 
 @code {
     private GBX.NET.Gbx? gbx;
+
+    private readonly ReuObjectTreeHistory history = new();
 
     private bool showTypes = true;
     private bool ignore;
@@ -63,19 +68,28 @@
     {
         GBX.NET.Gbx.LZO = new GBX.NET.LZO.MiniLZO();
 
+        // edits happen inside the tree, so the page would not update the buttons otherwise
+        history.Changed += StateHasChanged;
+
         EventService.OnUpload += data =>
         {
-            using var ms = new MemoryStream(data);
-            gbx = GBX.NET.Gbx.Parse(ms);
+            Load(data);
             StateHasChanged();
         };
     }
 
-
     private void OnUpload(UploadEventArgs args)
     {
-        using var ms = new MemoryStream(args.Data);
+        Load(args.Data);
+    }
+
+    private void Load(byte[] data)
+    {
+        using var ms = new MemoryStream(data);
         gbx = GBX.NET.Gbx.Parse(ms);
+
+        // the steps edit the previous file
+        history.Clear();
     }
 
     private bool IgnoreIfNotInChunk(object? value)
