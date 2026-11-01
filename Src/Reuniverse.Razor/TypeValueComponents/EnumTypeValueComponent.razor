@@ -89,8 +89,10 @@ else
     {
         get
         {
-            var type = Property?.PropertyType ?? Item?.Value?.GetType();
-            return type is null ? null : Nullable.GetUnderlyingType(type) ?? type;
+            // the declared type can be object or Enum, so the runtime type takes precedence
+            var type = Property is null ? Item?.Value?.GetType() : Value?.GetType() ?? Property.PropertyType;
+            type = type is null ? null : Nullable.GetUnderlyingType(type) ?? type;
+            return type is { IsEnum: true } ? type : null;
         }
     }
 
@@ -113,7 +115,6 @@ else
         try
         {
             Value = Enum.ToObject(Value.GetType(), bits);
-            Exception = null;
         }
         catch (Exception ex)
         {
