@@ -197,6 +197,6 @@
 
     private sealed record StylingRow(string Tag, string? Type = null, string? Value = null, bool CanBeReadOnly = true)
     {
-        public string Label => Type is null ? $"<{Tag}>" : $"type=\"{Type}\"";
+        public string Label => Type is null ? $"<{Tag}>" : $"<{Tag} type=\"{Type}\">";
     }
 }

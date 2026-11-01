@@ -20,8 +20,10 @@
     <ReuUploadButton OnUpload="OnUpload" Accept=".Gbx">Open Gbx</ReuUploadButton>
     <ReuCheckbox IsCheckedChanged="isChecked => showTypes = isChecked" IsChecked="@showTypes">Types</ReuCheckbox>
     <ReuCheckbox IsCheckedChanged="isChecked => ignore = isChecked" IsChecked="@ignore">Ignore instead of fade</ReuCheckbox>
-    <ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
-    <ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
+    <div class="undo-redo">
+        <ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
+        <ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
+    </div>
 </div>
 <div class="tree">
     @if (gbx is not null)

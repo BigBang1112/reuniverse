@@ -84,15 +84,22 @@
                     This is the content of Tab 2.
                 </ChildContent>
             </ReuTab>
-            <ReuTab>
-                <TitleContent>
-                    Tab 3
-                </TitleContent>
-                <ChildContent>
-                    This is the content of Tab 3.
-                </ChildContent>
-            </ReuTab>
+            @if (showClosableTab)
+            {
+                <ReuTab ShowCloseButton="true" OnClosed="() => showClosableTab = false">
+                    <TitleContent>
+                        Tab 3
+                    </TitleContent>
+                    <ChildContent>
+                        This tab can be closed.
+                    </ChildContent>
+                </ReuTab>
+            }
         </ReuTabs>
+        @if (!showClosableTab)
+        {
+            <ReuButton OnClick="() => showClosableTab = true">Reopen Tab 3</ReuButton>
+        }
     </div>
     <div>
         <h2>&lt;ReuList&gt;</h2>
@@ -183,8 +190,10 @@
     <div>
         <h2>&lt;ReuObjectTree&gt;</h2>
         <ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
-        <ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
-        <ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
+        <div class="undo-redo">
+            <ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
+            <ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
+        </div>
     </div>
     <div style="overflow: auto">
         <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true" History="history"></ReuObjectTree>
@@ -229,6 +238,8 @@
 
 @code {
     private readonly ReuObjectTreeHistory history = new();
+
+    private bool showClosableTab = true;
 
     User obj = new User
     {

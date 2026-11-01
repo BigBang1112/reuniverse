@@ -24,3 +24,8 @@
 .tree {
     overflow: auto;
 }
+
+.undo-redo {
+    display: flex;
+    gap: 0.5rem;
+}

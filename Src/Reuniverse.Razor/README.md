@@ -448,6 +448,41 @@ Example:
 <ReuRadio Name="Group">Option 4</ReuRadio>
 ```
 
+### `<ReuTabs>` and `<ReuTab>`
+
+Tabs that show the content of the selected `<ReuTab>`. The first tab is selected by default.
+
+- **Requires interactivity** to function properly.
+- `TitleContent` - Content of the tab header.
+- `ChildContent` - Content shown while the tab is selected.
+- `CssClass` - Additional CSS classes to apply to the tab header.
+- `ShowCloseButton` - Whether to show a close (✕) button in the tab header.
+- `OnClosed` - Callback invoked when the close button is clicked.
+
+A tab stays until it is removed from the markup, so remove it in `OnClosed`. If it was selected, the tab next to it is selected instead.
+
+Example:
+
+```cshtml
+<ReuTabs>
+    <ReuTab>
+        <TitleContent>Tab 1</TitleContent>
+        <ChildContent>Content of Tab 1.</ChildContent>
+    </ReuTab>
+    @if (showTab)
+    {
+        <ReuTab ShowCloseButton="true" OnClosed="() => showTab = false">
+            <TitleContent>Tab 2</TitleContent>
+            <ChildContent>This tab can be closed.</ChildContent>
+        </ReuTab>
+    }
+</ReuTabs>
+
+@code {
+    private bool showTab = true;
+}
+```
+
 ### `<ReuTooltip>`
 
 A component to display a tooltip either globally for `Tooltip` parameters, or for specific content.
