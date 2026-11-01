@@ -430,7 +430,7 @@
         }
     }
 
-    // cached so the children provider (reflection + enumeration) runs once per parameter set or update instead of multiple times per render
+    // cached so the children provider (reflection + enumeration) runs once per render instead of multiple times
     private BufferedEnumerable<object?>? children;
 
     public IEnumerable<object?> Children => Value is null ? [] : children ??= new(EnumerateChildren(Value));
@@ -480,12 +480,8 @@
 
     protected override bool ShouldRender()
     {
-        // resuming a partial enumeration of a collection modified in the meantime would throw
-        if (children is { IsCompleted: false })
-        {
-            InvalidateChildren();
-        }
-
+        // the contents could have changed since the last render, and resuming a partial enumeration of a modified collection would throw
+        InvalidateChildren();
         return true;
     }
 
