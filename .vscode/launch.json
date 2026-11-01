@@ -13,7 +13,10 @@
             "type": "node-terminal",
             "request": "launch",
             "command": "dotnet watch --launch-profile http",
-            "cwd": "${workspaceFolder}/Samples/Showcase"
+            "cwd": "${workspaceFolder}/Samples/Showcase",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            }
         },
         {
             "name": "Showcase: Watch (Integrated Browser)",
@@ -22,7 +25,8 @@
             "command": "dotnet watch --launch-profile http",
             "cwd": "${workspaceFolder}/Samples/Showcase",
             "env": {
-                "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "1"
+                "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "1",
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
             },
             "serverReadyAction": {
                 "action": "openIntegratedBrowser",
