@@ -72,6 +72,9 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
                 catch (Exception ex)
                 {
                     Exception = ex;
+
+                    // the row can be out of date, and it would stay that way for the next edit
+                    ValueChanged.InvokeAsync();
                 }
 
                 return;

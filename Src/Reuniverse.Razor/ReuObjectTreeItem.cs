@@ -10,6 +10,12 @@ public sealed record ReuObjectTreeItem(object Parent, int Index, object? Value) 
     {
         if (Parent is System.Collections.IList list)
         {
+            // the list could have changed since rendering, so the index may be another element now
+            if (Index >= list.Count || !Equals(list[Index], Value))
+            {
+                throw new InvalidOperationException("The list has changed since this element was shown, so the edit was not applied.");
+            }
+
             newValue ??= GetDefaultElement();
 
             if (list[Index]?.Equals(newValue) == true)
