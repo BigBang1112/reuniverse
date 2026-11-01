@@ -151,8 +151,8 @@
         }
     }
 
-    function enhanceAll(root) {
-        root.querySelectorAll(".navbar").forEach(enhanceNavMenu);
+    function enhanceAll() {
+        document.querySelectorAll(".navbar").forEach(enhanceNavMenu);
     }
 
     function forEachController(action) {
@@ -166,22 +166,12 @@
     }
 
     function start() {
-        enhanceAll(document);
+        enhanceAll();
 
         // Enhance navbars that appear later (e.g. interactive rendering replacing the DOM).
-        new MutationObserver(function (mutations) {
-            for (const mutation of mutations) {
-                for (const node of mutation.addedNodes) {
-                    if (node.nodeType !== 1) {
-                        continue;
-                    }
-                    if (node.classList.contains("navbar")) {
-                        enhanceNavMenu(node);
-                    }
-                    enhanceAll(node);
-                }
-            }
-        }).observe(document.body, { childList: true, subtree: true });
+        // Watches the whole document, as enhanced navigation away from an interactive page
+        // replaces <body> itself, and this would stop firing if it watched the old one.
+        new MutationObserver(enhanceAll).observe(document.documentElement, { childList: true, subtree: true });
 
         document.addEventListener("pointerdown", function (event) {
             forEachController(function (controller, navbar) {

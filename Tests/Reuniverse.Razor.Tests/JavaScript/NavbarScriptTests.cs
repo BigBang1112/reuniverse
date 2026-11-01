@@ -74,6 +74,18 @@ public class NavbarScriptTests : BrowserTestBase
         await ClickBurgerAsync();
     }
 
+    // the same swap Blazor makes when enhanced navigation leaves an interactive page
+    private Task ReplaceBodyAsync()
+    {
+        return Page.EvaluateAsync($$"""
+            () => {
+                const body = document.createElement("body");
+                body.innerHTML = `{{Navbar}}`;
+                document.documentElement.replaceChild(body, document.body);
+            }
+            """);
+    }
+
     private Task ResetAttributesAsync()
     {
         return Page.EvaluateAsync("""
@@ -319,6 +331,104 @@ public class NavbarScriptTests : BrowserTestBase
 
         // Assert
         await Assert.That(await GetModeAsync()).IsEqualTo("labels");
+    }
+
+    [Test]
+    public async Task ReplaceBody_LikeLeavingInteractivePage_EnhancesNewNavbar()
+    {
+        // Arrange
+        await OpenAsync(400);
+
+        // Act
+        await ReplaceBodyAsync();
+        await WaitForModeAsync("icons");
+
+        // Assert
+        await Assert.That(await GetModeAsync()).IsEqualTo("icons");
+    }
+
+    [Test]
+    public async Task ReplaceBody_Repeatedly_KeepsEnhancingNewNavbars()
+    {
+        // Arrange
+        await OpenAsync(400);
+        await ReplaceBodyAsync();
+        await WaitForModeAsync("icons");
+
+        // Act
+        await ReplaceBodyAsync();
+        await WaitForModeAsync("icons");
+
+        // Assert
+        await Assert.That(await GetModeAsync()).IsEqualTo("icons");
+    }
+
+    [Test]
+    public async Task ClickBurger_AfterReplacingBody_OpensNewMenu()
+    {
+        // Arrange
+        await OpenAsync(200);
+        await ReplaceBodyAsync();
+        await WaitForModeAsync("menu");
+
+        // Act
+        await ClickBurgerAsync();
+
+        // Assert
+        await Assert.That(await IsOpenAsync()).IsTrue();
+    }
+
+    [Test]
+    public async Task PressEscape_AfterReplacingBody_ClosesNewMenu()
+    {
+        // Arrange
+        await OpenAsync(200);
+        await ReplaceBodyAsync();
+        await WaitForModeAsync("menu");
+        await ClickBurgerAsync();
+
+        // Act
+        await Page.Keyboard.PressAsync("Escape");
+
+        // Assert
+        await Assert.That(await IsOpenAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task AddNodes_InOneBatch_LooksForNavbarsOnce()
+    {
+        // Arrange
+        await OpenAsync(1000);
+        await Page.EvaluateAsync("""
+            () => {
+                window.navbarQueries = 0;
+
+                for (const type of [Element, Document]) {
+                    const query = type.prototype.querySelectorAll;
+                    type.prototype.querySelectorAll = function (selector) {
+                        if (selector === ".navbar") {
+                            window.navbarQueries++;
+                        }
+
+                        return query.call(this, selector);
+                    };
+                }
+            }
+            """);
+
+        // Act
+        await Page.EvaluateAsync("""
+            async () => {
+                for (let i = 0; i < 100; i++) {
+                    document.body.append(document.createElement("div"));
+                }
+
+                await Promise.resolve();
+            }
+            """);
+
+        // Assert
+        await Assert.That(await Page.EvaluateAsync<int>("window.navbarQueries")).IsEqualTo(1);
     }
 
     [Test]

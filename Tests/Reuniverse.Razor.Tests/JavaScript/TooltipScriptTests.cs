@@ -479,6 +479,28 @@ public class TooltipScriptTests : BrowserTestBase
     }
 
     [Test]
+    public async Task ReplaceBody_LikeLeavingInteractivePage_KeepsWorking()
+    {
+        // Arrange
+        await OpenAsync(Target);
+        await HoverAsync("#target");
+        await EvaluateAsync("""
+            (() => {
+                const body = document.createElement("body");
+                body.innerHTML = '<button id="next" style="margin: 200px;" data-reu-tooltip="Next hint">Next</button>';
+                document.documentElement.replaceChild(body, document.body);
+            })()
+            """);
+        await SettleAsync();
+
+        // Act
+        await HoverAsync("#next");
+
+        // Assert
+        await Assert.That(await Tooltip.TextContentAsync()).IsEqualTo("Next hint");
+    }
+
+    [Test]
     public async Task PointerMove_FromTouch_ShowsNothing()
     {
         // Arrange

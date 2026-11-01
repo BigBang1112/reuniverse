@@ -13,15 +13,14 @@ public class MaskIconTests : BrowserTestBase
     public async Task Render_InlineMaskImage_ResolvesAgainstThePage()
     {
         // Arrange
-        var requested = new List<string>();
-        Page.Request += (_, request) => requested.Add(new Uri(request.Url).AbsolutePath);
+        var iconRequest = Page.WaitForRequestAsync("**/icons/menu.svg");
 
         // Act
         await GoToAsync("""<span class="reu-mask-icon" style="width: 32px; height: 32px; mask-image: url('_content/Reuniverse.Razor/icons/menu.svg');"></span>""", Icon);
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        var request = await iconRequest;
 
         // Assert
-        await Assert.That(requested).Contains("/_content/Reuniverse.Razor/icons/menu.svg");
+        await Assert.That(new Uri(request.Url).AbsolutePath).IsEqualTo("/_content/Reuniverse.Razor/icons/menu.svg");
     }
 
     [Test]
