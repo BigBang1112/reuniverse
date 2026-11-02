@@ -5,14 +5,14 @@
 
 <div class="components">
     <div>
-        <h2>&lt;ReuCheckbox&gt;</h2>
+        <h2 class="element">&lt;ReuCheckbox&gt;</h2>
     </div>
     <div>
         <ReuCheckbox>Should do this?</ReuCheckbox>
         <ReuCheckbox disabled>Should do this?</ReuCheckbox>
     </div>
     <div>
-        <h2>&lt;ReuRadio&gt;</h2>
+        <h2 class="element">&lt;ReuRadio&gt;</h2>
     </div>
     <div>
         <ReuRadio Name="Rad">Option 1</ReuRadio>
@@ -21,7 +21,7 @@
         <ReuRadio Name="Rad">Option 4</ReuRadio>
     </div>
     <div>
-        <h2>&lt;ReuButton&gt;</h2>
+        <h2 class="element">&lt;ReuButton&gt;</h2>
     </div>
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
         <ReuButton Tooltip="This button is enabled">Enabled button</ReuButton>
@@ -33,7 +33,7 @@
         <ReuButton Href="https://gbx.tools" Variant="ReuButtonVariant.Yellow" Enable="false">Disabled link</ReuButton>
     </div>
     <div>
-        <h2>&lt;ReuExpansionPanels&gt;</h2>
+        <h2 class="element">&lt;ReuExpansionPanels&gt;</h2>
     </div>
     <div>
         <ReuExpansionPanels>
@@ -64,7 +64,7 @@
         </ReuExpansionPanels>
     </div>
     <div>
-        <h2>&lt;ReuTabs&gt;</h2>
+        <h2 class="element">&lt;ReuTabs&gt;</h2>
     </div>
     <div>
         <ReuTabs>
@@ -102,7 +102,7 @@
         }
     </div>
     <div>
-        <h2>&lt;ReuList&gt;</h2>
+        <h2 class="element">&lt;ReuList&gt;</h2>
     </div>
     <div>
         <ReuList Panel="true" Wrap="true">
@@ -123,37 +123,37 @@
         </ReuList>
     </div>
     <div>
-        <h2>&lt;ReuUploadButton&gt;</h2>
+        <h2 class="element">&lt;ReuUploadButton&gt;</h2>
     </div>
     <div>
         <ReuUploadButton>Open files...</ReuUploadButton>
     </div>
     <div>
-        <h2>&lt;ReuUploadArea&gt;</h2>
+        <h2 class="element">&lt;ReuUploadArea&gt;</h2>
     </div>
     <div>
         <ReuUploadArea><span class="upload-text">Drop files here or click to browse</span></ReuUploadArea>
     </div>
     <div>
-        <h2>&lt;ReuLoader&gt;</h2>
+        <h2 class="element">&lt;ReuLoader&gt;</h2>
     </div>
     <div>
         <ReuLoader></ReuLoader>
     </div>
     <div>
-        <h2>&lt;ReuFriendlyType&gt;</h2>
+        <h2 class="element">&lt;ReuFriendlyType&gt;</h2>
     </div>
     <div>
         <ReuFriendlyType Type="typeof(Dictionary<string, List<int>>)"></ReuFriendlyType>
     </div>
     <div>
-        <h2>&lt;ReuMenuBar&gt;</h2>
+        <h2 class="element">&lt;ReuMenuBar&gt;</h2>
     </div>
     <div>
         <ReuMenuBar Items="items"></ReuMenuBar>
     </div>
     <div>
-        <h2>&lt;ReuFileBrowser&gt;</h2>
+        <h2 class="element">&lt;ReuFileBrowser&gt;</h2>
     </div>
     <div>
         <ReuFileBrowser Root="sampleRoot" OnFileOpen="f => lastOpened = f.Name" style="height: 340px"></ReuFileBrowser>
@@ -163,7 +163,7 @@
         }
     </div>
     <div>
-        <h2>&lt;ReuLogs&gt;</h2>
+        <h2 class="element">&lt;ReuLogs&gt;</h2>
         <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
             <ReuButton OnClick="LogSamples">Log all levels</ReuButton>
             <ReuButton OnClick="LogParameterized">Log parameterized</ReuButton>
@@ -188,7 +188,7 @@
         }
     </div>
     <div>
-        <h2>&lt;ReuObjectTree&gt;</h2>
+        <h2 class="element">&lt;ReuObjectTree&gt;</h2>
         <ReuCheckbox IsCheckedChanged="OnTypesChanged" IsChecked="@showTypes">Types</ReuCheckbox>
         <div class="undo-redo">
             <ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
@@ -199,7 +199,7 @@
         <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true" History="history"></ReuObjectTree>
     </div>
     <div>
-        <h2>&lt;ReuModal&gt;</h2>
+        <h2 class="element">&lt;ReuModal&gt;</h2>
     </div>
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
         <ReuButton OnClick="() => modalOpen = true">Open modal</ReuButton>

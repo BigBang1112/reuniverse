@@ -36,7 +36,6 @@
     .components h2 {
         margin: 0;
         white-space: nowrap;
-        font-family: var(--font-mono), monospace;
         font-size: 100%;
         font-weight: 500;
     }
@@ -44,6 +43,10 @@
         .components h2:not(:last-child) {
             margin-bottom: 0.75rem;
         }
+
+    .components h2.element {
+        font-family: var(--font-mono), monospace;
+    }
 
     .components ::deep label + label {
         margin-top: 0.5rem;

@@ -568,7 +568,7 @@
             clearTimeout(copiedTimer);
             button.textContent = "Copied";
             copiedTimer = setTimeout(function () {
-                button.textContent = "Copy log";
+                button.textContent = "Copy";
             }, copiedDuration);
         }
 
@@ -608,7 +608,7 @@
                 <div class="reu-error-log reu-mono" tabindex="0"></div>
             </details>
             <div class="reu-error-actions">
-                <button type="button" class="reu-button reu-error-copy">Copy log</button>
+                <button type="button" class="reu-button reu-error-copy">Copy</button>
                 <button type="button" class="reu-button reu-button-blue reu-error-reload">Reload</button>
             </div>`;
 

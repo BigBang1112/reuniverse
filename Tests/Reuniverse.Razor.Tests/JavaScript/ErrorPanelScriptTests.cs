@@ -353,7 +353,7 @@ public class ErrorPanelScriptTests : BrowserTestBase
         await Page.Clock.RunForAsync(1500);
 
         // Assert
-        await WaitForCopyLabelAsync("Copy log");
+        await WaitForCopyLabelAsync("Copy");
     }
 
     [Test]
