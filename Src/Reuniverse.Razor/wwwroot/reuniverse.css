@@ -1,3 +1,34 @@
+/* Tokens that are the same in both themes */
+:root {
+    /* Discord Brand Colors */
+    --color-discord: #5865F2DD;
+    --color-discord-hover: #6373EDDD;
+    /* Ko-fi Brand Colors */
+    --color-kofi: #FF4F19DD;
+    --color-kofi-hover: #FF6433DD;
+    --color-kofi-open: #FF8966DD;
+    /* Blue Button Variant Colors */
+    --color-blue: #1E72CCDD;
+    --color-blue-hover: #2B7FD4DD;
+    --color-blue-active: #3A8CDDDD;
+    /* Yellow Button Variant Colors */
+    --color-yellow: #FFCC11AA;
+    --color-yellow-hover: #FFD633BB;
+    --color-yellow-active: #FFE055BB;
+    /* Red Button Variant Colors */
+    --color-button-red: #CC3D3D;
+    --color-button-red-hover: #FF6666DD;
+    --color-button-red-active: #FF7777DD;
+    /* Upload Drop Zone Tags */
+    --color-tag-gbx-bg: #257A;
+    --color-tag-other-bg: #642A;
+    /* Shadows */
+    --shadow-modal: 0 24px 64px #0009, 0 4px 16px #0004;
+    --shadow-popover: 0 18px 38px #0006, 0 4px 14px #0003;
+    /* Fonts */
+    --font-mono: "Chivo Mono";
+}
+
 :root,
 [data-theme="dark"],
 .reu-theme-dark {
@@ -29,25 +60,6 @@
     /* Link Colors */
     --color-link: #4CB7FF;
     --color-link-hover: #66C1FF;
-    /* Discord Brand Colors */
-    --color-discord: #5865F2DD;
-    --color-discord-hover: #6373EDDD;
-    /* Ko-fi Brand Colors */
-    --color-kofi: #FF4F19DD;
-    --color-kofi-hover: #FF6433DD;
-    --color-kofi-open: #FF8966DD;
-    /* Blue Button Variant Colors */
-    --color-blue: #1E72CCDD;
-    --color-blue-hover: #2B7FD4DD;
-    --color-blue-active: #3A8CDDDD;
-    /* Yellow Button Variant Colors */
-    --color-yellow: #FFCC11AA;
-    --color-yellow-hover: #FFD633BB;
-    --color-yellow-active: #FFE055BB;
-    /* Red Button Variant Colors */
-    --color-button-red: #CC3D3D;
-    --color-button-red-hover: #FF6666DD;
-    --color-button-red-active: #FF7777DD;
     /* Button Colors */
     --color-button-bg: #2228;
     --color-button-bg-hover: #333A;
@@ -85,8 +97,6 @@
     --color-dropzone-text: #AAA;
     --color-dropzone-note: #666;
     --color-tag-text: #DDD;
-    --color-tag-gbx-bg: #257A;
-    --color-tag-other-bg: #642A;
     /* Friendly Type (syntax) Colors */
     --color-syntax-keyword: #59B9FF;
     --color-syntax-enum: #DBFFC1;
@@ -99,8 +109,6 @@
     /* Validation Colors */
     --color-red: #FF4C4C;
     --color-green: #42DC54;
-    /* Fonts */
-    --font-mono: "Chivo Mono";
 }
 
 [data-theme="light"],
@@ -183,8 +191,6 @@
     --color-red: #D32F2F;
     --color-green: #2E7D32;
 }
-
-@import url('CourierPrime-Regular.ttf');
 
 @font-face {
     font-family: "Rubik";
@@ -313,7 +319,7 @@ main.reu-main {
     color: #FFF;
 }
 
-    .reu-button-blue:hover:enabled, .reu-button-blue:hover:not(.disabled) {
+    .reu-button-blue:hover:not(:disabled, .disabled) {
         background-color: var(--color-blue-hover);
         color: #FFF;
     }
@@ -327,7 +333,7 @@ main.reu-main {
     background-color: var(--color-yellow);
 }
 
-    .reu-button-yellow:hover:enabled, .reu-button-yellow:hover:not(.disabled) {
+    .reu-button-yellow:hover:not(:disabled, .disabled) {
         background-color: var(--color-yellow-hover);
     }
 
@@ -340,14 +346,14 @@ main.reu-main {
     color: #FFF;
 }
 
-    .reu-button-red:hover:enabled, .reu-button-red:hover:not(.disabled) {
+    .reu-button-red:hover:not(:disabled, .disabled) {
         background-color: var(--color-button-red-hover);
-    color: #FFF;
+        color: #FFF;
     }
 
     .reu-button-red.active {
         background-color: var(--color-button-red-active);
-    color: #FFF;
+        color: #FFF;
     }
 
 .reu-button img {
@@ -356,31 +362,28 @@ main.reu-main {
 
 /* In the light theme, icons inside plain buttons are white SVGs designed for
    dark backgrounds — invert them so they are visible on the light surface. */
-[data-theme="light"] .reu-button img,
-.reu-theme-light .reu-button img {
+:is([data-theme="light"], .reu-theme-light) .reu-button img {
     filter: invert(1);
-    transition: filter 0.2s ease;
 }
 
 /* Colored-variant buttons keep their dark backgrounds so they are excluded. */
-[data-theme="light"] .reu-button-blue img,
-[data-theme="light"] .reu-button-yellow img,
-[data-theme="light"] .reu-button-red img,
-[data-theme="light"] .reu-discord img,
-[data-theme="light"] .reu-kofi img,
-[data-theme="light"] .reu-nuget img,
-.reu-theme-light .reu-button-blue img,
-.reu-theme-light .reu-button-yellow img,
-.reu-theme-light .reu-button-red img,
-.reu-theme-light .reu-discord img,
-.reu-theme-light .reu-kofi img,
-.reu-theme-light .reu-nuget img {
+:is([data-theme="light"], .reu-theme-light) :is(.reu-button-blue, .reu-button-yellow, .reu-button-red,
+                                              .reu-discord, .reu-kofi, .reu-nuget) img {
     filter: none;
 }
 
 .reu-upload-button {
     position: relative;
 }
+
+    .reu-upload-button input {
+        position: absolute;
+        top: 0;
+        width: 100%;
+        height: calc(100% + 3px);
+        cursor: pointer;
+        opacity: 0;
+    }
 
 .reu-center {
     display: flex;
@@ -463,22 +466,11 @@ select {
     cursor: pointer;
 }
 
-input[type=text],
-input:not([type]),
-input.text,
+/* The input lists are kept as input:is(...), so that they stay as specific as input[type=text]. */
 select,
-input[type=date],
-input[type=color],
-input[type=datetime-local],
-input[type=time],
-input[type=month],
-input[type=password],
-input[type=search],
-input[type=week],
-input[type=url],
-input[type=tel],
-input[type=email],
-input[type=number] {
+input:is(:not([type]), .text, [type=text], [type=password], [type=search],
+         [type=url], [type=tel], [type=email], [type=number], [type=color],
+         [type=date], [type=datetime-local], [type=time], [type=month], [type=week]) {
     border: 1px solid var(--color-input-border);
     border-radius: 5px;
     font-family: inherit;
@@ -490,99 +482,32 @@ input[type=number] {
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-    input[type=text]:hover,
-    input:not([type]):hover,
-    input.text:hover,
     select:hover,
-    input[type=date]:hover,
-    input[type=datetime-local]:hover,
-    input[type=color]:hover,
-    input[type=time]:hover,
-    input[type=month]:hover,
-    input[type=password]:hover,
-    input[type=search]:hover,
-    input[type=week]:hover,
-    input[type=url]:hover,
-    input[type=tel]:hover,
-    input[type=email]:hover,
-    input[type=number]:hover {
+    input:is(:not([type]), .text, [type=text], [type=password], [type=search],
+             [type=url], [type=tel], [type=email], [type=number], [type=color],
+             [type=date], [type=datetime-local], [type=time], [type=month], [type=week]):hover {
         border-color: var(--color-input-border-hover);
         background-color: var(--color-input-bg-hover);
     }
 
-    input[type=text].disabled,
-    input[type=text]:disabled,
-    input:not([type]).disabled,
-    input:not([type]):disabled,
-    input.text.disabled,
-    input.text:disabled,
-    select.disabled,
-    select:disabled,
-    input[type=date].disabled,
-    input[type=date]:disabled,
-    input[type=datetime-local].disabled,
-    input[type=datetime-local]:disabled,
-    input[type=color].disabled,
-    input[type=color]:disabled,
-    input[type=time].disabled,
-    input[type=time]:disabled,
-    input[type=month].disabled,
-    input[type=month]:disabled,
-    input[type=password].disabled,
-    input[type=password]:disabled,
-    input[type=search].disabled,
-    input[type=search]:disabled,
-    input[type=week].disabled,
-    input[type=week]:disabled,
-    input[type=url].disabled,
-    input[type=url]:disabled,
-    input[type=tel].disabled,
-    input[type=tel]:disabled,
-    input[type=email].disabled,
-    input[type=email]:disabled,
-    input[type=number].disabled,
-    input[type=number]:disabled {
+    /* After :hover, so that hovering does not change it */
+    input:is(:not([type]), .text, [type=text], [type=password], [type=search],
+             [type=url], [type=tel], [type=email], [type=number],
+             [type=date], [type=datetime-local], [type=time], [type=month], [type=week]):read-only {
+        background-color: var(--color-input-bg-hover);
+        border-color: var(--color-input-bg-disabled);
+    }
+
+    /* After :read-only, as disabled inputs match it too */
+    select:is(.disabled, :disabled),
+    input:is(:not([type]), .text, [type=text], [type=password], [type=search],
+             [type=url], [type=tel], [type=email], [type=number], [type=color],
+             [type=date], [type=datetime-local], [type=time], [type=month], [type=week]):is(.disabled, :disabled) {
         background-color: var(--color-input-bg-disabled);
         border-color: var(--color-input-border);
         color: var(--color-text-secondary);
         cursor: not-allowed;
     }
-
-    input[type=text]:read-only,
-    input:not([type]):read-only,
-    input.text:read-only,
-    input[type=date]:read-only,
-    input[type=datetime-local]:read-only,
-    input[type=time]:read-only,
-    input[type=month]:read-only,
-    input[type=password]:read-only,
-    input[type=search]:read-only,
-    input[type=week]:read-only,
-    input[type=url]:read-only,
-    input[type=tel]:read-only,
-    input[type=email]:read-only,
-    input[type=number]:read-only {
-        background-color: var(--color-input-bg-hover);
-        border: 1px solid var(--color-input-bg-disabled);
-    }
-
-        input[type=text]:read-only:hover,
-        input:not([type]):read-only:hover,
-        input.text:read-only:hover,
-        input[type=date]:read-only:hover,
-        input[type=datetime-local]:read-only:hover,
-        input[type=time]:read-only:hover,
-        input[type=month]:read-only:hover,
-        input[type=password]:read-only:hover,
-        input[type=search]:read-only:hover,
-        input[type=week]:read-only:hover,
-        input[type=url]:read-only:hover,
-        input[type=tel]:read-only:hover,
-        input[type=email]:read-only:hover,
-        input[type=number]:read-only:hover {
-            border-color: var(--color-input-border);
-            border: 1px solid var(--color-input-bg-disabled);
-        }
 
 .reu-mono,
 code,
@@ -672,15 +597,6 @@ footer.reu-footer {
         justify-content: end;
     }
 
-.reu-upload-button input {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: calc(100% + 3px);
-    cursor: pointer;
-    opacity: 0;
-}
-
 .reu-theme-icon {
     cursor: pointer;
     width: 20px;
@@ -742,19 +658,7 @@ footer.reu-footer {
     overflow-wrap: anywhere;
     white-space: pre-line;
     pointer-events: none;
-    animation: reu-tooltip-appear 0.1s ease-out;
-}
-
-@keyframes reu-tooltip-appear {
-    from {
-        opacity: 0;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .reu-tooltip {
-        animation: none;
-    }
+    animation: reu-fade-in 0.1s ease-out;
 }
 
 /* Error panel, created by reuniverse.js in place of #blazor-error-ui.
@@ -776,7 +680,7 @@ footer.reu-footer {
     border-top: 3px solid var(--color-red);
     border-radius: 8px;
     background: var(--color-modal-surface);
-    box-shadow: 0 24px 64px #0009, 0 4px 16px #0004;
+    box-shadow: var(--shadow-modal);
     color: var(--color-text-primary);
     font-size: 90%;
     overflow-y: auto;
@@ -875,12 +779,6 @@ footer.reu-footer {
         padding: 0.4rem 1rem;
     }
 
-@media (prefers-reduced-motion: reduce) {
-    .reu-error-panel {
-        animation: none;
-    }
-}
-
 #components-reconnect-modal {
     display: none;
     background-color: var(--color-modal-bg);
@@ -892,7 +790,7 @@ footer.reu-footer {
     height: calc(100vh - 4rem);
     align-items: center;
     justify-content: center;
-    animation: fadeIn 0.5s;
+    animation: reu-fade-in 0.5s;
     flex-direction: column;
     gap: 20px;
     padding: 2rem;
@@ -913,24 +811,24 @@ footer.reu-footer {
         color: var(--color-text-secondary);
     }
 
-@keyframes fadeIn {
+@keyframes reu-fade-in {
     from {
         opacity: 0;
     }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes reu-modal-backdrop-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 @keyframes reu-modal-panel-in {
-    from { opacity: 0; transform: scale(0.96) translateY(-6px); }
-    to { opacity: 1; transform: none; }
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(-6px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reu-tooltip,
+    .reu-error-panel {
+        animation: none;
+    }
 }
 
 /* Scrollbar */

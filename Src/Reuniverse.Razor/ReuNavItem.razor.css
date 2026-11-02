@@ -89,7 +89,7 @@
     border: var(--reu-nav-submenu-border, 1px solid color-mix(in srgb, var(--color-border) 65%, transparent));
     border-radius: 8px;
     background: var(--reu-nav-submenu-background, color-mix(in srgb, var(--color-overlay-bg) 88%, transparent));
-    box-shadow: var(--reu-nav-submenu-shadow, 0 18px 38px #0006, 0 4px 14px #0003);
+    box-shadow: var(--reu-nav-submenu-shadow, var(--shadow-popover));
     backdrop-filter: var(--reu-nav-submenu-filter, blur(14px));
     visibility: var(--reu-nav-submenu-visibility, hidden);
     transition: var(--reu-nav-submenu-transition, visibility 0s linear 0.1s);

@@ -19,17 +19,16 @@ label {
         cursor: not-allowed;
     }
 
-    label input:disabled ~ .checkmark,
-    label input.disabled ~ .checkmark {
+    /* After :hover, so that hovering does not change it */
+    label input:is(:disabled, .disabled) ~ .checkmark {
         background-color: var(--color-input-bg-disabled);
         border-color: var(--color-input-border);
         cursor: not-allowed;
     }
 
-    label:hover input:disabled ~ .checkmark,
-    label:hover input.disabled ~ .checkmark {
-        border-color: var(--color-input-border);
-        background-color: var(--color-input-bg-disabled);
+    label input:focus-visible ~ .checkmark {
+        outline: 2px solid var(--color-link);
+        outline-offset: 2px;
     }
 
 input {
