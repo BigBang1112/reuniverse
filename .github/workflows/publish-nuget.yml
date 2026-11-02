@@ -13,13 +13,14 @@ jobs:
       contents: write # the workflow creates the GitHub release with the package assets
       packages: write
     with:
-      dotnet-version: 10.0.x
+      dotnet-version: |
+        10.0.x
+        9.0.x
       project-path: Src/*/*.csproj
+      test-path: Tests/*/*.csproj
       pack-path: |
         Src/Reuniverse.Razor/*.csproj
         Templates/*.csproj
       main-project: Reuniverse.Razor
-      enable-tests: false
-      enable-coverage: false
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
