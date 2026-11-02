@@ -10,7 +10,29 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>reuniverse, razor, blazor, gbx</PackageTags>
         <PackageReleaseNotes>
-- Fixed navbar losing interactivity features on page change
+New:
+- Undo/redo for ReuObjectTree edits through ReuObjectTreeHistory (History parameter)
+- Closable tabs (ReuTab ShowCloseButton and OnClosed)
+- Submenus in ReuNavMenu (nested ReuNavItem), working without interactivity
+- ReuNavMenu IsAbsolute to place the bar over the page content
+- Themed error panel with copyable log in place of #blazor-error-ui (via reuniverse.js)
+- Minified reuniverse.min.css, reuniverse.min.js and reuniverse.theme.min.js
+- Tooltips now work in every render mode including static SSR, on hover and keyboard focus, and on any element through data-reu-tooltip
+
+Breaking:
+- ReuTooltip now wraps its content with a required Text parameter; IsGlobal, Show() and Hide() were removed
+- ReuNavItem default icon size is now 32 instead of 24
+- Tooltips, the error panel and the responsive navbar need reuniverse.js
+
+Fixes:
+- ReuObjectTree: enums, dictionaries (null values, structs, inheritance), value type lists, default values in lists, cyclic references, infinite enumerables, stale paging and page counts with filters, expansion issues, SetValue on outdated render, readonly collections
+- ReuObjectTree now catches exceptions thrown by child values
+- ReuLogs entries no longer disappear when the parent rerenders
+- ReuUploadArea, ReuUploadButton and ReuUploadScreen enforce limits further on the server, and multi-file ReuUploadScreen works correctly
+- ReuFileBrowser no longer handles key presses twice
+- Menu item action is no longer invoked twice
+- ReuRadio check behaviour, missing ReuTabs CssClass, ExpandedChanged cases and streamed mode issues
+- Refactored CSS and navbar, lighter secondary text color
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
