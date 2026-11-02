@@ -4,7 +4,7 @@
             @foreach (var tab in Tabs)
             {
                 <div class="tab @(tab.Selected ? "selected" : "") @tab.CssClass" @onclick="() => SelectTabAsync(tab)">
-                    @tab.TitleContent
+                    <span class="tab-title">@tab.TitleContent</span>
                     @if (tab.ShowCloseButton)
                     {
                         <button class="tab-close-btn" @onclick="() => tab.OnClosed.InvokeAsync()" @onclick:stopPropagation="true" title="Close">✕</button>
