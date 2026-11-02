@@ -34,6 +34,8 @@ In Blazor WebAssembly or Photino Blazor:
 <script src="_content/Reuniverse.Razor/reuniverse.js" defer></script>
 ```
 
+`reuniverse.css`, `reuniverse.js` and `reuniverse.theme.js` also come minified as `reuniverse.min.css`, `reuniverse.min.js` and `reuniverse.theme.min.js`, to use in their place.
+
 ### Theming
 
 Reuniverse has a light/dark theme system driven by the `data-theme` attribute on `<html>`. Include `reuniverse.theme.js` as a **blocking** (no `defer`/`async`) script at the very top of `<head>`, before any stylesheets:
