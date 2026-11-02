@@ -13,8 +13,16 @@
         <InvariantTimezone>true</InvariantTimezone>
     </PropertyGroup>
 
+    <!-- Prerendering on publish. The pages are saved as components.html etc., which GitHub Pages
+         serves for /components without redirecting to /components/ first.
+         /help is only a link in the menu bar demo, so it would be saved as the not found page. -->
+    <PropertyGroup>
+        <BlazorWasmPrerenderingOutputStyle>AppendHtmlExtension</BlazorWasmPrerenderingOutputStyle>
+        <BlazorWasmPrerenderingUrlPathRegexToIgnore>/help$</BlazorWasmPrerenderingUrlPathRegexToIgnore>
+    </PropertyGroup>
+
     <ItemGroup>
-        <!-- <PackageReference Include="BlazorWasmPreRendering.Build" Version="8.0.0" /> -->
+        <PackageReference Include="BlazorWasmPreRendering.Build" Version="10.0.2" />
         <PackageReference Include="GBX.NET" Version="2.4.2" />
         <PackageReference Include="GBX.NET.LZO" Version="2.1.5" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.3" />
