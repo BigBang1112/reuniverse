@@ -3,14 +3,17 @@
     <PropertyGroup>
         <PackageId>Reuniverse.Templates</PackageId>
         <PackageType>Template</PackageType>
-        <VersionPrefix>0.2.2</VersionPrefix>
+        <VersionPrefix>0.2.3</VersionPrefix>
         <Authors>BigBang1112</Authors>
         <Title>Reuniverse Templates</Title>
         <Description>Various templates for opinionated development by BigBang1112.</Description>
         <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
         <PackageProjectUrl>https://github.com/BigBang1112/reuniverse</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageReleaseNotes></PackageReleaseNotes>
+        <PackageReleaseNotes>
+- Reuniverse templates now include reuniverse.theme.js and reference Reuniverse.Razor 0.9.2
+- Updated dependencies
+        </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 

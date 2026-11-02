@@ -42,6 +42,12 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
     [Parameter]
     public string? Placeholder { get; set; }
 
+    /// <summary>
+    /// Records the edits made by this component, if the tree keeps a history.
+    /// </summary>
+    [Parameter]
+    public ReuObjectTreeHistory? History { get; set; }
+
     public PropertyInfo? Property => Member?.Property;
     public object? Parent => Member?.Parent ?? Item?.Parent;
 
@@ -59,8 +65,23 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
         {
             if (Item is not null)
             {
-                if (Item.SetValue(value))
+                try
                 {
+                    var oldValue = Item.Value;
+                    var changed = Item.SetValue(value);
+                    Exception = null;
+
+                    if (changed)
+                    {
+                        History?.RecordElementChanged((System.Collections.IList)Item.Parent, Item.Index, oldValue, Item.Value);
+                        ValueChanged.InvokeAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Exception = ex;
+
+                    // the row can be out of date, and it would stay that way for the next edit
                     ValueChanged.InvokeAsync();
                 }
 
@@ -79,12 +100,17 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
                     // Only invoke ValueChanged if the value actually changed
                     if (!Equals(oldValue, value))
                     {
+                        History?.RecordProperty(Parent!, Property, oldValue, value);
                         ValueChanged.InvokeAsync();
                     }
                 }
                 catch (TargetInvocationException ex)
                 {
                     Exception = ex.InnerException ?? ex;
+                }
+                catch (Exception ex)
+                {
+                    Exception = ex;
                 }
 
                 return;
@@ -108,7 +134,7 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
                     return false;
                 }
 
-                if (Item.Parent is System.Collections.IList)
+                if (Item.Parent is System.Collections.IList { IsReadOnly: false })
                 {
                     return false;
                 }

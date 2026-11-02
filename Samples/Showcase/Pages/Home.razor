@@ -1,0 +1,202 @@
+﻿@page "/"
+
+<PageTitle>Home - Reuniverse</PageTitle>
+
+<section class="hero">
+    <h1 class="title">REUNIVERSE</h1>
+    <p class="punchline">Templates, components, and styling not only for your Blazor ecosystem.</p>
+</section>
+
+<div class="card-grid">
+    <div class="card info">
+        <h2>Reuniverse.<wbr />Templates</h2>
+        <p>Starter projects for Blazor, Photino, Web API, and Discord bots.</p>
+        <code class="snippet">dotnet new install Reuniverse.Templates</code>
+        <ReuButton CssClass="nuget" Href="https://www.nuget.org/packages/Reuniverse.Templates" Variant="ReuButtonVariant.Blue">
+            <img src="_content/Reuniverse.Razor/icons/nuget.svg" width="24" height="24" alt="" />
+            NuGet
+        </ReuButton>
+    </div>
+    <div class="card info">
+        <h2>Reuniverse.Razor</h2>
+        <p>Blazor components and styling with light and dark themes.</p>
+        <code class="snippet">dotnet add package Reuniverse.Razor</code>
+        <ReuButton CssClass="nuget" Href="https://www.nuget.org/packages/Reuniverse.Razor" Variant="ReuButtonVariant.Blue">
+            <img src="_content/Reuniverse.Razor/icons/nuget.svg" width="24" height="24" alt="" />
+            NuGet
+        </ReuButton>
+    </div>
+</div>
+
+<h2 class="section-title">Styling</h2>
+
+<div class="card-grid stacked">
+    <div class="card info">
+        <h3>Add the stylesheet</h3>
+        <p>Link it once and form controls, links, and code text are styled everywhere.</p>
+        <code class="snippet">&lt;link rel="stylesheet" href="_content/Reuniverse.Razor/reuniverse.css" /&gt;</code>
+    </div>
+    <div class="card info">
+        <h3>Light and dark themes</h3>
+        <p>The <code>data-theme</code> attribute on <code>&lt;html&gt;</code> picks the theme. Try it on this page.</p>
+        <button class="reu-button theme-toggle" type="button" onclick="reuTheme.toggle()">Switch theme</button>
+    </div>
+    <div class="card info">
+        <h3>Your own colors</h3>
+        <p>Every color is a CSS variable, so overriding one updates everything that uses it.</p>
+        <code class="snippet">:root { --color-link: #FFCC11; }</code>
+    </div>
+</div>
+
+<h3 class="subsection-title">Form controls</h3>
+
+<div class="card styling">
+    <table class="states">
+        <thead>
+            <tr>
+                <th scope="col">Control</th>
+                @foreach (var state in stylingStates)
+                {
+                    <th scope="col">@state.Name</th>
+                }
+            </tr>
+        </thead>
+        @foreach (var group in stylingGroups)
+        {
+            <tbody>
+                @foreach (var row in group.Rows)
+                {
+                    <tr>
+                        <th scope="row"><code>@row.Label</code></th>
+                        @foreach (var state in stylingStates)
+                        {
+                            @if (state == readOnlyState && !row.CanBeReadOnly)
+                            {
+                                <td class="none"><span aria-label="Not available">&ndash;</span></td>
+                                continue;
+                            }
+
+                            var label = $"{row.Label}, {state.Name}";
+
+                            <td data-label="@state.Name">
+                                @switch (row.Tag)
+                                {
+                                    case "textarea":
+                                        <textarea value="@row.Value" aria-label="@label" @attributes="state.Attributes"></textarea>
+                                        break;
+                                    case "select":
+                                        <select aria-label="@label" @attributes="state.Attributes">
+                                            <option>First option</option>
+                                            <option>Second option</option>
+                                        </select>
+                                        break;
+                                    default:
+                                        <input type="@row.Type" value="@row.Value" aria-label="@label" @attributes="state.Attributes" />
+                                        break;
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        }
+    </table>
+</div>
+
+<h3 class="subsection-title">Other elements</h3>
+
+<div class="card-grid stacked">
+    <div class="card info">
+        <h4>Validation</h4>
+        <input type="text" class="invalid" value="Not valid" aria-label="Invalid example" />
+        <div class="validation-message">This field is required.</div>
+    </div>
+    <div class="card info">
+        <h4>Text</h4>
+        <div class="samples">
+            <code>code</code>
+            <kbd>kbd</kbd>
+            <samp>samp</samp>
+            <var>var</var>
+            <a href="https://github.com/BigBang1112/reuniverse">Link</a>
+        </div>
+    </div>
+    <div class="card info">
+        <h4>Progress</h4>
+        <progress value="32" max="100" aria-label="Example progress">32%</progress>
+    </div>
+</div>
+
+@code {
+    private static readonly StylingState readOnlyState = new("Read-only", new() { ["readonly"] = true });
+
+    private static readonly StylingState[] stylingStates =
+    [
+        new("Default", []),
+        readOnlyState,
+        new("Disabled", new() { ["disabled"] = true })
+    ];
+
+    private static readonly StylingGroup[] stylingGroups =
+    [
+        new("Text", "Inputs share the same borders, hover colors, and states. Text areas use the monospace font.",
+        [
+            new("input", "text", "Some value"),
+            new("input", "password", "Some value"),
+            new("input", "email", "hello@example.com"),
+            new("input", "url", "https://example.com"),
+            new("input", "tel", "+1 555 0100"),
+            new("input", "search", "Some value"),
+            new("textarea", Value: "Some value")
+        ]),
+        new("Numbers and dates", "Native pickers follow the active theme.",
+        [
+            new("input", "number", "42"),
+            new("input", "date", "2026-01-15"),
+            new("input", "time", "13:37"),
+            new("input", "datetime-local", "2026-01-15T13:37"),
+            new("input", "month", "2026-01"),
+            new("input", "week", "2026-W03")
+        ]),
+        new("Choices", "Menus and color pickers open native popups.",
+        [
+            new("select", CanBeReadOnly: false),
+            new("input", "color", "#1E72CC", CanBeReadOnly: false)
+        ]),
+        new("Buttons", "Button inputs look the same as ReuButton.",
+        [
+            new("input", "submit", "Submit", CanBeReadOnly: false),
+            new("input", "button", "Button", CanBeReadOnly: false)
+        ])
+    ];
+
+    private string assetSearchValue = "";
+
+    public string AssetSearchValue
+    {
+        get => assetSearchValue;
+        set
+        {
+            if (assetSearchValue == value)
+            {
+                return;
+            }
+
+            assetSearchValue = value;
+        }
+    }
+
+    private void OnAssetSearchInput(ChangeEventArgs e)
+    {
+        AssetSearchValue = e.Value?.ToString() ?? "";
+    }
+
+    private sealed record StylingState(string Name, Dictionary<string, object> Attributes);
+
+    private sealed record StylingGroup(string Name, string Description, StylingRow[] Rows);
+
+    private sealed record StylingRow(string Tag, string? Type = null, string? Value = null, bool CanBeReadOnly = true)
+    {
+        public string Label => Type is null ? $"<{Tag}>" : $"<{Tag} type=\"{Type}\">";
+    }
+}

@@ -8,37 +8,48 @@ else if (Value is null)
 {
     <span class="box-value clickable"
             @onclick="() => Value = Enum.GetValues(Type).GetValue(0)"
-            @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to default value"))"
-            @onmousemove="ReuTooltip.MoveGlobal"
-            @onmouseout="ReuTooltip.HideGlobal">@None</span>
+            data-reu-tooltip="Set to default value">@None</span>
 }
 else if (Attribute.IsDefined(Type, typeof(FlagsAttribute)))
 {
-    var longValue = Convert.ToInt64(Value);
+    var bits = ToBits(Value);
 
     var flagValues = Enum.GetValues(Type)
         .Cast<object>()
         .Where(v =>
         {
-            var flag = Convert.ToInt64(v);
-            return flag != 0 && (longValue & flag) == flag;
+            var flag = ToBits(v);
+            return flag != 0 && (bits & flag) == flag;
         })
         .ToArray();
 
     @foreach (var flagValue in flagValues)
     {
-        <span class="box-value @(IsReadOnly ? "" : "clickable")">@flagValue</span>
+        if (IsReadOnly)
+        {
+            <span class="box-value">@flagValue</span>
+        }
+        else
+        {
+            <span class="box-value clickable"
+                  @onclick="() => RemoveFlag(flagValue)"
+                  data-reu-tooltip="Remove flag">@flagValue</span>
+        }
     }
 
     @if (!IsReadOnly)
     {
-        <select @onchange="OnChange">
-            <option value="0" selected="@longValue == 0">Add a flag...</option>
+        @* keyed by the current value so the select resets to the placeholder after a flag is added *@
+        <select @key="bits" @onchange="AddFlag">
+            <option value="" selected>Add a flag...</option>
             @foreach (var enumValue in Enum.GetValues(Type))
             {
-                var flag = Convert.ToInt64(enumValue);
-                var isSelected = (longValue & flag) == flag;
-                <option value="@flag" selected="@isSelected">@enumValue</option>
+                var flag = ToBits(enumValue);
+
+                if (flag != 0 && (bits & flag) != flag)
+                {
+                    <option value="@flag">@enumValue</option>
+                }
             }
         </select>
     }
@@ -49,16 +60,17 @@ else
     var value = Value;
     var containsCurrentValue = enumValues.Cast<object>().Any(v => v.Equals(value));
 
-    <select disabled="@IsReadOnly" @onchange="OnChange">
-                
+    @* bound on the select, as selected attributes do not update an option the user has already changed *@
+    <select value="@ToBits(value)" disabled="@IsReadOnly" @onchange="OnChange">
+
         @if (!containsCurrentValue)
         {
-            <option value="@(Convert.ToInt32(value))" selected>@value</option>
+            <option value="@ToBits(value)">@value</option>
         }
 
         @foreach (var enumValue in enumValues)
         {
-            <option value="@(Convert.ToInt32(enumValue))" selected="@enumValue.Equals(value)">@enumValue</option>
+            <option value="@ToBits(enumValue)">@enumValue</option>
         }
 
     </select>
@@ -70,23 +82,65 @@ else
 }
 
 @code {
-    public Type? Type => Property?.PropertyType ?? Item?.Value?.GetType();
+    public Type? Type
+    {
+        get
+        {
+            // the declared type can be object or Enum, so the runtime type takes precedence
+            // the key editor of a dictionary has no element yet, only the default value
+            var type = Property is null ? Item?.Value?.GetType() ?? DefaultValue?.GetType() : Value?.GetType() ?? Property.PropertyType;
+            type = type is null ? null : Nullable.GetUnderlyingType(type) ?? type;
+            return type is { IsEnum: true } ? type : null;
+        }
+    }
 
-    private async Task OnChange(ChangeEventArgs e)
+    /// <summary>
+    /// Gets the raw bits of an enum value, regardless of its underlying type.
+    /// </summary>
+    private static ulong ToBits(object value)
+    {
+        return System.Type.GetTypeCode(Enum.GetUnderlyingType(value.GetType())) switch
+        {
+            TypeCode.UInt64 => Convert.ToUInt64(value),
+            _ => unchecked((ulong)Convert.ToInt64(value))
+        };
+    }
+
+    private void SetBits(ulong bits)
     {
         if (Value is null) return;
 
-        var enumType = Value.GetType();
-        var originalValue = Value;
-
         try
         {
-            Value = Enum.ToObject(enumType, Convert.ToInt32(e.Value));
-            Exception = null;
+            Value = Enum.ToObject(Value.GetType(), bits);
         }
         catch (Exception ex)
         {
             Exception = ex;
+        }
+    }
+
+    private void OnChange(ChangeEventArgs e)
+    {
+        if (ulong.TryParse(e.Value?.ToString(), out var bits))
+        {
+            SetBits(bits);
+        }
+    }
+
+    private void AddFlag(ChangeEventArgs e)
+    {
+        if (Value is not null && ulong.TryParse(e.Value?.ToString(), out var flag))
+        {
+            SetBits(ToBits(Value) | flag);
+        }
+    }
+
+    private void RemoveFlag(object flagValue)
+    {
+        if (Value is not null)
+        {
+            SetBits(ToBits(Value) & ~ToBits(flagValue));
         }
     }
 }

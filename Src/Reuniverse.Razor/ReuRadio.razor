@@ -40,10 +40,7 @@
 
     private async Task OnChange(ChangeEventArgs e)
     {
-        if (e.Value is bool isChecked)
-        {
-            IsChecked = isChecked;
-            await IsCheckedChanged.InvokeAsync(isChecked);
-        }
+        IsChecked = true;
+        await IsCheckedChanged.InvokeAsync(true);
     }
 }

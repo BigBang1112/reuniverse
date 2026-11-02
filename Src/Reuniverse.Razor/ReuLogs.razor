@@ -1,5 +1,7 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.Extensions.Logging
+@using System.Globalization
+@using System.Text.Json
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
@@ -13,7 +15,7 @@
                      @onclick="() => { if (entry.HasException) OnExceptionClicked(entry); }">
                     @if (ShowTimestamp)
                     {
-                        <span class="timestamp">@entry.Timestamp.ToString("HH:mm:ss.fff")</span>
+                        <span class="timestamp">@entry.Timestamp.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture)</span>
                     }
                     <span class="level" aria-label="@entry.Level.ToString()">@GetLevelLabel(entry.Level)</span>
                     @if (entry.Scopes is { Count: > 0 })
@@ -51,6 +53,7 @@
 @code {
     private readonly List<ReuLogEntry> entries = new();
     private ReuLoggerProvider? subscribedProvider;
+    private IEnumerable<ReuLogEntry>? appliedEntries;
     private ElementReference logListRef;
     private IJSObjectReference? module;
     private bool scrollPending;
@@ -63,6 +66,8 @@
 
     /// <summary>
     /// An initial/static set of entries to display. Ignored once live entries arrive from <see cref="Provider"/>.
+    /// Entries are reloaded only when a different collection instance is passed, so changes made to the same collection are not picked up.
+    /// Pass a new collection, or use <see cref="Add"/> to append entries.
     /// </summary>
     [Parameter]
     public IEnumerable<ReuLogEntry>? Entries { get; set; }
@@ -129,6 +134,9 @@
 
             subscribedProvider = Provider;
 
+            // force Entries to be re-applied if the provider is removed
+            appliedEntries = null;
+
             if (subscribedProvider is not null)
             {
                 entries.Clear();
@@ -141,8 +149,10 @@
             }
         }
 
-        if (subscribedProvider is null && Entries is not null)
+        // only reload when a different collection is passed, so entries added via Add() survive parent re-renders
+        if (subscribedProvider is null && Entries is not null && !ReferenceEquals(Entries, appliedEntries))
         {
+            appliedEntries = Entries;
             entries.Clear();
             entries.AddRange(Entries);
             TrimEntries();
@@ -187,7 +197,7 @@
         foreach (var entry in entries)
         {
             sb.Append('[');
-            sb.Append(entry.Timestamp.ToString("HH:mm:ss.fff"));
+            sb.Append(entry.Timestamp.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture));
             sb.Append("] ");
             sb.Append(GetLevelLabel(entry.Level));
             sb.Append(' ');
@@ -231,7 +241,7 @@
 
         foreach (var entry in entries)
         {
-            sb.Append(CsvEscape(entry.Timestamp.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")));
+            sb.Append(CsvEscape(entry.Timestamp.ToString(ExportTimestampFormat, CultureInfo.InvariantCulture)));
             sb.Append(',');
             sb.Append(CsvEscape(entry.Level.ToString()));
             sb.Append(',');
@@ -253,41 +263,43 @@
     /// </summary>
     public string ExportAsJson()
     {
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine("[");
+        var buffer = new System.Buffers.ArrayBufferWriter<byte>();
 
-        for (var i = 0; i < entries.Count; i++)
+        using (var writer = new Utf8JsonWriter(buffer, new JsonWriterOptions
         {
-            var entry = entries[i];
-            sb.Append("  {");
-            sb.Append($"\"timestamp\":\"{entry.Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}\",");
-            sb.Append($"\"level\":\"{entry.Level}\",");
-            sb.Append($"\"category\":{JsonString(entry.Category)},");
+            Indented = true,
+            // keep non-ASCII text (like the scope arrows) readable in the exported file
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        }))
+        {
+            writer.WriteStartArray();
 
-            if (entry.Scopes is { Count: > 0 })
+            foreach (var entry in entries)
             {
-                sb.Append("\"scopes\":[");
-                for (var s = 0; s < entry.Scopes.Count; s++)
+                writer.WriteStartObject();
+                writer.WriteString("timestamp", entry.Timestamp.ToString(ExportTimestampFormat, CultureInfo.InvariantCulture));
+                writer.WriteString("level", entry.Level.ToString());
+                writer.WriteString("category", entry.Category);
+
+                writer.WriteStartArray("scopes");
+                foreach (var scope in entry.Scopes ?? [])
                 {
-                    if (s > 0) sb.Append(',');
-                    sb.Append(JsonString(entry.Scopes[s]));
+                    writer.WriteStringValue(scope);
                 }
-                sb.Append("],");
-            }
-            else
-            {
-                sb.Append("\"scopes\":[],");
+                writer.WriteEndArray();
+
+                writer.WriteString("message", entry.Message);
+                writer.WriteString("exception", entry.HasException ? entry.Exception!.ToString() : null);
+                writer.WriteEndObject();
             }
 
-            sb.Append($"\"message\":{JsonString(entry.Message)},");
-            sb.Append($"\"exception\":{JsonString(entry.HasException ? entry.Exception!.ToString() : null)}");
-            sb.Append(i < entries.Count - 1 ? "}," : "}");
-            sb.AppendLine();
+            writer.WriteEndArray();
         }
 
-        sb.Append(']');
-        return sb.ToString();
+        return System.Text.Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
+
+    private const string ExportTimestampFormat = "yyyy-MM-dd HH:mm:ss.fff zzz";
 
     private static string CsvEscape(string value)
     {
@@ -296,17 +308,6 @@
             return "\"" + value.Replace("\"", "\"\"") + "\"";
         }
         return value;
-    }
-
-    private static string JsonString(string? value)
-    {
-        if (value is null) return "null";
-        return "\"" + value
-            .Replace("\\", "\\\\")
-            .Replace("\"", "\\\"")
-            .Replace("\r", "\\r")
-            .Replace("\n", "\\n")
-            .Replace("\t", "\\t") + "\"";
     }
 
     private void HandleEntryAdded(ReuLogEntry entry)
@@ -526,7 +527,14 @@
 
         if (module is not null)
         {
-            await module.DisposeAsync();
+            try
+            {
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+
             module = null;
         }
     }

@@ -99,7 +99,7 @@
     public EventCallback<FileInfoEventArgs> OnFileExceedCount { get; set; }
 
     /// <summary>
-    /// Maximum number of files allowed to upload. Null is the default which means no limit. Make sure to set limits if in serverside interactivity!
+    /// Maximum number of files allowed in a single selection. Null is the default which means no limit. This does not limit the total number of files a client can upload, as each new selection starts over.
     /// </summary>
     [Parameter]
     public int? MaxFileCount { get; set; }
@@ -108,7 +108,7 @@
     /// Maximum file size in bytes. Null is the default which means no limit. Make sure to set limits if in serverside interactivity!
     /// </summary>
     [Parameter]
-    public int? MaxFileSize { get; set; }
+    public long? MaxFileSize { get; set; }
 
     /// <summary>
     /// A comma-separated list of one or more file types, or unique file type specifiers, describing which file types to allow.
@@ -149,23 +149,32 @@
     [JSInvokable]
     public async Task UploadAsync(string fileName, byte[] data, long lastModified, string type)
     {
-        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
+        var modified = DateTimeOffset.FromUnixTimeMilliseconds(lastModified);
+
+        // the JS check can be bypassed, as a client can invoke this method directly in serverside interactivity
+        if (MaxFileSize > 0 && data.Length > MaxFileSize)
+        {
+            await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, data.Length, modified, type));
+            return;
+        }
+
+        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, modified, type));
     }
 
     [JSInvokable]
     public Task<int> GetMaxFileCountAsync() => Task.FromResult(MaxFileCount ?? 0);
 
     [JSInvokable]
-    public Task<int> GetMaxFileSizeAsync() => Task.FromResult(MaxFileSize ?? 0);
+    public Task<long> GetMaxFileSizeAsync() => Task.FromResult(MaxFileSize ?? 0);
 
     [JSInvokable]
-    public async Task OnFileTooLargeAsync(string fileName, int size, long lastModified, string type)
+    public async Task OnFileTooLargeAsync(string fileName, long size, long lastModified, string type)
     {
         await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
     }
 
     [JSInvokable]
-    public async Task OnFileExceedCountAsync(string fileName, int size, long lastModified, string type)
+    public async Task OnFileExceedCountAsync(string fileName, long size, long lastModified, string type)
     {
         await OnFileExceedCount.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
     }
@@ -182,9 +191,26 @@
 
     private async Task ChangeAsync(InputFileChangeEventArgs e)
     {
-        foreach (var file in e.GetMultipleFiles(MaxFileCount ?? int.MaxValue))
+        // GetMultipleFiles(max) throws when more files are supplied, so limits are checked per file like in the JS upload
+        var files = e.GetMultipleFiles(e.FileCount);
+
+        for (var i = 0; i < files.Count; i++)
         {
-            var stream = file.OpenReadStream(MaxFileSize ?? long.MaxValue);
+            var file = files[i];
+
+            if (MaxFileCount > 0 && i >= MaxFileCount)
+            {
+                await OnFileExceedCount.InvokeAsync(new FileInfoEventArgs(file.Name, file.Size, file.LastModified, file.ContentType));
+                continue;
+            }
+
+            if (MaxFileSize > 0 && file.Size > MaxFileSize)
+            {
+                await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(file.Name, file.Size, file.LastModified, file.ContentType));
+                continue;
+            }
+
+            var stream = file.OpenReadStream(long.MaxValue);
             await OnStream.InvokeAsync(new StreamEventArgs(file.Name, file.Size, stream, file.LastModified));
         }
     }

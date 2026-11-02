@@ -34,6 +34,8 @@ In Blazor WebAssembly or Photino Blazor:
 <script src="_content/Reuniverse.Razor/reuniverse.js" defer></script>
 ```
 
+`reuniverse.css`, `reuniverse.js` and `reuniverse.theme.js` also come minified as `reuniverse.min.css`, `reuniverse.min.js` and `reuniverse.theme.min.js`, to use in their place.
+
 ### Theming
 
 Reuniverse has a light/dark theme system driven by the `data-theme` attribute on `<html>`. Include `reuniverse.theme.js` as a **blocking** (no `defer`/`async`) script at the very top of `<head>`, before any stylesheets:
@@ -591,7 +593,7 @@ A virtualized, live log viewer for `Microsoft.Extensions.Logging` entries.
 
 - **Requires interactivity** to function properly.
 - `Provider` - A `ReuLoggerProvider` to subscribe to for live entries.
-- `Entries` - A static list of `ReuLogEntry` items to display (used when `Provider` is not set).
+- `Entries` - A static list of `ReuLogEntry` items to display (used when `Provider` is not set). Reloaded only when a different collection instance is passed, so pass a new collection or use `Add()` instead of changing the existing one.
 - `ShowTimestamp` - Whether to show the timestamp column. (default: `true`)
 - `MaxEntries` - Maximum number of entries to keep; oldest are discarded. (default: 1000)
 - `ItemSize` - Row height in pixels for virtualization. (default: 26)

@@ -1,3 +1,5 @@
+@implements IDisposable
+
 @if (Selected)
 {
     <div class="content">
@@ -21,11 +23,28 @@
     [Parameter]
     public string? CssClass { get; set; }
 
+    /// <summary>
+    /// Whether to show the close (✕) button in the tab header. Defaults to <see langword="false"/>.
+    /// </summary>
+    [Parameter]
+    public bool ShowCloseButton { get; set; }
+
+    /// <summary>
+    /// Callback invoked when the close button is clicked. The tab stays until it is removed from the markup, so remove it here.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClosed { get; set; }
+
     public bool Selected { get; internal set; }
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         Parent?.Register(this);
+    }
+
+    public void Dispose()
+    {
+        Parent?.Unregister(this);
     }
 }

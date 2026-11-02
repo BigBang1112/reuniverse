@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <PackageId>Reuniverse.Razor</PackageId>
-        <Version>0.9.2</Version>
+        <Version>0.10.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Common Blazor components for BigBang1112 projects (gbx.tools).</Description>
         <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
@@ -10,7 +10,29 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>reuniverse, razor, blazor, gbx</PackageTags>
         <PackageReleaseNotes>
-- Fixed navbar losing interactivity features on page change
+New:
+- Undo/redo for ReuObjectTree edits through ReuObjectTreeHistory (History parameter)
+- Closable tabs (ReuTab ShowCloseButton and OnClosed)
+- Submenus in ReuNavMenu (nested ReuNavItem), working without interactivity
+- ReuNavMenu IsAbsolute to place the bar over the page content
+- Themed error panel with copyable log in place of #blazor-error-ui (via reuniverse.js)
+- Minified reuniverse.min.css, reuniverse.min.js and reuniverse.theme.min.js
+- Tooltips now work in every render mode including static SSR, on hover and keyboard focus, and on any element through data-reu-tooltip
+
+Breaking:
+- ReuTooltip now wraps its content with a required Text parameter; IsGlobal, Show() and Hide() were removed
+- ReuNavItem default icon size is now 32 instead of 24
+- Tooltips, the error panel and the responsive navbar need reuniverse.js
+
+Fixes:
+- ReuObjectTree: enums, dictionaries (null values, structs, inheritance), value type lists, default values in lists, cyclic references, infinite enumerables, stale paging and page counts with filters, expansion issues, SetValue on outdated render, readonly collections
+- ReuObjectTree now catches exceptions thrown by child values
+- ReuLogs entries no longer disappear when the parent rerenders
+- ReuUploadArea, ReuUploadButton and ReuUploadScreen enforce limits further on the server, and multi-file ReuUploadScreen works correctly
+- ReuFileBrowser no longer handles key presses twice
+- Menu item action is no longer invoked twice
+- ReuRadio check behaviour, missing ReuTabs CssClass, ExpandedChanged cases and streamed mode issues
+- Refactored CSS and navbar, lighter secondary text color
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
@@ -28,7 +50,6 @@
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
 
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <NoWarn>1591</NoWarn>
@@ -43,6 +64,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Reuniverse.Razor.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.11" Condition="'$(TargetFramework)' == 'net9.0'" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" Condition="'$(TargetFramework)' == 'net10.0'" />
     </ItemGroup>
@@ -50,5 +75,55 @@
     <ItemGroup>
       <Folder Include="Exceptions\" />
     </ItemGroup>
+
+    <!-- The global stylesheet and scripts are also shipped as .min files next to them, minified by esbuild, which needs Node.js.
+         They are made in every configuration, as an app that references them needs them in Debug too.
+         Pass -p:ReuMinifyAssets=false to make the .min files plain copies, without Node.js. -->
+    <PropertyGroup>
+        <ReuMinifyAssets Condition="'$(ReuMinifyAssets)' == ''">true</ReuMinifyAssets>
+        <EsbuildVersion>0.28.2</EsbuildVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ReuMinifiedAsset Include="wwwroot\reuniverse.css;wwwroot\reuniverse.js;wwwroot\reuniverse.theme.js" />
+    </ItemGroup>
+
+    <!-- IntermediateOutputPath is only set after the project body, so the output folder is in its own target.
+         The copies have their own folder, so that switching ReuMinifyAssets does not leave the other ones up to date. -->
+    <Target Name="_ReuResolveMinifiedDir">
+        <PropertyGroup>
+            <_ReuMinifiedDir Condition="'$(ReuMinifyAssets)' == 'true'">$(IntermediateOutputPath)minified\</_ReuMinifiedDir>
+            <_ReuMinifiedDir Condition="'$(ReuMinifyAssets)' != 'true'">$(IntermediateOutputPath)unminified\</_ReuMinifiedDir>
+        </PropertyGroup>
+    </Target>
+
+    <Target Name="_ReuMinifyAssets"
+            DependsOnTargets="_ReuResolveMinifiedDir"
+            Inputs="@(ReuMinifiedAsset);$(MSBuildProjectFullPath)"
+            Outputs="@(ReuMinifiedAsset->'$(_ReuMinifiedDir)%(Filename).min%(Extension)')">
+        <Exec Condition="'$(ReuMinifyAssets)' == 'true'"
+              Command="npx --yes esbuild@$(EsbuildVersion) @(ReuMinifiedAsset->'&quot;%(Identity)&quot;', ' ') --minify --out-extension:.css=.min.css --out-extension:.js=.min.js --outdir=&quot;$(_ReuMinifiedDir.TrimEnd('\'))&quot; --log-level=warning"
+              ContinueOnError="true">
+            <Output TaskParameter="ExitCode" PropertyName="_ReuEsbuildExitCode" />
+        </Exec>
+        <Error Condition="'$(ReuMinifyAssets)' == 'true' And '$(_ReuEsbuildExitCode)' != '0'"
+               Text="Minifying the static assets with esbuild failed. It needs Node.js (npx) on the PATH. Pass -p:ReuMinifyAssets=false to make the .min files plain copies." />
+        <Copy Condition="'$(ReuMinifyAssets)' != 'true'"
+              SourceFiles="@(ReuMinifiedAsset)"
+              DestinationFiles="@(ReuMinifiedAsset->'$(_ReuMinifiedDir)%(Filename).min%(Extension)')" />
+    </Target>
+
+    <!-- Adds the .min files to wwwroot before the SDK turns it into static web assets, so they are served and packed with the rest. -->
+    <Target Name="_ReuAddMinifiedAssets"
+            DependsOnTargets="_ReuMinifyAssets"
+            BeforeTargets="ResolveProjectStaticWebAssets">
+        <ItemGroup>
+            <_ReuMinifiedFile Include="@(ReuMinifiedAsset->'$(_ReuMinifiedDir)%(Filename).min%(Extension)')" />
+            <Content Include="@(_ReuMinifiedFile)"
+                     Link="wwwroot\%(_ReuMinifiedFile.Filename)%(_ReuMinifiedFile.Extension)"
+                     ContentRoot="$(MSBuildProjectDirectory)\$(_ReuMinifiedDir)" />
+            <FileWrites Include="@(_ReuMinifiedFile)" />
+        </ItemGroup>
+    </Target>
 
 </Project>

@@ -19,6 +19,15 @@
         animation: fadeInFaded 0.2s ease-in forwards;
     }
 
+.items.no-fade > div > .item:not(.root) {
+    opacity: 1;
+    animation: none;
+}
+
+.items.no-fade > div > .item.faded:not(.root) {
+    opacity: 0.3;
+}
+
 .items {
     margin-left: 1rem;
     display: flex;
@@ -86,8 +95,7 @@
 
     ::deep .box-value.clickable {
         -webkit-user-select: none; /* Safari */
-        -ms-user-select: none; /* IE 10 and IE 11 */
-        user-select: none; /* Standard syntax */
+        user-select: none;
     }
 
     ::deep .box-value.clickable:hover {
@@ -179,7 +187,7 @@
     justify-content: center;
     cursor: pointer;
     font-size: 12px;
-    transition: all 0.1s ease;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
     user-select: none;
 }
 

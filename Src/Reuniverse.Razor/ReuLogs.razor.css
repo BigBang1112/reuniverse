@@ -139,11 +139,7 @@
     }
 
 /* Level coloring */
-.level-trace .level {
-    color: var(--color-text-muted);
-    background: var(--color-overlay-weak);
-}
-
+.level-trace .level,
 .level-debug .level {
     color: var(--color-text-muted);
     background: var(--color-overlay-weak);

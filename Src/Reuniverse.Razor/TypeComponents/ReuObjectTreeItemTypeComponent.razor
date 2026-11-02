@@ -18,9 +18,7 @@
 {
     <span class="box-value clickable"
     @onclick="Reveal"
-    @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
-    @onmousemove="ReuTooltip.MoveGlobal"
-    @onmouseout="ReuTooltip.HideGlobal">
+    data-reu-tooltip="Reveal the actual value">
         @renderFragment
     </span>
 }
@@ -30,7 +28,8 @@ else if (TryGetValueComponent(out var componentType))
                 {
                     ["Item"] = Value,
                     ["TypeValueComponents"] = TypeValueComponents,
-                    ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+                    ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged),
+                    ["History"] = History
                 };
 
     <DynamicComponent Type="componentType" Parameters="parameters" />
@@ -67,9 +66,7 @@ else
 {
     <span class="box-value clickable remove"
           @onclick="RemoveValueAsync"
-          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Remove element"))"
-          @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">✕</span>
+          data-reu-tooltip="Remove element">✕</span>
 }
 @if (Exception is not null)
 {
@@ -84,7 +81,6 @@ else
     private void Reveal()
     {
         revealed = true;
-        ReuTooltip.HideGlobal();
     }
 
     private bool TryGetValueComponent(out Type? componentType)
@@ -102,7 +98,8 @@ else
 
     private bool CanRemoveValue()
     {
-        return Value.Parent is System.Collections.IList and not Array;
+        // arrays are fixed size, immutable and read-only collections are read-only
+        return Value.Parent is System.Collections.IList { IsReadOnly: false, IsFixedSize: false };
     }
 
     private async Task RemoveValueAsync()
@@ -121,9 +118,14 @@ else
 
         try
         {
-            list.RemoveAt(Value.Index);
+            // the list could have changed since rendering or while confirming, so the index may be another element now
+            if (Value.Index < list.Count && Equals(list[Value.Index], Value.Value))
+            {
+                list.RemoveAt(Value.Index);
+                History?.RecordElementRemoved(list, Value.Index, Value.Value);
+            }
+
             await ValueChanged.InvokeAsync(Value);
-            ReuTooltip.HideGlobal();
         }
         catch (Exception ex)
         {

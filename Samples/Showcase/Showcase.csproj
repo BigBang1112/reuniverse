@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+        <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <InvariantTimezone>true</InvariantTimezone>
+    </PropertyGroup>
+
+    <!-- Prerendering on publish. The pages are saved as components.html etc., which GitHub Pages
+         serves for /components without redirecting to /components/ first.
+         /help is only a link in the menu bar demo, so it would be saved as the not found page. -->
+    <PropertyGroup>
+        <BlazorWasmPrerenderingOutputStyle>AppendHtmlExtension</BlazorWasmPrerenderingOutputStyle>
+        <BlazorWasmPrerenderingUrlPathRegexToIgnore>/help$</BlazorWasmPrerenderingUrlPathRegexToIgnore>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BlazorWasmPreRendering.Build" Version="10.0.2" />
+        <PackageReference Include="GBX.NET" Version="2.4.2" />
+        <PackageReference Include="GBX.NET.LZO" Version="2.1.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.3" PrivateAssets="all" />
+        <PackageReference Include="TmEssentials.Razor" Version="1.1.3" />
+        <PackageReference Include="TmScores" Version="1.0.0" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <TrimmerRootAssembly Include="GBX.NET" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Src\Reuniverse.Razor\Reuniverse.Razor.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\img\" />
+    </ItemGroup>
+
+</Project>

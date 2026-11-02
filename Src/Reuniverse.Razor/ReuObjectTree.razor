@@ -1,4 +1,6 @@
-﻿<div>
+﻿@implements IDisposable
+
+<div>
     <div class="item @(ParentTree is null ? "root" : "") @(Faded ? "faded" : "")">
         @if (Value is null)
         {
@@ -19,7 +21,8 @@
                 [nameof(TypeComponentBase<>.OnSelect)] = EventCallback.Factory.Create(this, SelectAsync),
                 [nameof(TypeComponentBase<>.Selected)] = SelectedObject?.Equals(Value) ?? false,
                 [nameof(TypeComponentBase<>.VisualizationProvider)] = VisualizationProvider,
-                [nameof(TypeComponentBase<>.ExtrasProvider)] = ExtrasProvider
+                [nameof(TypeComponentBase<>.ExtrasProvider)] = ExtrasProvider,
+                [nameof(TypeComponentBase<>.History)] = GetRootTree().History
             };
 
             <DynamicComponent Type="componentType" Parameters="parameters" />
@@ -45,7 +48,9 @@
                 var parameters = new Dictionary<string, object?>
                 {
                     ["ReadOnlyValue"] = Value,
-                    ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange)
+                    ["TypeValueComponents"] = ResolvedTypeValueComponents,
+                    ["ValueChanged"] = EventCallback.Factory.Create(this, OnValueChange),
+                    ["History"] = GetRootTree().History
                 };
 
                 <DynamicComponent Type="valueComponentType" Parameters="parameters" />
@@ -59,7 +64,8 @@
     </div>
     @if (IsExpanded && Children.Any())
     {
-        var memberValue = (Value as IReuObjectTreeElement)?.Value;
+        // the root tree holds the raw object instead of an element
+        var memberValue = Value is IReuObjectTreeElement treeElement ? treeElement.Value : Value;
         var totalCount = memberValue switch
         {
             System.Collections.ICollection collection => collection.Count,
@@ -82,27 +88,33 @@
             }
         }
 
-        IEnumerable<IGrouping<Type?, object?>?> groupedChildren;
+        // a pure enumerable may never end, and large grouping creates thousands of object tree elements before they are even visible,
+        // so only the members are grouped there, and the elements are paged after them
+        var groupMembersOnly = isPureEnumerable || totalCount > 1000;
+        var groupableChildren = groupMembersOnly ? Children.TakeWhile(child => child is ReuObjectTreeMember) : Children;
 
-        if (totalCount > 1000)
+        IEnumerable<IGrouping<Type?, object?>?> groupedChildren = groupableChildren.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
+            .Where(group => group.Key != typeof(object) && group.Key != typeof(ValueType))
+            .OrderByDescending(group => group.Key, BaseTypeComparer.Instance);
+
+        if (groupMembersOnly)
         {
-            // large grouping creates thousands of object tree elements before they are even visible
-            groupedChildren = [null];
-        }
-        else
-        {
-            groupedChildren = Children.GroupBy(child => (child as ReuObjectTreeMember)?.Property.DeclaringType)
-                .Where(group => group.Key != typeof(object) && group.Key != typeof(ValueType))
-                .OrderByDescending(group => group.Key, BaseTypeComparer.Instance);
+            groupedChildren = groupedChildren.Append(null);
         }
 
         var isFirstGroup = true;
+        var usedChildKeys = new HashSet<(object?, int)>();
 
-        <div class="items">
+        <div class="items @(skipRowFadeIn ? "no-fade" : "")">
             @foreach (var group in groupedChildren)
             {
-                // in case large grouping was skipped, directly use Children
-                var actualGroup = (group ?? Children).Where(child => !ProvideIgnore(child));
+                // only the members were grouped, so the elements are what is left after them
+                var actualGroup = (group ?? Children.SkipWhile(child => child is ReuObjectTreeMember)).Where(child => !ProvideIgnore(child));
+
+                // element count after filtering, used for paging
+                var shownCount = totalCount ?? 0;
+
+                var hasNextPage = false;
 
                 if (!isFirstGroup && group?.Key is not null)
                 {
@@ -115,13 +127,21 @@
                 {
                     if (totalCount > PageSize)
                     {
-                        var totalPages = (int)Math.Ceiling((double)totalCount / PageSize);
-
                         if (!string.IsNullOrWhiteSpace(searchTerm))
                         {
                             actualGroup = actualGroup.Where(child => (child as IReuObjectTreeElement)?.Value?.ToString()?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true);
-                            totalPages = (int)Math.Ceiling((double)actualGroup.Count() / PageSize);
                         }
+
+                        // counting enumerates every element, so ignored elements are counted only if grouping already did that
+                        if (!string.IsNullOrWhiteSpace(searchTerm) || (IgnoreProvider is not null && group is not null))
+                        {
+                            shownCount = actualGroup.Count();
+                        }
+
+                        var totalPages = (int)Math.Ceiling((double)shownCount / PageSize);
+
+                        // the collection could have shrunk since the page was selected
+                        CurrentPage = Math.Clamp(CurrentPage, 0, Math.Max(0, totalPages - 1));
 
                         actualGroup = actualGroup.Skip(CurrentPage * PageSize).Take(PageSize);
 
@@ -137,8 +157,8 @@
                                 {
                                     <code class="page-info">@(CurrentPage + 1)/@totalPages</code>
                                 }
-                                <button class="page-btn" @onclick="() => GoToNextPage(totalCount.Value)" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
-                                <button class="page-btn" @onclick="() => GoToLastPage(totalCount.Value)" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
+                                <button class="page-btn" @onclick="() => GoToNextPage(shownCount)" disabled="@(CurrentPage >= totalPages - 1)">▶</button>
+                                <button class="page-btn" @onclick="() => GoToLastPage(shownCount)" disabled="@(CurrentPage >= totalPages - 1)">⏭</button>
                                 <label class="page-goto">
                                     <span class="pagination-text">Go to page:</span>
                                     <input type="number" min="1" max="@totalPages" @onchange="e => GoToPage(e.Value?.ToString(), totalPages)" class="page-input" />
@@ -149,13 +169,35 @@
                     }
                     else if (isPureEnumerable)
                     {
-                        
+                        // the end is unknown, so only this page and one element to detect the next page are requested
+                        var pageElements = Children.SkipWhile(child => child is ReuObjectTreeMember)
+                            .Skip(CurrentPage * PageSize)
+                            .Take(PageSize + 1)
+                            .ToList();
+
+                        hasNextPage = pageElements.Count > PageSize;
+
+                        // ignored after paging, as looking for a full page of elements could otherwise never finish
+                        actualGroup = pageElements.Take(PageSize).Where(child => !ProvideIgnore(child));
+
+                        @if (CurrentPage > 0 || hasNextPage)
+                        {
+                            <div class="pagination-info">
+                                <div class="pagination-controls">
+                                    <button class="page-btn" @onclick="() => GoToFirstPage()" disabled="@(CurrentPage == 0)">⏮</button>
+                                    <button class="page-btn" @onclick="() => GoToPreviousPage()" disabled="@(CurrentPage == 0)">◀</button>
+                                    <code class="page-info">@(CurrentPage + 1)/?</code>
+                                    <button class="page-btn" @onclick="() => GoToNextPage()" disabled="@(!hasNextPage)">▶</button>
+                                </div>
+                            </div>
+                        }
                     }
                 }
 
                 foreach (var child in actualGroup)
                 {
-                    <ReuObjectTree Parent="Value"
+                    <ReuObjectTree @key="GetChildKey(child, usedChildKeys)"
+                                    Parent="Value"
                                     ParentTree="this"
                                     Value="child"
                                     HideType="HideType"
@@ -174,7 +216,7 @@
                 {
                     if (totalCount > PageSize)
                     {
-                        var itemsLeft = totalCount.Value - (CurrentPage + 1) * PageSize;
+                        var itemsLeft = shownCount - (CurrentPage + 1) * PageSize;
 
                         @if (itemsLeft > 0)
                         {
@@ -189,23 +231,27 @@
                             </div>
                         }
                     }
-                    else if (isPureEnumerable)
+                    else if (isPureEnumerable && (CurrentPage > 0 || hasNextPage))
                     {
-                        
+                        <div class="more-items-indicator">
+                            @(hasNextPage ? "More elements not shown" : "No more elements")
+                        </div>
                     }
                 }
             }
         </div>
     }
+
+    @if (childrenException is not null)
+    {
+        <div class="exception">@childrenException.Message</div>
+    }
 </div>
 
 @code {
-    private static HashSet<ExpandedObject> expandedObjects = new();
-    private static HashSet<object> expansionPath = new();
-    private static Dictionary<ExpandedObject, int> objectPages = new();
-
-    private ExpandedObject expandedObject = new();
     private const int PageSize = 10;
+
+    private bool isExpanded;
 
     private string? searchTerm;
 
@@ -240,10 +286,8 @@
     [Parameter]
     public IReadOnlyDictionary<Type, Type>? AdditionalTypeComponents { get; set; }
 
-    private Dictionary<Type, Type> ResolvedTypeComponents =>
-        AdditionalTypeComponents is null or { Count: 0 }
-            ? TypeComponents
-            : Merge(TypeComponents, AdditionalTypeComponents);
+    // resolved in OnParametersSet to avoid merging on every access
+    private Dictionary<Type, Type> ResolvedTypeComponents { get; set; } = DefaultTypeComponents;
 
     /// <summary>
     /// Any type to component type mapping to provide value rendering/editing. By default it uses <see cref="DefaultTypeValueComponents"/>, but you can override or extend it.
@@ -258,10 +302,8 @@
     [Parameter]
     public IReadOnlyDictionary<Type, Type>? AdditionalTypeValueComponents { get; set; }
 
-    private Dictionary<Type, Type> ResolvedTypeValueComponents =>
-        AdditionalTypeValueComponents is null or { Count: 0 }
-            ? TypeValueComponents
-            : Merge(TypeValueComponents, AdditionalTypeValueComponents);
+    // resolved in OnParametersSet to avoid merging on every access
+    private Dictionary<Type, Type> ResolvedTypeValueComponents { get; set; } = DefaultTypeValueComponents;
 
     /// <summary>
     /// A function that provides the children of a given object. By default it uses <see cref="DefaultChildrenProvider"/>, but you can override it.
@@ -287,19 +329,28 @@
     [Parameter]
     public EventCallback<Type> OnTypeClick { get; set; }
 
+    /// <summary>
+    /// Records the edits made through the tree so they can be undone and redone.
+    /// By default nothing is recorded. Only the root tree uses this, and the same instance can be passed to several trees.
+    /// </summary>
+    [Parameter]
+    public ReuObjectTreeHistory? History { get; set; }
+
+    private ReuObjectTreeHistory? subscribedHistory;
+
     public Exception? Exception { get; private set; }
 
     public bool IsExpandable => Value is not null && Children.Any();
 
     public bool IsExpanded
     {
-        get => expandedObjects.Contains(expandedObject);
+        get => isExpanded;
         set
         {
             // Children.Any could be a bit expensive
             if (!value || !IsExpandable)
             {
-                expandedObjects.Remove(expandedObject);
+                isExpanded = false;
                 return;
             }
 
@@ -308,7 +359,7 @@
                 throw new InvalidOperationException("Detected cyclic reference in object tree");
             }
 
-            expandedObjects.Add(expandedObject);
+            isExpanded = true;
         }
     }
 
@@ -356,12 +407,22 @@
 
     private int CurrentPage
     {
-        get => objectPages.GetValueOrDefault(expandedObject, 0);
-        set => objectPages[expandedObject] = value;
+        get;
+        set
+        {
+            skipRowFadeIn |= field != value;
+            field = value;
+        }
     }
+
+    // rows replaced by paging or searching are new elements, but they should fade in only when expanding
+    private bool skipRowFadeIn;
 
     public void ToggleExpanded()
     {
+        InvalidateChildren();
+        skipRowFadeIn = false;
+
         try
         {
             IsExpanded = !IsExpanded;
@@ -372,11 +433,116 @@
         }
     }
 
-    public IEnumerable<object?> Children => Value is null ? [] : ChildrenProvider(Value);
+    // cached so the children provider (reflection + enumeration) runs once per render instead of multiple times
+    private BufferedEnumerable<object?>? children;
+
+    public IEnumerable<object?> Children => Value is null ? [] : children ??= new(EnumerateChildren(Value));
+
+    // shown after the elements, as enumeration can fail partway through rendering them
+    private Exception? childrenException;
+
+    // children are enumerated during render, where an exception would take down the whole circuit
+    private IEnumerable<object?> EnumerateChildren(object value)
+    {
+        IEnumerator<object?>? enumerator = null;
+
+        try
+        {
+            while (true)
+            {
+                try
+                {
+                    enumerator ??= ChildrenProvider(value).GetEnumerator();
+
+                    if (!enumerator.MoveNext())
+                    {
+                        yield break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    childrenException = ex.InnerException ?? ex;
+                    yield break;
+                }
+
+                yield return enumerator.Current;
+            }
+        }
+        finally
+        {
+            enumerator?.Dispose();
+        }
+    }
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // the parent re-rendered, the value or its contents may have changed
+        InvalidateChildren();
+        return base.SetParametersAsync(parameters);
+    }
+
+    protected override bool ShouldRender()
+    {
+        // the contents could have changed since the last render, and resuming a partial enumeration of a modified collection would throw
+        InvalidateChildren();
+        return true;
+    }
+
+    private void InvalidateChildren()
+    {
+        children?.Dispose();
+        children = null;
+        childrenException = null;
+    }
+
+    public void Dispose()
+    {
+        InvalidateChildren();
+        SubscribeToHistory(null);
+    }
+
+    private void SubscribeToHistory(ReuObjectTreeHistory? history)
+    {
+        if (ReferenceEquals(subscribedHistory, history))
+        {
+            return;
+        }
+
+        if (subscribedHistory is not null)
+        {
+            subscribedHistory.Applied -= OnHistoryApplied;
+        }
+
+        subscribedHistory = history;
+
+        if (subscribedHistory is not null)
+        {
+            subscribedHistory.Applied += OnHistoryApplied;
+        }
+    }
+
+    private void OnHistoryApplied()
+    {
+        // the step could have touched any level of the tree
+        _ = InvokeAsync(Update);
+    }
 
     protected override void OnInitialized()
     {
         IsExpanded = IsExpandedByDefault;
+    }
+
+    protected override void OnParametersSet()
+    {
+        SubscribeToHistory(History);
+
+        ResolvedTypeComponents = AdditionalTypeComponents is null or { Count: 0 }
+            ? TypeComponents
+            : Merge(TypeComponents, AdditionalTypeComponents);
+
+        ResolvedTypeValueComponents = AdditionalTypeValueComponents is null or { Count: 0 }
+            ? TypeValueComponents
+            : Merge(TypeValueComponents, AdditionalTypeValueComponents);
     }
 
     private bool TryGetValueComponent(out Type? componentType)
@@ -479,6 +645,12 @@
                     continue;
                 }
 
+                // ref structs like Span<T> cannot be boxed, so reflection cannot read them
+                if (prop.PropertyType.IsByRefLike)
+                {
+                    continue;
+                }
+
                 if (isDictionary && prop.Name is "Keys" or "Values" or "Comparer")
                 {
                     continue;
@@ -529,19 +701,20 @@
     {
         try
         {
-            if (Value is not ReuObjectTreeMember currentMember)
+            if (Value is not IReuObjectTreeElement { Value: { } currentValue })
             {
                 return false;
             }
 
-            while (Parent is ReuObjectTreeMember parentMember)
+            // walk all ancestor trees, the root tree holds the raw object instead of an element
+            for (var tree = ParentTree; tree is not null; tree = tree.ParentTree)
             {
-                if (Equals(currentMember.Value, parentMember.Value))
+                var ancestorValue = tree.Value is IReuObjectTreeElement element ? element.Value : tree.Value;
+
+                if (Equals(currentValue, ancestorValue))
                 {
                     return true;
                 }
-
-                Parent = parentMember.Parent;
             }
         }
         catch (TargetInvocationException)
@@ -569,6 +742,7 @@
     /// </summary>
     public void Update()
     {
+        InvalidateChildren();
         StateHasChanged();
     }
 
@@ -577,18 +751,17 @@
     /// </summary>
     public void UpdateAll()
     {
-        if (ParentTree is null)
-        {
-            Update();
-            return;
-        }
+        GetRootTree().Update();
+    }
 
-        var rootTree = ParentTree;
+    private ReuObjectTree GetRootTree()
+    {
+        var rootTree = this;
         while (rootTree.ParentTree is not null)
         {
             rootTree = rootTree.ParentTree;
         }
-        rootTree.Update();
+        return rootTree;
     }
 
     private void GoToFirstPage()
@@ -602,6 +775,11 @@
         {
             CurrentPage--;
         }
+    }
+
+    private void GoToNextPage()
+    {
+        CurrentPage++;
     }
 
     private void GoToNextPage(int totalCount)
@@ -623,12 +801,14 @@
     {
         if (int.TryParse(page, out int pageNum))
         {
-            CurrentPage = Math.Clamp(pageNum - 1, 0, totalPages - 1);
+            CurrentPage = Math.Clamp(pageNum - 1, 0, Math.Max(0, totalPages - 1));
         }
     }
 
     private void OnSearch(string? searchTerm)
     {
+        skipRowFadeIn = true;
+
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             this.searchTerm = null;
@@ -653,7 +833,29 @@
 
         UpdateAll();
 
-        await SelectedObjectChanged.InvokeAsync(SelectedObject);
+        // only the root tree receives the callback from the consumer
+        await GetRootTree().SelectedObjectChanged.InvokeAsync(SelectedObject);
+    }
+
+    // keys by position in the object rather than by element equality, as editing a value would change the key and collapse the element
+    private static (object? Key, int Occurrence) GetChildKey(object? child, HashSet<(object?, int)> usedKeys)
+    {
+        object? key = child switch
+        {
+            ReuObjectTreeMember member => member.Property,
+            ReuObjectTreeItem item => item.Index,
+            ReuObjectTreeKeyValue keyValue => keyValue.Key,
+            _ => child
+        };
+
+        // sibling keys must be unique, but custom ChildrenProvider can yield duplicates
+        var occurrence = 0;
+        while (!usedKeys.Add((key, occurrence)))
+        {
+            occurrence++;
+        }
+
+        return (key, occurrence);
     }
 
     private bool ProvideFade(object? child)
@@ -708,17 +910,17 @@
         [typeof(TimeSpan)] = typeof(TimeSpanTypeValueComponent),
         [typeof(Enum)] = typeof(EnumTypeValueComponent),
         [typeof(bool)] = typeof(BooleanTypeValueComponent),
-        [typeof(sbyte)] = typeof(SByteTypeValueComponent),
-        [typeof(byte)] = typeof(ByteTypeValueComponent),
-        [typeof(short)] = typeof(Int16TypeValueComponent),
-        [typeof(int)] = typeof(Int32TypeValueComponent),
-        [typeof(long)] = typeof(Int64TypeValueComponent),
-        [typeof(ushort)] = typeof(UInt16TypeValueComponent),
-        [typeof(uint)] = typeof(UInt32TypeValueComponent),
-        [typeof(ulong)] = typeof(UInt64TypeValueComponent),
-        [typeof(float)] = typeof(SingleTypeValueComponent),
-        [typeof(double)] = typeof(DoubleTypeValueComponent),
-        [typeof(decimal)] = typeof(DecimalTypeValueComponent),
+        [typeof(sbyte)] = typeof(NumberTypeValueComponent<sbyte>),
+        [typeof(byte)] = typeof(NumberTypeValueComponent<byte>),
+        [typeof(short)] = typeof(NumberTypeValueComponent<short>),
+        [typeof(int)] = typeof(NumberTypeValueComponent<int>),
+        [typeof(long)] = typeof(NumberTypeValueComponent<long>),
+        [typeof(ushort)] = typeof(NumberTypeValueComponent<ushort>),
+        [typeof(uint)] = typeof(NumberTypeValueComponent<uint>),
+        [typeof(ulong)] = typeof(NumberTypeValueComponent<ulong>),
+        [typeof(float)] = typeof(NumberTypeValueComponent<float>),
+        [typeof(double)] = typeof(NumberTypeValueComponent<double>),
+        [typeof(decimal)] = typeof(NumberTypeValueComponent<decimal>),
         [typeof(Guid)] = typeof(GuidTypeValueComponent),
     };
 
@@ -728,9 +930,6 @@
         foreach (var kv in extras) merged[kv.Key] = kv.Value;
         return merged;
     }
-
-    // This object cannot be record type as it needs to be unique for ALL instances
-    private sealed class ExpandedObject;
 
     private class BaseTypeComparer : IComparer<Type?>
     {

@@ -29,17 +29,14 @@
     padding: 0 10px;
 }
 
-    .content-container.expanded {
-        padding: 10px;
+    .content-container.collapsed {
+        grid-template-rows: 0fr;
     }
 
-.content-container.collapsed {
-    grid-template-rows: 0fr;
-}
-
-.content-container.expanded {
-    grid-template-rows: 1fr;
-}
+    .content-container.expanded {
+        grid-template-rows: 1fr;
+        padding: 10px;
+    }
 
 .content {
     min-height: 0;

@@ -1,0 +1,274 @@
+﻿.hero {
+    padding: 4rem 0;
+    text-align: center;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--color-blue) 25%, transparent), transparent);
+}
+
+h1.title {
+    margin: 0;
+    font-size: clamp(2rem, 11vw, 5rem);
+    letter-spacing: 0.06em;
+}
+
+p.punchline {
+    margin: 1rem 0 0 0;
+    font-size: 120%;
+}
+
+h2.section-title {
+    margin: 3rem 0 1rem 0;
+}
+
+h3.subsection-title {
+    margin: 2rem 0 1rem 0;
+    font-size: 120%;
+}
+
+p.section-text {
+    margin: -0.5rem 0 1rem 0;
+    color: var(--color-text-secondary);
+}
+
+.card {
+    box-sizing: border-box;
+    min-width: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: var(--color-overlay-weak);
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: 1rem;
+}
+
+    .card-grid.stacked {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+}
+
+    .info h2, .info h3, .info h4 {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .info h2 {
+        font-size: 130%;
+    }
+
+    .info h3, .info h4 {
+        font-size: 110%;
+    }
+
+    .info p {
+        flex: 1;
+        margin: 0;
+        color: var(--color-text-secondary);
+    }
+
+code.snippet {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--color-input-border);
+    border-radius: 0.5rem;
+    background: var(--color-input-bg);
+    font-size: 85%;
+    overflow-wrap: anywhere;
+    user-select: all;
+}
+
+.theme-toggle {
+    align-self: flex-start;
+    padding: 0.4rem 0.8rem;
+}
+
+.samples {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+}
+
+.info input, .info progress {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.info .validation-message {
+    margin-top: -0.5rem;
+    padding: 0;
+}
+
+.info ::deep .nuget {
+    align-self: flex-start;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-weight: bold;
+}
+
+.preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-bottom: 1rem;
+    overflow: hidden;
+    color: var(--color-text-primary);
+    transition: border-color 0.2s ease;
+}
+
+    .preview:hover {
+        border-color: var(--color-link);
+        color: var(--color-text-primary);
+        text-decoration: none;
+    }
+
+    .preview img {
+        width: 100%;
+        height: auto;
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .preview strong, .preview span {
+        padding: 0 1.25rem;
+    }
+
+    .preview strong {
+        font-size: 120%;
+    }
+
+    .preview span {
+        color: var(--color-text-secondary);
+    }
+
+.styling {
+    overflow: hidden;
+}
+
+.states {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 90%;
+}
+
+    .states th, .states td {
+        padding: 0.4rem 0.75rem;
+        text-align: left;
+        font-weight: normal;
+    }
+
+    .states thead th {
+        color: var(--color-text-secondary);
+    }
+
+        .states thead th:first-child {
+            width: 25%;
+        }
+
+    .states tbody th code {
+        font-size: 90%;
+    }
+
+    .states .group th {
+        padding: 0.6rem 0.75rem;
+        border-block: 1px solid var(--color-border);
+        background: var(--color-overlay-weak);
+    }
+
+        .states .group th span {
+            margin-left: 0.5rem;
+            color: var(--color-text-secondary);
+            font-size: 90%;
+        }
+
+    .states .none {
+        color: var(--color-text-muted);
+    }
+
+    .states input, .states select, .states textarea {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        height: 2rem;
+        margin: 0;
+    }
+
+    .states textarea {
+        height: 3.5rem;
+        border-radius: 5px;
+        resize: vertical;
+    }
+
+    .states input[type=submit], .states input[type=button] {
+        height: auto;
+        text-align: center;
+    }
+
+@media (max-width: 1100px) {
+    .states, .states tbody, .states tr, .states th, .states td {
+        display: block;
+    }
+
+    .states thead {
+        display: none;
+    }
+
+    .states tbody tr:not(.group) {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        padding: 0.4rem 0;
+    }
+
+        .states tbody tr:not(.group) th {
+            grid-column: 1 / -1;
+            padding-bottom: 0;
+        }
+
+    .states .none {
+        visibility: hidden;
+    }
+
+    .states td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.2rem;
+        color: var(--color-text-secondary);
+        font-size: 85%;
+    }
+
+    .states .group th span {
+        display: block;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .hero {
+        padding: 2.5rem 0;
+    }
+
+    .states tbody tr:not(.group) {
+        display: block;
+    }
+
+    .states .none {
+        display: none;
+    }
+
+    .states td {
+        display: grid;
+        grid-template-columns: 5.5rem minmax(0, 1fr);
+        align-items: center;
+    }
+
+        .states td::before {
+            margin-bottom: 0;
+        }
+}

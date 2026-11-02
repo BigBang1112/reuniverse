@@ -1,6 +1,4 @@
-<label @onmouseenter="args => ReuTooltip.ShowGlobal(args, Tooltip)"
-       @onmousemove="ReuTooltip.MoveGlobal"
-       @onmouseout="ReuTooltip.HideGlobal">
+<label data-reu-tooltip="@Tooltip">
     <input type="checkbox" checked="@IsChecked" @onchange="OnChange" @attributes="AdditionalAttributes">
     <span class="checkmark" style="width:@(Size)px;"></span>
     @ChildContent

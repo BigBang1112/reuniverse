@@ -4,8 +4,7 @@
     background: var(--color-input-bg);
     white-space: nowrap;
     -webkit-user-select: none; /* Safari */
-    -ms-user-select: none; /* IE 10 and IE 11 */
-    user-select: none; /* Standard syntax */
+    user-select: none;
     z-index: 900;
     transition: background-color 0.2s ease;
 }

@@ -51,6 +51,11 @@ function handleDragOver(e) {
 
 function handleDrop(e) {
     dragCounter = 0;
+
+    if (hasFiles(e)) {
+        // Deferred so the input is still visible when the browser hands it the dropped files
+        setTimeout(() => dotNetHelper?.invokeMethodAsync('SetVisible', false));
+    }
 }
 
 function hasFiles(e) {

@@ -5,16 +5,14 @@ on:
     branches: [ main, dev ]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
   deploy:
     name: Deploy to Pages
-    uses: bigbang1112/workflows/.github/workflows/deploy-pages.yml@main
+    uses: bigbang1112/workflows/.github/workflows/blazor-wasm-github-pages.yml@main
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     with:
-      dotnet-version: 10.x.x
-      workloads: wasm-tools
-      project: Samples/Overview
+      dotnet-version: 10.0.x
+      project: Samples/Showcase

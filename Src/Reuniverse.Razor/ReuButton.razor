@@ -3,9 +3,7 @@
     <button class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass"
             disabled="@Disabled"
             @onclick="OnClick"
-            @onmouseenter="args => ReuTooltip.ShowGlobal(args, Tooltip)"
-            @onmousemove="ReuTooltip.MoveGlobal"
-            @onmouseout="ReuTooltip.HideGlobal"
+            data-reu-tooltip="@Tooltip"
             @attributes="AdditionalAttributes">
         @ChildContent
     </button>
@@ -14,9 +12,7 @@ else if (NavLink)
 {
     <NavLink href="@Href"
              class="@($"reu-button {(Enable ? "" : "disabled")} {GetVariantClass()} {CssClass}")"
-             @onmouseenter="args => ReuTooltip.ShowGlobal(args, Tooltip)"
-             @onmousemove="ReuTooltip.MoveGlobal"
-             @onmouseout="ReuTooltip.HideGlobal"
+             data-reu-tooltip="@Tooltip"
              @attributes="AdditionalAttributes">
         @ChildContent
     </NavLink>
@@ -25,9 +21,7 @@ else
 {
     <a href="@Href"
        class="reu-button @(Active ? "active" : "") @(Enable ? "" : "disabled") @GetVariantClass() @CssClass"
-       @onmouseenter="args => ReuTooltip.ShowGlobal(args, Tooltip)"
-       @onmousemove="ReuTooltip.MoveGlobal"
-       @onmouseout="ReuTooltip.HideGlobal"
+       data-reu-tooltip="@Tooltip"
        @attributes="AdditionalAttributes">
         @ChildContent
     </a>
