@@ -482,3 +482,189 @@
         }
     });
 })();
+
+// Reuniverse error panel.
+//
+// Blazor reveals #blazor-error-ui after an unhandled error, while the error itself only
+// reaches the console. This keeps what is written there and shows it in a panel in place
+// of that element. It is all client-side, so it also works when .NET is what failed, such
+// as during startup. If this script never loads, #blazor-error-ui shows as usual.
+(function () {
+    "use strict";
+
+    const blazorErrorId = "blazor-error-ui";
+
+    const maxEntries = 100;
+    const copiedDuration = 1500;
+
+    let entries = [];
+    let panel = null;
+    let isOpen = false;
+    let copiedTimer = 0;
+
+    // Must not throw, as that would turn logging an error into a new one.
+    function describe(value) {
+        if (value instanceof Error) {
+            // Only some browsers start the stack with the message.
+            return value.stack?.includes(value.message) ? value.stack : `${value}\n${value.stack ?? ""}`.trim();
+        }
+
+        try {
+            return typeof value === "object" && value !== null ? JSON.stringify(value) : String(value);
+        } catch (e) {
+            return Object.prototype.toString.call(value);
+        }
+    }
+
+    function formatTime(time) {
+        const date = new Date(time);
+        return `${date.toTimeString().slice(0, 8)}.${String(date.getMilliseconds()).padStart(3, "0")}`;
+    }
+
+    function scrollToLatest() {
+        const log = panel.querySelector(".reu-error-log");
+        const latest = log.lastElementChild;
+
+        // The latest error rather than the very bottom, as that is where its stack ends.
+        if (latest) {
+            log.scrollTop = latest.offsetTop;
+        }
+    }
+
+    function render() {
+        // Error text can contain anything, so it must only ever be set as text.
+        panel.querySelector(".reu-error-log").replaceChildren(...entries.map(function (entry) {
+            const row = document.createElement("div");
+            const time = document.createElement("span");
+
+            row.className = "reu-error-entry";
+            time.className = "reu-error-time";
+            time.textContent = formatTime(entry.time);
+            row.append(time, entry.text);
+
+            return row;
+        }));
+
+        panel.querySelector(".reu-error-details").hidden = entries.length === 0;
+        panel.querySelector(".reu-error-copy").hidden = entries.length === 0;
+
+        scrollToLatest();
+    }
+
+    function record(text) {
+        entries.push({ time: Date.now(), text });
+
+        if (entries.length > maxEntries) {
+            entries.shift();
+        }
+
+        if (isOpen) {
+            render();
+        }
+    }
+
+    function copy(button) {
+        function showCopied() {
+            clearTimeout(copiedTimer);
+            button.textContent = "Copied";
+            copiedTimer = setTimeout(function () {
+                button.textContent = "Copy log";
+            }, copiedDuration);
+        }
+
+        // The clipboard can be missing or denied, as in an insecure context, which
+        // leaves selecting the text so it can be copied by hand.
+        function selectLog() {
+            panel.querySelector(".reu-error-details").open = true;
+            getSelection().selectAllChildren(panel.querySelector(".reu-error-log"));
+        }
+
+        const text = entries.map(function (entry) {
+            return `[${formatTime(entry.time)}] ${entry.text}`;
+        }).join("\n");
+
+        (navigator.clipboard?.writeText(text) ?? Promise.reject()).then(showCopied, selectLog);
+    }
+
+    function dismiss() {
+        isOpen = false;
+        entries = [];
+        panel.remove();
+    }
+
+    function createPanel() {
+        panel = document.createElement("section");
+        panel.className = "reu-error-panel";
+        panel.setAttribute("role", "alert");
+        panel.innerHTML = `
+            <div class="reu-error-header">
+                <span class="reu-error-icon" aria-hidden="true">⚠</span>
+                <span class="reu-error-title">An unhandled error has occurred</span>
+                <button type="button" class="reu-error-dismiss" aria-label="Dismiss">✕</button>
+            </div>
+            <p class="reu-error-message">The app may stop working as expected. Reloading the page should get it going again.</p>
+            <details class="reu-error-details" open>
+                <summary>Error log</summary>
+                <div class="reu-error-log reu-mono" tabindex="0"></div>
+            </details>
+            <div class="reu-error-actions">
+                <button type="button" class="reu-button reu-error-copy">Copy log</button>
+                <button type="button" class="reu-button reu-button-blue reu-error-reload">Reload</button>
+            </div>`;
+
+        panel.addEventListener("click", function (event) {
+            if (event.target.closest(".reu-error-dismiss")) {
+                dismiss();
+            } else if (event.target.closest(".reu-error-copy")) {
+                copy(event.target);
+            } else if (event.target.closest(".reu-error-reload")) {
+                location.reload();
+            }
+        });
+
+        panel.querySelector(".reu-error-details").addEventListener("toggle", scrollToLatest);
+    }
+
+    function show() {
+        if (!panel) {
+            createPanel();
+        }
+
+        isOpen = true;
+        document.body.append(panel);
+        render();
+    }
+
+    const originalError = console.error;
+
+    console.error = function (...values) {
+        originalError.apply(console, values);
+        record(values.map(describe).join(" "));
+    };
+
+    window.addEventListener("error", function (event) {
+        record(describe(event.error ?? event.message));
+    });
+
+    window.addEventListener("unhandledrejection", function (event) {
+        record(describe(event.reason));
+    });
+
+    // Watches the whole document, as the element can be rendered at any point, and as
+    // enhanced navigation replaces the contents of <body> along with the panel.
+    new MutationObserver(function (mutations) {
+        if (isOpen && !panel.isConnected) {
+            document.body.append(panel);
+        }
+
+        const blazorError = mutations.find(function (mutation) {
+            return mutation.target.id === blazorErrorId && mutation.target.style.display === "block";
+        })?.target;
+
+        // Hiding it again before it paints, which also makes the next error a change to observe.
+        if (blazorError) {
+            blazorError.style.display = "none";
+            show();
+        }
+    }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
+})();

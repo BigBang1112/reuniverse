@@ -757,6 +757,128 @@ footer.reu-footer {
     }
 }
 
+/* Error panel, created by reuniverse.js in place of #blazor-error-ui.
+   Docked rather than modal, as what is on the page may still be worth saving.
+   Above the upload screen, as it covers the whole page, and below the reconnect modal. */
+.reu-error-panel {
+    position: fixed;
+    inset: auto 0 1rem;
+    z-index: 10000;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: min(46rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin-inline: auto;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-top: 3px solid var(--color-red);
+    border-radius: 8px;
+    background: var(--color-modal-surface);
+    box-shadow: 0 24px 64px #0009, 0 4px 16px #0004;
+    color: var(--color-text-primary);
+    font-size: 90%;
+    overflow-y: auto;
+    animation: reu-modal-panel-in 0.18s ease;
+}
+
+    .reu-error-panel [hidden] {
+        display: none;
+    }
+
+    .reu-error-panel button:focus-visible,
+    .reu-error-panel summary:focus-visible,
+    .reu-error-log:focus-visible {
+        outline: 2px solid var(--color-link);
+        outline-offset: 2px;
+    }
+
+.reu-error-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reu-error-icon {
+    color: var(--color-red);
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.reu-error-title {
+    flex: 1;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.reu-error-dismiss {
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    line-height: 1;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    transition: color 0.1s ease, background-color 0.1s ease;
+}
+
+    .reu-error-dismiss:hover {
+        color: var(--color-text-primary);
+        background-color: var(--color-overlay-medium);
+    }
+
+.reu-error-message {
+    margin: 0;
+    color: var(--color-text-secondary);
+}
+
+.reu-error-details summary {
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 90%;
+}
+
+.reu-error-log {
+    position: relative;
+    max-height: min(20rem, 40dvh);
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-input-bg);
+    font-size: 75%;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+}
+
+.reu-error-entry + .reu-error-entry {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.reu-error-time {
+    margin-right: 0.75em;
+    color: var(--color-text-secondary);
+}
+
+.reu-error-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+    .reu-error-actions .reu-button {
+        padding: 0.4rem 1rem;
+    }
+
+@media (prefers-reduced-motion: reduce) {
+    .reu-error-panel {
+        animation: none;
+    }
+}
+
 #components-reconnect-modal {
     display: none;
     background-color: var(--color-modal-bg);

@@ -206,6 +206,12 @@
         <ReuButton OnClick="() => modalNoFooterOpen = true">Open modal (no footer)</ReuButton>
         <ReuButton OnClick="() => modalFullscreenOpen = true">Open modal (fullscreen)</ReuButton>
     </div>
+    <div>
+        <h2>Error panel</h2>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        <ReuButton Variant="ReuButtonVariant.Red" OnClick="ThrowUnhandledError">Throw unhandled error</ReuButton>
+    </div>
 </div>
 
 <ReuModal @bind-IsOpen="modalOpen" Title="Example Modal">
@@ -464,6 +470,11 @@
     private bool modalOpen;
     private bool modalNoFooterOpen;
     private bool modalFullscreenOpen;
+
+    private static void ThrowUnhandledError()
+    {
+        throw new InvalidOperationException("This error was thrown on purpose by the Showcase");
+    }
 
     public enum UserStatus
     {

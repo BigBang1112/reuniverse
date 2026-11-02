@@ -15,7 +15,7 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
-For tooltips and the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown and the navbar falls back to static width breakpoints:
+For tooltips, the [error panel](#error-panel) and the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown, errors only show in `#blazor-error-ui` and the navbar falls back to static width breakpoints:
 
 ```html
 <script src="@Assets["_content/Reuniverse.Razor/reuniverse.js"]" defer></script>
@@ -63,6 +63,12 @@ You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick`
 ```html
 <button onclick="reuTheme.toggle()">Toggle theme</button>
 ```
+
+### Error panel
+
+When Blazor reports an unhandled error, `reuniverse.js` shows a themed panel with the error log in place of `#blazor-error-ui`, with buttons to copy the log and to reload the page. It needs no setup other than the script, but the `#blazor-error-ui` element has to stay in the page, as that is how Blazor reports the error.
+
+The log holds the last 100 errors written to the console, along with uncaught errors and rejected promises, which do not open the panel by themselves. It is kept until the panel is dismissed or the page is reloaded.
 
 ### Components
 
