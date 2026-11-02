@@ -839,6 +839,9 @@ footer.reu-footer {
 
 .reu-error-log {
     position: relative;
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr);
+    align-content: start;
     max-height: min(20rem, 40dvh);
     margin-top: 0.5rem;
     padding: 0.5rem 0.75rem;
@@ -847,9 +850,8 @@ footer.reu-footer {
     background: var(--color-input-bg);
     font-size: 75%;
     line-height: 1.5;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    overflow-y: auto;
+    white-space: pre;
+    overflow: auto;
 }
 
 .reu-error-entry + .reu-error-entry {

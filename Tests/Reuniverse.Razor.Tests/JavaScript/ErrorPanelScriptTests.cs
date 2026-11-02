@@ -407,6 +407,25 @@ public class ErrorPanelScriptTests : BrowserTestBase
     }
 
     [Test]
+    public async Task BlazorError_WithLongLine_OverflowsLogHorizontally()
+    {
+        // Arrange
+        await GoToAsync(BlazorErrorUi, $"""{Script}<link rel="stylesheet" href="/reuniverse.css" />""");
+        await LogErrorAsync("short");
+
+        // Act
+        await FailAsync(new string('x', 1000));
+
+        // Assert
+        await Assert.That(await Page.EvalOnSelectorAsync<bool>(LogSelector, "log => log.scrollWidth > log.clientWidth")).IsTrue();
+        await Assert.That(await Page.EvalOnSelectorAsync<bool>(PanelSelector, "panel => panel.scrollWidth <= panel.clientWidth")).IsTrue();
+        await Assert.That(await Page.EvalOnSelectorAsync<bool>(
+            LogSelector,
+            "log => log.firstElementChild.offsetWidth === log.lastElementChild.offsetWidth"
+            )).IsTrue();
+    }
+
+    [Test]
     public async Task BlazorError_WithLongLog_ScrollsToLatestEntry()
     {
         // Arrange
