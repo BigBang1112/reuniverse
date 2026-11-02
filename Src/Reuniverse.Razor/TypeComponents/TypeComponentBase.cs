@@ -40,5 +40,11 @@ public abstract class TypeComponentBase<T> : ComponentBase
     [Parameter, EditorRequired]
     public Func<object?, RenderFragment?>? ExtrasProvider { get; set; }
 
+    /// <summary>
+    /// Records the edits made by this component, if the tree keeps a history.
+    /// </summary>
+    [Parameter]
+    public ReuObjectTreeHistory? History { get; set; }
+
     public Exception? Exception { get; set; }
 }

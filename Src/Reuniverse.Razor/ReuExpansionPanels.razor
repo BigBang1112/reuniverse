@@ -28,11 +28,25 @@
         StateHasChanged();
     }
 
-    public void CollapseAll()
+    internal void Unregister(ReuExpansionPanel panel)
     {
-        foreach (var panel in Panels)
+        Panels.Remove(panel);
+    }
+
+    /// <summary>
+    /// Collapses all panels, notifying each panel's <c>ExpandedChanged</c>.
+    /// </summary>
+    public Task CollapseAllAsync() => CollapseAllAsync(except: null);
+
+    internal async Task CollapseAllAsync(ReuExpansionPanel? except)
+    {
+        // ExpandedChanged handlers can add or remove panels while collapsing
+        foreach (var panel in Panels.ToArray())
         {
-            panel.Collapse();
+            if (panel != except && Panels.Contains(panel))
+            {
+                await panel.CollapseAsync();
+            }
         }
         StateHasChanged();
     }

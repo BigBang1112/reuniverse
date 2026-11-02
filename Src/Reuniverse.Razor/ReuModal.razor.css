@@ -12,7 +12,8 @@
 }
 
 .reu-modal-panel {
-    background: var(--color-surface);
+    --color-button-bg: var(--color-modal-button-bg);
+    background: var(--color-modal-surface);
     border: 1px solid var(--color-border);
     border-radius: 8px;
     box-shadow: 0 24px 64px #0009, 0 4px 16px #0004;

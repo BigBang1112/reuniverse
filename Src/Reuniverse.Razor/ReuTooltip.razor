@@ -1,163 +1,18 @@
-@using System.Threading.Tasks
-@implements IDisposable
-
-@if (IsGlobal)
-{
-    @if (IsGlobalVisible)
-    {
-        <div class="tooltip global" style="left:@(GlobalX)px;top:@(GlobalY + 20)px;">
-            @GlobalText
-        </div>
-    }
-}
-else
-{
-    @if (IsVisible)
-    {
-        <div class="tooltip" style="left:calc(100% + 5px);top:0;max-width: 100%">
-            @ChildContent
-        </div>
-    }
-}
+<span data-reu-tooltip="@Text" @attributes="AdditionalAttributes">@ChildContent</span>
 
 @code {
-    internal static double GlobalX { get; private set; }
-    internal static double GlobalY { get; private set; }
-
-    internal static bool IsGlobalVisible { get; private set; }
-    internal static string GlobalText { get; private set; } = string.Empty;
-
-    private bool IsVisible { get; set; }
-
-    private static event Action? OnShow;
-    private static event Action? OnMove;
-    private static event Action? OnHide;
-    private static event Action? OnUpdate;
+    /// <summary>
+    /// The text to show while the content is hovered or focused.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string? Text { get; set; }
 
     /// <summary>
-    /// Whether this tooltip instance is the global tooltip.
+    /// The content the tooltip belongs to.
     /// </summary>
-    [Parameter]
-    public bool IsGlobal { get; set; }
-
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    protected override void OnInitialized()
-    {
-        if (IsGlobal)
-        {
-            OnShow += StateHasChanged;
-            OnMove += StateHasChanged;
-            OnHide += StateHasChanged;
-            OnUpdate += StateHasChanged;
-        }
-    }
-
-    public void Show(MouseEventArgs args)
-    {
-        if (IsGlobal) return;
-
-        IsVisible = true;
-
-        StateHasChanged();
-    }
-
-    public void Hide()
-    {
-        if (IsGlobal) return;
-
-        IsVisible = false;
-
-        StateHasChanged();
-    }
-
-    internal static void ShowGlobal(MouseEventArgs args, string? text)
-    {
-        if (string.IsNullOrEmpty(text))
-        {
-            GlobalText = string.Empty;
-            return;
-        }
-
-        GlobalX = args.ClientX;
-        GlobalY = args.ClientY;
-
-        IsGlobalVisible = true;
-        GlobalText = text;
-
-        try
-        {
-            OnShow?.Invoke();
-        }
-        catch
-        {
-
-        }
-    }
-
-    internal static async Task MoveGlobal(MouseEventArgs args)
-    {
-        if (string.IsNullOrEmpty(GlobalText))
-        {
-            return;
-        }
-
-        GlobalX = args.ClientX;
-        GlobalY = args.ClientY;
-
-        IsGlobalVisible = true;
-
-        try
-        {
-            OnMove?.Invoke();
-        }
-        catch
-        {
-
-        }
-    }
-
-    internal static void HideGlobal()
-    {
-        if (string.IsNullOrEmpty(GlobalText))
-        {
-            return;
-        }
-
-        IsGlobalVisible = false;
-
-        try
-        {
-            OnHide?.Invoke();
-        }
-        catch
-        {
-
-        }
-    }
-
-    internal static void UpdateGlobal(string? text)
-    {
-        GlobalText = text ?? string.Empty;
-
-        try
-        {
-            OnUpdate?.Invoke();
-        }
-        catch
-        {
-        }
-    }
-
-    public void Dispose()
-    {
-        if (IsGlobal)
-        {
-            OnShow -= StateHasChanged;
-            OnMove -= StateHasChanged;
-            OnHide -= StateHasChanged;
-            OnUpdate -= StateHasChanged;
-        }
-    }
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
 }

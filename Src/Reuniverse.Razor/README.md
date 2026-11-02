@@ -15,7 +15,7 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
-For the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag (it works without interactivity; if omitted, the navbar falls back to static width breakpoints):
+For tooltips, the [error panel](#error-panel) and the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown, errors only show in `#blazor-error-ui` and the navbar falls back to static width breakpoints:
 
 ```html
 <script src="@Assets["_content/Reuniverse.Razor/reuniverse.js"]" defer></script>
@@ -64,6 +64,12 @@ You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick`
 <button onclick="reuTheme.toggle()">Toggle theme</button>
 ```
 
+### Error panel
+
+When Blazor reports an unhandled error, `reuniverse.js` shows a themed panel with the error log in place of `#blazor-error-ui`, with buttons to copy the log and to reload the page. It needs no setup other than the script, but the `#blazor-error-ui` element has to stay in the page, as that is how Blazor reports the error.
+
+The log holds the last 100 errors written to the console, along with uncaught errors and rejected promises, which do not open the panel by themselves. It is kept until the panel is dismissed or the page is reloaded.
+
 ### Components
 
 To use the components:
@@ -91,7 +97,7 @@ A versatile button component that can render as a link or a button with various 
 - `Enable` - Whether the button is enabled.
 - `NavLink` - Whether to render as a Blazor `NavLink` (only when `Href` is set).
 - `Variant` - The variant style of the button (`Default`, `Blue`, `Yellow`, `Red`).
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus.
 - `CssClass` - Additional CSS classes to apply to the button.
 - Additional attributes are supported.
 
@@ -193,7 +199,7 @@ A custom checkbox component with label and state management. It should also work
 - `IsChecked` - Whether the checkbox is checked.
 - `IsCheckedChanged` - Callback invoked when the checked state changes. **(requires interactivity)**
 - `Size` - The size of the checkbox in pixels. (default: 28)
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus.
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -267,7 +273,7 @@ Example:
 A virtualized log viewer that displays log entries for all log levels. It can be hooked onto `ILogger` through a `ReuLoggerProvider`, or fed entries manually. **(requires interactivity)**
 
 - `Provider` - A `ReuLoggerProvider` to subscribe to for live log entries.
-- `Entries` - A static set of `ReuLogEntry` items to display when no `Provider` is set.
+- `Entries` - A static set of `ReuLogEntry` items to display when no `Provider` is set. Reloaded only when a different collection instance is passed, so pass a new collection or use `Add()` instead of changing the existing one.
 - `ItemSize` - The fixed height (in pixels) of every log row. (default: 26)
 - `MaxEntries` - The maximum number of entries to keep when receiving live entries. (default: 1000)
 - `ShowTimestamp` - Whether to show the timestamp column. (default: `true`)
@@ -335,6 +341,7 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - Allows HTML content (has `ChildContent`). Place `<ReuNavItem>` elements inside.
 - `Brand` - The brand/site name shown on the left. **(required)**
 - `BurgerImageSrc` - Optional custom image source for the burger menu icon.
+- `IsAbsolute` - Whether to place the bar over the page content instead of above it.
 - `CssClass` - Additional CSS classes to apply to the nav element.
 - Additional attributes are passed to the nav element.
 
@@ -346,11 +353,12 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - `IsNavLink` - Whether to render as a Blazor `NavLink` for active-state tracking. (default: `true`)
 - `NavLinkMatch` - The `NavLinkMatch` rule used when `IsNavLink` is `true`.
 - `IconType` - A built-in `IconType` enum value for the icon.
-- `IconSrc` - A custom icon image source (used when `IconType` is not set).
-- `IconWidth` - Icon width in pixels. (default: 24)
-- `IconHeight` - Icon height in pixels. (default: 24)
+- `IconSrc` - A custom icon image source (used when `IconType` is not set). It is shown as it is, so it should suit both themes.
+- `IconWidth` - Icon width in pixels. (default: 32)
+- `IconHeight` - Icon height in pixels. (default: 32)
 - `IconOnly` - Whether to show only the icon with no label text.
 - `Title` - Tooltip/title text for the nav item.
+- `ChildContent` - Nested `<ReuNavItem>` elements, shown as a submenu. The item keeps its own `Href`, which is optional.
 - `CssClass` - Additional CSS classes to apply to the nav item element.
 - Additional attributes are passed to the nav item element.
 
@@ -365,6 +373,17 @@ Example:
 </ReuNavMenu>
 ```
 
+Submenus work without interactivity, so also with static SSR. They show on hover and on keyboard focus, and the burger menu lists them in place, always expanded. On touch screens outside of the burger menu, the first tap on the item shows the submenu and the second follows its link, which needs `reuniverse.js`. The parent is highlighted while one of its items is the current page.
+
+```cshtml
+<ReuNavMenu Brand="My App">
+    <ReuNavItem Name="Tools" Href="tools" IconType="IconType.Folder">
+        <ReuNavItem Name="Converter" Href="tools/converter" IconType="IconType.Webhook" />
+        <ReuNavItem Name="Viewer" Href="tools/viewer" />
+    </ReuNavItem>
+</ReuNavMenu>
+```
+
 ### `<ReuObjectTree>`
 
 A component to display object properties in a tree structure.
@@ -375,6 +394,26 @@ A component to display object properties in a tree structure.
 - `HideTypes` - If to hide type names in the tree.
 - `OnTypeClick` - Callback invoked when a type name is clicked.
 - `IsExpandedByDefault` - Whether the **root** object is expanded by default.
+- `History` - A `ReuObjectTreeHistory` that records the edits made through the tree, which can also be shared between trees. When not set, nothing is recorded.
+
+The tree does not show any undo controls itself, so call `Undo()` and `Redo()` from your own buttons or shortcuts. Edits happen inside the tree, so subscribe to `Changed` to keep `CanUndo` and `CanRedo` up to date on your page. Call `Clear()` when the tree starts showing a different object, as the steps still edit the previous one.
+
+```cshtml
+<ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
+<ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
+<ReuObjectTree Value="obj" History="history"></ReuObjectTree>
+
+@code {
+    private readonly ReuObjectTreeHistory history = new();
+
+    protected override void OnInitialized()
+    {
+        history.Changed += StateHasChanged;
+    }
+}
+```
+
+Custom value components can take part by calling `History.Record(description, undo, redo)`.
 
 Example:
 
@@ -416,7 +455,7 @@ A custom radio button component with label and state management. It should also 
 - `IsChecked` - Whether the radio button is checked.
 - `IsCheckedChanged` - Callback invoked when the checked state changes. **(requires interactivity)**
 - `Size` - The size of the radio button in pixels. (default: 28)
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus.
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -428,11 +467,60 @@ Example:
 <ReuRadio Name="Group">Option 4</ReuRadio>
 ```
 
+### `<ReuTabs>` and `<ReuTab>`
+
+Tabs that show the content of the selected `<ReuTab>`. The first tab is selected by default.
+
+- **Requires interactivity** to function properly.
+- `TitleContent` - Content of the tab header.
+- `ChildContent` - Content shown while the tab is selected.
+- `CssClass` - Additional CSS classes to apply to the tab header.
+- `ShowCloseButton` - Whether to show a close (✕) button in the tab header.
+- `OnClosed` - Callback invoked when the close button is clicked.
+
+A tab stays until it is removed from the markup, so remove it in `OnClosed`. If it was selected, the tab next to it is selected instead.
+
+Example:
+
+```cshtml
+<ReuTabs>
+    <ReuTab>
+        <TitleContent>Tab 1</TitleContent>
+        <ChildContent>Content of Tab 1.</ChildContent>
+    </ReuTab>
+    @if (showTab)
+    {
+        <ReuTab ShowCloseButton="true" OnClosed="() => showTab = false">
+            <TitleContent>Tab 2</TitleContent>
+            <ChildContent>This tab can be closed.</ChildContent>
+        </ReuTab>
+    }
+</ReuTabs>
+
+@code {
+    private bool showTab = true;
+}
+```
+
 ### `<ReuTooltip>`
 
-A component to display a tooltip either globally for `Tooltip` parameters, or for specific content.
+A component to show a tooltip for its content after it is hovered or focused with the keyboard for half a second. Works in every render mode, including static SSR, and needs no setup other than the `reuniverse.js` script.
 
-TBD
+- `Text` - The text of the tooltip. Line breaks are kept.
+
+Example:
+
+```cshtml
+<ReuTooltip Text="Saved 2 minutes ago">Saved</ReuTooltip>
+```
+
+Components with a `Tooltip` parameter use the same tooltip. To add one to any other element, set the `data-reu-tooltip` attribute:
+
+```cshtml
+<img src="map.png" alt="Map" data-reu-tooltip="Made by Hylis" />
+```
+
+The tooltip disappears on its own when the element is removed, and picks up any change to the text.
 
 ### `<ReuUploadArea>`
 
@@ -443,7 +531,7 @@ A drag-and-drop file upload area with click-to-upload functionality.
 - `OnUpload` - Callback invoked when files are uploaded.
 - `OnFileTooLarge` - Callback invoked when a file is too large.
 - `OnFileExceedCount` - Callback invoked when the file count exceeds the maximum.
-- `MaxFileCount` - Maximum number of files allowed to upload. Null means no limit. **Make sure to set limits if in serverside interactivity!**
+- `MaxFileCount` - Maximum number of files allowed in a single selection. Null means no limit. This does not limit the total number of files a client can upload, as each new selection starts over.
 - `MaxFileSize` - Maximum file size in bytes. Null means no limit. **Make sure to set limits if in serverside interactivity!**
 - `Accept` - A comma-separated list of one or more file types, or unique file type specifiers, describing which file types to allow.
 - `CssClass` - Additional CSS classes to apply to the upload area element.

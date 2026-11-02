@@ -1,15 +1,18 @@
+/* The --reu-nav-* variables come from the layout ReuNavMenu is in. */
 ::deep .nav-link {
     color: var(--color-text-primary);
     background-color: var(--color-nav-item-bg);
     border-bottom: 2px solid var(--color-nav-border);
     border-radius: 4px;
-    height: 2.5rem;
+    height: var(--reu-nav-link-height, 2.5rem);
+    min-height: 2.5rem;
     min-width: 3rem;
+    padding-inline: var(--reu-nav-link-padding, 0);
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: var(--reu-nav-link-justify, center);
     text-decoration: none;
-    transition: background-color 0.05s ease, color 0.05s ease, min-width 0.2s ease;
+    transition: var(--reu-nav-link-transition, background-color 0.05s ease, color 0.05s ease, min-width 0.2s ease);
     backdrop-filter: blur(5px);
     box-sizing: border-box;
 }
@@ -20,31 +23,116 @@
     }
 
     ::deep .nav-link.wide {
-        min-width: 8rem;
+        min-width: var(--reu-nav-wide-min-width, 8rem);
     }
 
-    ::deep .nav-link .nav-item-label {
-        display: none;
+    ::deep .nav-link.reu-discord, ::deep .nav-link.reu-nuget {
+        --reu-icon-color: #FFF;
     }
 
-    ::deep .nav-link img.icon {
-        display: none;
+.nav-label {
+    display: var(--reu-nav-label-display, inline);
+}
+
+    .nav-label.nav-item-label {
+        display: var(--reu-nav-hidden-label-display, none);
     }
 
-    ::deep .nav-link img.icon.nav-icon-standalone {
+    .nav-label.nav-label-only {
+        display: inline;
+    }
+
+.icon {
+    display: var(--reu-nav-icon-display, none);
+    flex: none;
+    width: var(--reu-nav-icon-size, var(--icon-width));
+    height: var(--reu-nav-icon-size, var(--icon-height));
+    margin-right: var(--reu-nav-icon-gap, 0);
+}
+
+    .icon.nav-icon-standalone {
         display: block;
     }
 
-::deep .nav-link img {
-    transition: filter 0.2s ease;
-}
-
-::deep a.active, ::deep button.active {
+::deep a.active, ::deep button.active, .nav-submenu:has(a.active) > .nav-item ::deep .nav-link {
     background-color: var(--color-nav-item-active) !important;
 }
 
+.nav-submenu {
+    position: relative;
+}
 
-[data-theme="light"] .nav-link:not(.reu-discord):not(.reu-nuget) img,
-.reu-theme-light .nav-link:not(.reu-discord):not(.reu-nuget) img {
-    filter: invert(1);
+/* The items look the same as in the burger menu, whatever layout the bar itself is in.
+   The surface comes from the layout, as the burger menu expands submenus in place. */
+.nav-submenu-items {
+    --reu-nav-label-display: inline;
+    --reu-nav-hidden-label-display: inline;
+    --reu-nav-icon-display: block;
+    --reu-nav-icon-size: 24px;
+    --reu-nav-icon-gap: 0.75rem;
+    --reu-nav-wide-min-width: 0;
+    --reu-nav-link-justify: flex-start;
+    --reu-nav-link-padding: 0.9rem 1rem;
+    --reu-nav-link-height: auto;
+
+    position: var(--reu-nav-submenu-position, absolute);
+    z-index: 1;
+    top: calc(100% + 0.3rem);
+    right: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 100%;
+    width: var(--reu-nav-submenu-width, max-content);
+    padding: var(--reu-nav-submenu-padding, 0.35rem);
+    border: var(--reu-nav-submenu-border, 1px solid color-mix(in srgb, var(--color-border) 65%, transparent));
+    border-radius: 8px;
+    background: var(--reu-nav-submenu-background, color-mix(in srgb, var(--color-overlay-bg) 88%, transparent));
+    box-shadow: var(--reu-nav-submenu-shadow, 0 18px 38px #0006, 0 4px 14px #0003);
+    backdrop-filter: var(--reu-nav-submenu-filter, blur(14px));
+    visibility: var(--reu-nav-submenu-visibility, hidden);
+    transition: var(--reu-nav-submenu-transition, visibility 0s linear 0.1s);
+}
+
+    /* Covers the gap below the item, so that moving to the panel does not leave the submenu. */
+    .nav-submenu-items::before {
+        content: "";
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        right: 0;
+        height: 0.4rem;
+    }
+
+    /* Opens to the side, as below would cover the rest of the panel. */
+    .nav-submenu-items .nav-submenu-items {
+        top: calc(-0.35rem - 1px);
+        right: calc(100% + 0.35rem);
+    }
+
+@media (hover: hover) {
+    .nav-submenu:hover > .nav-submenu-items {
+        visibility: visible;
+        transition-delay: 0s;
+    }
+
+    .nav-submenu:hover > .nav-item ::deep .nav-link {
+        background-color: var(--color-nav-item-hover);
+    }
+}
+
+.nav-submenu:has(:focus-visible) > .nav-submenu-items,
+.nav-submenu[data-reu-nav-submenu="open"] > .nav-submenu-items {
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.nav-submenu[data-reu-nav-submenu="open"] > .nav-item ::deep .nav-link {
+    background-color: var(--color-nav-item-hover);
+}
+
+.nav-submenu[data-reu-nav-submenu="closed"] > .nav-submenu-items {
+    visibility: var(--reu-nav-submenu-visibility, hidden);
+    transition-delay: 0s;
 }

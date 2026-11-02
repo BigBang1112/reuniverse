@@ -4,9 +4,7 @@
 {
     <span class="box-value clickable"
           @onclick="() => Value = string.Empty"
-          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to empty string"))"
-          @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">@None</span>
+          data-reu-tooltip="Set to empty string">@None</span>
 }
 else
 {
@@ -19,9 +17,7 @@ else
     @if (!IsKey)
     {
         <span class="box-value"><code
-            @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Length of the string"))"
-            @onmousemove="ReuTooltip.MoveGlobal"
-            @onmouseout="ReuTooltip.HideGlobal">@Value.Length</code></span>
+            data-reu-tooltip="Length of the string">@Value.Length</code></span>
     }
 }
 @if (Exception is not null)

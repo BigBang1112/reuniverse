@@ -10,6 +10,8 @@
 }
 
 .tab {
+    display: flex;
+    align-items: center;
     border-top: 2px solid transparent;
     border-bottom: 2px solid var(--color-button-border);
     background: var(--color-surface);
@@ -29,6 +31,39 @@
         border-top: 2px solid var(--color-button-border);
         border-left: 2px solid var(--color-button-border);
         border-right: 2px solid var(--color-button-border);
+    }
+
+.tab-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-sizing: border-box;
+    width: 1.25rem;
+    height: 1.25rem;
+    /* taller than the title, which must not make this tab taller than the ones without a button */
+    margin: -0.25rem -0.25rem -0.25rem 0.4rem;
+    /* the character sits high in its line box */
+    padding-top: 0.15em;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    line-height: 1;
+    transition: color 0.1s ease, background-color 0.1s ease;
+}
+
+    .tab-close-btn:hover {
+        color: var(--color-text-primary);
+        background-color: var(--color-overlay-medium);
+    }
+
+    .tab-close-btn:active {
+        background-color: var(--color-overlay-strong);
+    }
+
+    .tab-close-btn:focus-visible {
+        outline: 2px solid var(--color-link);
     }
 
 .content {

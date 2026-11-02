@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <PackageId>Reuniverse.Razor</PackageId>
-        <Version>0.9.2</Version>
+        <Version>0.10.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Common Blazor components for BigBang1112 projects (gbx.tools).</Description>
         <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
@@ -28,7 +28,6 @@
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
 
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
         <NoWarn>1591</NoWarn>
@@ -40,6 +39,10 @@
 
     <ItemGroup>
         <SupportedPlatform Include="browser" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Reuniverse.Razor.Tests" />
     </ItemGroup>
 
     <ItemGroup>

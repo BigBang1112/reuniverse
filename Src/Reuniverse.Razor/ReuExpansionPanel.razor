@@ -1,3 +1,5 @@
+@implements IDisposable
+
 <div class="reu-expansion-panel @CssClass" @attributes="AdditionalAttributes">
     <div class="expandable" @onclick="ToggleExpanded" @onmousedown:preventDefault="true">
         @TitleContent
@@ -42,17 +44,29 @@
 
     private async Task ToggleExpanded()
     {
-        if (Parent?.SingleExpansion == true)
-        {
-            Parent?.CollapseAll();
-        }
-
         Expanded = !Expanded;
         await ExpandedChanged.InvokeAsync(Expanded);
+
+        if (Expanded && Parent?.SingleExpansion == true)
+        {
+            await Parent.CollapseAllAsync(except: this);
+        }
     }
 
-    internal void Collapse()
+    internal async Task CollapseAsync()
     {
+        if (!Expanded)
+        {
+            return;
+        }
+
         Expanded = false;
+        await ExpandedChanged.InvokeAsync(false);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Parent?.Unregister(this);
     }
 }

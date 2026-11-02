@@ -34,9 +34,7 @@ else
 {
     <span class="box-value clickable"
           @onclick="Reveal"
-          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
-          @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">
+          data-reu-tooltip="Reveal the actual value">
         @renderFragment
     </span>
 }
@@ -45,7 +43,9 @@ else if (TryGetValueComponent(Value.Value, out var valueComponentType))
     var parameters = new Dictionary<string, object?>
     {
         ["KeyValue"] = Value,
-        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+        ["TypeValueComponents"] = TypeValueComponents,
+        ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged),
+        ["History"] = History
     };
 
     <DynamicComponent Type="valueComponentType" Parameters="parameters" />
@@ -77,9 +77,7 @@ else
 {
     <span class="box-value clickable remove"
           @onclick="RemoveValueAsync"
-          @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Remove element"))"
-          @onmousemove="ReuTooltip.MoveGlobal"
-          @onmouseout="ReuTooltip.HideGlobal">✕</span>
+          data-reu-tooltip="Remove element">✕</span>
 }
 @if (Exception is not null)
 {
@@ -94,7 +92,6 @@ else
     private void Reveal()
     {
         revealed = true;
-        ReuTooltip.HideGlobal();
     }
 
     private bool TryGetValueComponent(object? value, out Type? componentType)
@@ -112,7 +109,7 @@ else
 
     private bool CanRemoveValue()
     {
-        return Value.Parent is System.Collections.IDictionary;
+        return Value.Parent is System.Collections.IDictionary { IsReadOnly: false, IsFixedSize: false };
     }
 
     private async Task RemoveValueAsync()
@@ -131,9 +128,15 @@ else
 
         try
         {
-            dict.Remove(Value.Key);
+            // the value could have changed since rendering, so the history keeps the actual one
+            if (dict.Contains(Value.Key))
+            {
+                var removedValue = dict[Value.Key];
+                dict.Remove(Value.Key);
+                History?.RecordKeyRemoved(dict, Value.Key, removedValue);
+            }
+
             await ValueChanged.InvokeAsync(Value);
-            ReuTooltip.HideGlobal();
         }
         catch (Exception ex)
         {

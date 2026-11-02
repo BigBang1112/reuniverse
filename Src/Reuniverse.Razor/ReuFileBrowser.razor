@@ -22,7 +22,7 @@
             }
         </div>
     </div>
-    <div class="listing" @onkeydown="HandleKeyDown">
+    <div class="listing">
         <div class="list-header">
             <span class="col-name">Name</span>
             <span class="col-modified">Date modified</span>
@@ -83,8 +83,8 @@
     public float ItemSize { get; set; } = 32;
 
     /// <summary>
-    /// When <see langword="true"/> (default), entries are opened by double-clicking.
-    /// When <see langword="false"/>, a single click selects the entry and Enter opens it.
+    /// When <see langword="true"/>, entries are opened by double-clicking.
+    /// When <see langword="false"/> (default), a single click selects the entry and a second click or Enter opens it.
     /// </summary>
     [Parameter]
     public bool DoubleClickToOpen { get; set; }
@@ -182,12 +182,6 @@
     {
         if (!DoubleClickToOpen) return;
         await OpenEntry(entry);
-    }
-
-    private async Task HandleKeyDown(KeyboardEventArgs e)
-    {
-        if (DoubleClickToOpen || e.Key != "Enter" || SelectedEntry is null) return;
-        await OpenEntry(SelectedEntry);
     }
 
     private async Task OpenEntry(IReuEntry entry)

@@ -5,7 +5,7 @@
 {
     <div class="box type">
         <ReuFriendlyType Type="Value.Property.PropertyType" OnClick="OnTypeClick"></ReuFriendlyType>
-        @if (!Value.Property.PropertyType.IsValueType && new NullabilityInfoContext().Create(Value.Property).ReadState is NullabilityState.Nullable)
+        @if (!Value.Property.PropertyType.IsValueType && GetNullabilityInfo(Value.Property).ReadState is NullabilityState.Nullable)
         {
             <span>?</span>
         }
@@ -24,9 +24,7 @@
     {
         <span class="box-value clickable"
               @onclick="Reveal"
-              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Reveal the actual value"))"
-              @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal">
+              data-reu-tooltip="Reveal the actual value">
             @renderFragment
         </span>
     }
@@ -36,7 +34,8 @@
         {
             ["Member"] = Value,
             ["TypeValueComponents"] = TypeValueComponents,
-            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged)
+            ["ValueChanged"] = EventCallback.Factory.Create(this, ValueChanged),
+            ["History"] = History
         };
 
         <DynamicComponent Type="componentType" Parameters="parameters" />
@@ -47,9 +46,7 @@
         {
             <span class="box-value clickable"
                   @onclick="CreateInstance"
-                  @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Create a new instance"))"
-                  @onmousemove="ReuTooltip.MoveGlobal"
-                  @onmouseout="ReuTooltip.HideGlobal">
+                  data-reu-tooltip="Create a new instance">
                 @(Value.Property.CanRead ? "null" : "(cannot get)")
             </span>
         }
@@ -77,9 +74,7 @@
     {
         <span class="box-value clickable remove"
               @onclick="RemoveValueAsync"
-              @onmouseenter="@(args => ReuTooltip.ShowGlobal(args, "Set to null"))"
-              @onmousemove="ReuTooltip.MoveGlobal"
-              @onmouseout="ReuTooltip.HideGlobal">✕</span>
+              data-reu-tooltip="Set to null">✕</span>
     }
 
     @if (prevValue is not null)
@@ -110,7 +105,6 @@ catch (Exception ex)
     private void Reveal()
     {
         revealed = true;
-        ReuTooltip.HideGlobal();
     }
 
     private bool TryGetValueComponent(out Type? componentType)
@@ -170,10 +164,11 @@ catch (Exception ex)
             }
 
             var newInstance = Activator.CreateInstance(propertyType);
+            var oldValue = Value.Value;
             Value.Property.SetValue(Value.Parent, newInstance);
+            History?.RecordProperty(Value.Parent, Value.Property, oldValue, newInstance);
 
             await ValueChanged.InvokeAsync();
-            ReuTooltip.HideGlobal();
         }
         catch (Exception ex)
         {
@@ -198,8 +193,15 @@ catch (Exception ex)
         }
 
         // For reference types, check if it's nullable using NullabilityInfo
-        var nullabilityInfo = new NullabilityInfoContext().Create(Value.Property);
-        return nullabilityInfo.WriteState is NullabilityState.Nullable;
+        return GetNullabilityInfo(Value.Property).WriteState is NullabilityState.Nullable;
+    }
+
+    // NullabilityInfoContext is not thread-safe, so a new one is created only on cache miss
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<PropertyInfo, NullabilityInfo> nullabilityCache = new();
+
+    private static NullabilityInfo GetNullabilityInfo(PropertyInfo property)
+    {
+        return nullabilityCache.GetOrAdd(property, static p => new NullabilityInfoContext().Create(p));
     }
 
     private async Task RemoveValueAsync()
@@ -264,8 +266,8 @@ catch (Exception ex)
         try
         {
             Value.Property.SetValue(Value.Parent, value);
+            History?.RecordProperty(Value.Parent, Value.Property, prevValue, value);
             await ValueChanged.InvokeAsync();
-            ReuTooltip.HideGlobal();
         }
         catch (TargetInvocationException ex)
         {

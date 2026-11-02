@@ -19,6 +19,15 @@
         animation: fadeInFaded 0.2s ease-in forwards;
     }
 
+.items.no-fade > div > .item:not(.root) {
+    opacity: 1;
+    animation: none;
+}
+
+.items.no-fade > div > .item.faded:not(.root) {
+    opacity: 0.3;
+}
+
 .items {
     margin-left: 1rem;
     display: flex;

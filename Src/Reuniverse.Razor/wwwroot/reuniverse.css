@@ -12,14 +12,14 @@
     --color-footer-bg: #1A1A1A;
     /* Text */
     --color-text-primary: #FFF;
-    --color-text-secondary: #888;
+    --color-text-secondary: #AAA;
     --color-text-muted: #666;
     /* Borders */
     --color-border: #333;
     --color-border-subtle: #3338;
     --color-border-strong: #555;
     /* Decorative / surface overlays (subtle lightening on dark) */
-    --color-overlay-weak: #FFF1;
+    --color-overlay-weak: #AAA1;
     --color-overlay-medium: #FFF2;
     --color-overlay-strong: #FFF5;
     /* Spinner / loader fill */
@@ -69,8 +69,11 @@
     /* Tooltip Colors */
     --color-tooltip-bg: #3338;
     --color-tooltip-text: #FFF;
+    --color-tooltip-border: #FFF2;
     /* Modal Colors */
     --color-modal-bg: #111C;
+    --color-modal-surface: #181818;
+    --color-modal-button-bg: #222;
     /* Object Tree Colors */
     --color-object-tree-box-bg: #222;
     --color-object-tree-box: #2224;
@@ -113,7 +116,7 @@
     --color-footer-bg: #EEE;
     /* Text */
     --color-text-primary: #1A1A1A;
-    --color-text-secondary: #666;
+    --color-text-secondary: #444;
     --color-text-muted: #999;
     /* Borders */
     --color-border: #CCC;
@@ -151,8 +154,11 @@
     /* Tooltip Colors */
     --color-tooltip-bg: #222222E6;
     --color-tooltip-text: #FFF;
+    --color-tooltip-border: #FFF2;
     /* Modal Colors */
     --color-modal-bg: #FFFFFFCC;
+    --color-modal-surface: #F0F0F2;
+    --color-modal-button-bg: #FFFFFFAA;
     /* Object Tree Colors */
     --color-object-tree-box-bg: #E9E9EC;
     --color-object-tree-box: #00000004;
@@ -705,6 +711,174 @@ footer.reu-footer {
 
 .valid {
     color: var(--color-green);
+}
+
+/* A single-color SVG that takes the color of the text, so it follows the theme.
+   The element sets mask-image itself, as a url() in a variable would resolve against this file. */
+.reu-mask-icon {
+    display: inline-block;
+    background-color: var(--reu-icon-color, currentColor);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+}
+
+/* Tooltip, created by reuniverse.js for data-reu-tooltip */
+.reu-tooltip {
+    position: fixed;
+    z-index: 10002;
+    box-sizing: border-box;
+    max-width: min(20rem, calc(100vw - 1rem));
+    /* 1px lower, as Rubik sits high in its line box. A whole pixel, as text snaps to them */
+    padding: calc(0.25rem + 1px) 0.5rem calc(0.25rem - 1px);
+    border: 1px solid var(--color-tooltip-border);
+    border-radius: 0.25rem;
+    background: var(--color-tooltip-bg);
+    box-shadow: 0 2px 8px #0005;
+    backdrop-filter: blur(10px);
+    color: var(--color-tooltip-text);
+    font-size: 80%;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+    pointer-events: none;
+    animation: reu-tooltip-appear 0.1s ease-out;
+}
+
+@keyframes reu-tooltip-appear {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reu-tooltip {
+        animation: none;
+    }
+}
+
+/* Error panel, created by reuniverse.js in place of #blazor-error-ui.
+   Docked rather than modal, as what is on the page may still be worth saving.
+   Above the upload screen, as it covers the whole page, and below the reconnect modal. */
+.reu-error-panel {
+    position: fixed;
+    inset: auto 0 1rem;
+    z-index: 10000;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: min(46rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    margin-inline: auto;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-top: 3px solid var(--color-red);
+    border-radius: 8px;
+    background: var(--color-modal-surface);
+    box-shadow: 0 24px 64px #0009, 0 4px 16px #0004;
+    color: var(--color-text-primary);
+    font-size: 90%;
+    overflow-y: auto;
+    animation: reu-modal-panel-in 0.18s ease;
+}
+
+    .reu-error-panel [hidden] {
+        display: none;
+    }
+
+    .reu-error-panel button:focus-visible,
+    .reu-error-panel summary:focus-visible,
+    .reu-error-log:focus-visible {
+        outline: 2px solid var(--color-link);
+        outline-offset: 2px;
+    }
+
+.reu-error-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reu-error-icon {
+    color: var(--color-red);
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.reu-error-title {
+    flex: 1;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.reu-error-dismiss {
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    line-height: 1;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    transition: color 0.1s ease, background-color 0.1s ease;
+}
+
+    .reu-error-dismiss:hover {
+        color: var(--color-text-primary);
+        background-color: var(--color-overlay-medium);
+    }
+
+.reu-error-message {
+    margin: 0;
+    color: var(--color-text-secondary);
+}
+
+.reu-error-details summary {
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    font-size: 90%;
+}
+
+.reu-error-log {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr);
+    align-content: start;
+    max-height: min(20rem, 40dvh);
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-input-bg);
+    font-size: 75%;
+    line-height: 1.5;
+    white-space: pre;
+    overflow: auto;
+}
+
+.reu-error-entry + .reu-error-entry {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.reu-error-time {
+    margin-right: 0.75em;
+    color: var(--color-text-secondary);
+}
+
+.reu-error-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+    .reu-error-actions .reu-button {
+        padding: 0.4rem 1rem;
+    }
+
+@media (prefers-reduced-motion: reduce) {
+    .reu-error-panel {
+        animation: none;
+    }
 }
 
 #components-reconnect-modal {

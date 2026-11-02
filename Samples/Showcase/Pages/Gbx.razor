@@ -1,0 +1,184 @@
+﻿@page "/gbx"
+@using GBX.NET
+@using GBX.NET.Attributes
+@using System.Reflection
+@using GBX.NET.Engines.MwFoundations
+@using GBX.NET.Managers
+@using TmEssentials
+@using TmEssentials.Razor
+@using Showcase.Customization
+
+@layout MainLayout
+
+@inject EventService EventService
+
+<PageTitle>Gbx - Reuniverse</PageTitle>
+
+<p>Browse the object tree of a Gbx file. Open one, or drop it anywhere on this page.</p>
+
+<div class="toolbar">
+    <ReuUploadButton OnUpload="OnUpload" Accept=".Gbx">Open Gbx</ReuUploadButton>
+    <ReuCheckbox IsCheckedChanged="isChecked => showTypes = isChecked" IsChecked="@showTypes">Types</ReuCheckbox>
+    <ReuCheckbox IsCheckedChanged="isChecked => ignore = isChecked" IsChecked="@ignore">Ignore instead of fade</ReuCheckbox>
+    <div class="undo-redo">
+        <ReuButton Enable="history.CanUndo" OnClick="() => history.Undo()">Undo</ReuButton>
+        <ReuButton Enable="history.CanRedo" OnClick="() => history.Redo()">Redo</ReuButton>
+    </div>
+</div>
+<div class="tree">
+    @if (gbx is not null)
+    {
+        <ReuObjectTree AdditionalTypeValueComponents="additionalTypeValueComponents"
+                       Value="gbx"
+                       HideType="!showTypes"
+                       IsExpandedByDefault="true"
+                       FadeProvider="ProvideFade"
+                       IgnoreProvider="ProvideIgnore"
+                       VisualizationProvider="ProvideVisualization"
+                       ExtrasProvider="ProvideExtra"
+                       History="history"></ReuObjectTree>
+    }
+    <datalist id="collectionIds">
+        @foreach (var (collId, name) in CollectionManager.Collections)
+        {
+            <option value="@collId">@name</option>
+        }
+    </datalist>
+</div>
+
+@code {
+    private GBX.NET.Gbx? gbx;
+
+    private readonly ReuObjectTreeHistory history = new();
+
+    private bool showTypes = true;
+    private bool ignore;
+
+    private static readonly IReadOnlyDictionary<Type, Type> additionalTypeValueComponents = new Dictionary<Type, Type>
+    {
+        [typeof(TimeInt32)] = typeof(TimeInt32TypeValueComponent),
+        [typeof(TimeSingle)] = typeof(TimeSingleTypeValueComponent),
+        [typeof(Id)] = typeof(IdTypeValueComponent),
+        [typeof(Ident)] = typeof(IdentTypeValueComponent),
+        [typeof(Int3)] = typeof(Int3TypeValueComponent),
+        [typeof(Vec3)] = typeof(Vec3TypeValueComponent),
+    };
+
+    protected override void OnInitialized()
+    {
+        GBX.NET.Gbx.LZO = new GBX.NET.LZO.MiniLZO();
+
+        // edits happen inside the tree, so the page would not update the buttons otherwise
+        history.Changed += StateHasChanged;
+
+        EventService.OnUpload += data =>
+        {
+            Load(data);
+            StateHasChanged();
+        };
+    }
+
+    private void OnUpload(UploadEventArgs args)
+    {
+        Load(args.Data);
+    }
+
+    private void Load(byte[] data)
+    {
+        using var ms = new MemoryStream(data);
+        gbx = GBX.NET.Gbx.Parse(ms);
+
+        // the steps edit the previous file
+        history.Clear();
+    }
+
+    private bool IgnoreIfNotInChunk(object? value)
+    {
+        if (value is not ReuObjectTreeMember member)
+        {
+            return false;
+        }
+
+        var parentNode = (member.Parent as CMwNod) ?? (member.Parent as ReuObjectTreeMember)?.Value as CMwNod;
+
+        if (parentNode is null)
+        {
+            return false;
+        }
+
+        if (Attribute.IsDefined(member.Property, typeof(AppliedWithChunkAttribute)))
+        {
+            return !member.Property.GetCustomAttributes<AppliedWithChunkAttribute>().Any(attribute =>
+            {
+                var chunk = parentNode.Chunks.Get(attribute.ChunkType);
+
+                if (chunk is IVersionable versionable)
+                {
+                    return versionable.Version >= attribute.SinceVersion
+                        && (attribute.UpToVersion is null || versionable.Version <= attribute.UpToVersion);
+                }
+
+                return chunk is not null;
+            });
+        }
+
+        return false;
+    }
+
+    private bool ProvideFade(object? value)
+    {
+        return !ignore && IgnoreIfNotInChunk(value);
+    }
+
+    private bool ProvideIgnore(object? value)
+    {
+        return ignore && IgnoreIfNotInChunk(value);
+    }
+
+    private RenderFragment? ProvideVisualization(object? value)
+    {
+        if (value is not ReuObjectTreeMember member)
+        {
+            return null;
+        }
+
+        if (member.Property.PropertyType != typeof(string) || !Attribute.IsDefined(member.Property, typeof(SupportsFormattingAttribute)))
+        {
+            return null;
+        }
+
+        return builder =>
+        {
+            builder.OpenComponent(0, typeof(FormattedText));
+            builder.AddAttribute(1, "Text", member.Value);
+            builder.CloseComponent();
+        };
+    }
+
+    private RenderFragment? ProvideExtra(object? value)
+    {
+        if (value is not ReuObjectTreeMember member)
+        {
+            return null;
+        }
+
+        if (member.Property.PropertyType != typeof(byte[]) || !Attribute.IsDefined(member.Property, typeof(JpegDataAttribute)))
+        {
+            return null;
+        }
+
+        if (member.Value is byte[] jpegData)
+        {
+            return builder =>
+            {
+                builder.OpenElement(0, "img");
+                builder.AddAttribute(1, "src", $"data:image/jpeg;base64,{Convert.ToBase64String(jpegData)}");
+                builder.AddAttribute(2, "width", "30");
+                builder.AddAttribute(3, "height", "30");
+                builder.AddAttribute(4, "style", "border-radius: 4px;transform: scaleY(-1);");
+                builder.CloseElement();
+            };
+        }
+        return null;
+    }
+}

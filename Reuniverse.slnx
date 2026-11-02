@@ -3,10 +3,13 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Samples/">
-    <Project Path="Samples/Overview/Overview.csproj" />
+    <Project Path="Samples/Showcase/Showcase.csproj" />
   </Folder>
   <Folder Name="/Src/">
     <Project Path="Src/Reuniverse.Razor/Reuniverse.Razor.csproj" Id="acf7cbb6-b175-43e0-925a-93eabc013962" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Reuniverse.Razor.Tests/Reuniverse.Razor.Tests.csproj" />
   </Folder>
   <Folder Name="/Templates/">
     <Project Path="Templates/Reuniverse.Templates.csproj" />
