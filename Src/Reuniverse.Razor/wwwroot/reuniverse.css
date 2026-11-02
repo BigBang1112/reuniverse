@@ -595,6 +595,7 @@ footer.reu-footer {
         flex: 1;
         display: flex;
         justify-content: end;
+        gap: 0.5rem;
     }
 
 .reu-theme-icon {
