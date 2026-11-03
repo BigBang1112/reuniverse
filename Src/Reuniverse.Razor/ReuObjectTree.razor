@@ -35,13 +35,20 @@
                     <ReuFriendlyType Type="Value.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
                 </div>
             }
-            <div class="box general @(SelectedObject?.Equals(Value) == true ? "active" : "")" @onclick="() => SelectAsync(Value)">@(DisplayName ?? Value.ToString())</div>
+            <button type="button"
+                    class="box general @(SelectedObject?.Equals(Value) == true ? "active" : "")"
+                    aria-current="@(SelectedObject?.Equals(Value) == true ? "true" : null)"
+                    @onclick="() => SelectAsync(Value)">@(DisplayName ?? Value.ToString())</button>
 
             @if (IsExpandable)
             {
-                <div @onclick="ToggleExpanded" class="box general expander @(IsExpanded ? "active" : "")">
+                <button type="button"
+                        class="box general expander @(IsExpanded ? "active" : "")"
+                        aria-expanded="@(IsExpanded ? "true" : "false")"
+                        aria-label="Expand"
+                        @onclick="ToggleExpanded">
                     @(IsExpanded ? "▼" : "▶")
-                </div>
+                </button>
             }
             @if (TryGetValueComponent(out var valueComponentType))
             {

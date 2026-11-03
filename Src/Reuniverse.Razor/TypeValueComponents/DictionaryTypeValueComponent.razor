@@ -27,9 +27,11 @@ else
 
             <DynamicComponent Type="componentType" Parameters="parameters" @ref="keyDynamicComponent" />
 
-            <span class="box-value clickable add"
-                  @onclick="AddElementAsync"
-                  data-reu-tooltip="Add element">+</span>
+            <button type="button"
+                    class="box-value clickable add"
+                    @onclick="AddElementAsync"
+                    aria-label="Add element"
+                    data-reu-tooltip="Add element">+</button>
         }
     }
 }

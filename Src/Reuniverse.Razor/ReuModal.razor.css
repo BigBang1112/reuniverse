@@ -26,6 +26,11 @@
     animation: reu-modal-panel-in 0.18s ease;
 }
 
+    /* focused by reuniverse.js on open, so that a screen reader starts with the title */
+    .reu-modal-panel:focus {
+        outline: none;
+    }
+
 .reu-modal-header {
     display: flex;
     align-items: center;

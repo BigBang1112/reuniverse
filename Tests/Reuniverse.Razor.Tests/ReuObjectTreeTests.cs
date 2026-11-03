@@ -837,4 +837,60 @@ public class ReuObjectTreeTests : ReuObjectTreeTestBase
         // Assert
         await Assert.That(created).IsBetween(1, 100);
     }
+    [Test]
+    public async Task Render_WhenExpanded_MarksExpanderExpanded()
+    {
+        // Act
+        var cut = RenderObjectTree(new Person());
+
+        // Assert
+        await Assert.That(cut.Find(".item.root .expander").GetAttribute("aria-expanded")).IsEqualTo("true");
+    }
+
+    [Test]
+    public async Task ToggleExpanded_WhenExpanded_MarksExpanderCollapsed()
+    {
+        // Arrange
+        var cut = RenderObjectTree(new Person());
+
+        // Act
+        cut.Find(".item.root .expander").Click();
+
+        // Assert
+        await Assert.That(cut.Find(".item.root .expander").GetAttribute("aria-expanded")).IsEqualTo("false");
+    }
+
+    [Test]
+    public async Task Render_WithExpander_NamesExpander()
+    {
+        // Act
+        var cut = RenderObjectTree(new Person());
+
+        // Assert
+        await Assert.That(cut.Find(".item.root .expander").GetAttribute("aria-label")).IsEqualTo("Expand");
+    }
+
+    [Test]
+    public async Task ClickMember_WhenNotSelected_MarksMemberCurrent()
+    {
+        // Arrange
+        var cut = RenderObjectTree(new Person());
+
+        // Act
+        cut.MemberRow(nameof(Person.Name)).QuerySelector(".box.general")!.Click();
+
+        // Assert
+        await Assert.That(cut.MemberRow(nameof(Person.Name)).QuerySelector(".box.general")!.GetAttribute("aria-current")).IsEqualTo("true");
+        await Assert.That(cut.MemberRow(nameof(Person.Age)).QuerySelector(".box.general")!.HasAttribute("aria-current")).IsFalse();
+    }
+
+    [Test]
+    public async Task Render_WithClickableBoxes_UsesButtons()
+    {
+        // Act
+        var cut = RenderObjectTree(new Person());
+
+        // Assert
+        await Assert.That(cut.FindAll(".box.general, .box-value.clickable").All(x => x.TagName == "BUTTON" && x.GetAttribute("type") == "button")).IsTrue();
+    }
 }

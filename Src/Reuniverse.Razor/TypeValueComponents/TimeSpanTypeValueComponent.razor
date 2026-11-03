@@ -8,9 +8,10 @@
 }
 else
 {
-    <span class="box-value clickable"
-          @onclick="() => Value = default(TimeSpan)"
-          data-reu-tooltip="Set to default value">@None</span>
+    <button type="button"
+            class="box-value clickable"
+            @onclick="() => Value = default(TimeSpan)"
+            data-reu-tooltip="Set to default value">@None</button>
 }
 @if (Exception is not null)
 {

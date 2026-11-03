@@ -1,13 +1,31 @@
 <div class="reu-tabs @CssClass" @attributes="AdditionalAttributes">
     <CascadingValue Value="this" IsFixed="true">
-        <div class="header">
+        <div class="header" role="tablist">
             @foreach (var tab in Tabs)
             {
-                <div class="tab @(tab.Selected ? "selected" : "") @tab.CssClass" @onclick="() => SelectTabAsync(tab)">
-                    <span class="tab-title">@tab.TitleContent</span>
+                @* the click is on the whole header, but only the title is the tab, as a tab cannot hold the close button *@
+                <div @key="tab" class="tab @(tab.Selected ? "selected" : "") @tab.CssClass" @onclick="() => SelectTabAsync(tab)">
+                    <button type="button"
+                            class="tab-title"
+                            role="tab"
+                            id="@tab.HeaderId"
+                            aria-controls="@tab.PanelId"
+                            aria-selected="@(tab.Selected ? "true" : "false")"
+                            tabindex="@(tab.Selected ? "0" : "-1")"
+                            @ref="tab.HeaderElement"
+                            @onkeydown="e => HandleKeyDownAsync(e, tab)">@tab.TitleContent</button>
                     @if (tab.ShowCloseButton)
                     {
-                        <button class="tab-close-btn" @onclick="() => tab.OnClosed.InvokeAsync()" @onclick:stopPropagation="true" aria-label="Close" data-reu-tooltip="Close">✕</button>
+                        @* only the selected tab's button is in the tab order, as arrow keys move between the tabs *@
+                        <button type="button"
+                                class="tab-close-btn"
+                                id="@tab.CloseButtonId"
+                                @onclick="e => CloseAsync(e, tab)"
+                                @onclick:stopPropagation="true"
+                                tabindex="@(tab.Selected ? null : "-1")"
+                                aria-label="Close tab"
+                                aria-labelledby="@($"{tab.CloseButtonId} {tab.HeaderId}")"
+                                data-reu-tooltip="Close">✕</button>
                     }
                 </div>
             }
@@ -31,6 +49,10 @@
     public string? CssClass { get; set; }
 
     public ReuTab? SelectedTab { get; private set; }
+
+    // the tab whose close button was pressed from the keyboard, as the focus goes away with the button
+    private ReuTab? closingFromKeyboard;
+    private bool focusSelectedTab;
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
@@ -63,12 +85,20 @@
             }
         }
 
+        if (ReferenceEquals(closingFromKeyboard, tab))
+        {
+            closingFromKeyboard = null;
+            focusSelectedTab = SelectedTab is not null;
+        }
+
         // the headers render before the tabs, so they are already out of date by the time a tab is disposed
         _ = InvokeAsync(StateHasChanged);
     }
 
     internal async Task SelectTabAsync(ReuTab tab)
     {
+        closingFromKeyboard = null;
+
         foreach (var t in Tabs)
         {
             t.Selected = false;
@@ -77,5 +107,56 @@
         tab.Selected = true;
         SelectedTab = tab;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CloseAsync(MouseEventArgs e, ReuTab tab)
+    {
+        // a click from Enter or Space counts no presses of the mouse button
+        closingFromKeyboard = e.Detail == 0 ? tab : null;
+        await tab.OnClosed.InvokeAsync();
+    }
+
+    // the arrow keys move between the tabs, so that Tab can go straight on to the selected one's content
+    private async Task HandleKeyDownAsync(KeyboardEventArgs e, ReuTab tab)
+    {
+        var index = Tabs.IndexOf(tab);
+
+        if (index < 0)
+        {
+            return;
+        }
+
+        var next = e.Key switch
+        {
+            "ArrowRight" => (index + 1) % Tabs.Count,
+            "ArrowLeft" => (index - 1 + Tabs.Count) % Tabs.Count,
+            "Home" => 0,
+            "End" => Tabs.Count - 1,
+            _ => -1
+        };
+
+        if (next < 0)
+        {
+            return;
+        }
+
+        // before selecting, in case the render it asks for runs before it returns
+        focusSelectedTab = true;
+        await SelectTabAsync(Tabs[next]);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!focusSelectedTab)
+        {
+            return;
+        }
+
+        focusSelectedTab = false;
+
+        if (SelectedTab is not null)
+        {
+            await SelectedTab.HeaderElement.FocusAsync();
+        }
     }
 }

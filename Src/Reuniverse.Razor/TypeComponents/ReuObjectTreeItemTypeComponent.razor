@@ -7,20 +7,28 @@
         <ReuFriendlyType Type="Value.Value.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
     </div>
 }
-<code class="box general @(Selected ? "active" : "")" @onclick="() => OnSelect.InvokeAsync(Value)">#@Value.Index</code>
+<button type="button"
+        class="box general @(Selected ? "active" : "")"
+        aria-current="@(Selected ? "true" : null)"
+        @onclick="() => OnSelect.InvokeAsync(Value)"><code>#@Value.Index</code></button>
 @if (IsExpandable)
 {
-    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "active" : "")">
+    <button type="button"
+            class="box general expander @(IsExpanded ? "active" : "")"
+            aria-expanded="@(IsExpanded ? "true" : "false")"
+            aria-label="Expand"
+            @onclick="OnExpandToggle">
         @(IsExpanded ? "▼" : "▶")
-    </div>
+    </button>
 }
 @if (!revealed && VisualizationProvider?.Invoke(Value) is RenderFragment renderFragment)
 {
-    <span class="box-value clickable"
-    @onclick="Reveal"
-    data-reu-tooltip="Reveal the actual value">
+    <button type="button"
+            class="box-value clickable"
+            @onclick="Reveal"
+            data-reu-tooltip="Reveal the actual value">
         @renderFragment
-    </span>
+    </button>
 }
 else if (TryGetValueComponent(out var componentType))
 {
@@ -56,7 +64,7 @@ else
 }
 @if (revealed)
 {
-    <span class="box-value clickable" @onclick="() => revealed = false">Visualize</span>
+    <button type="button" class="box-value clickable" @onclick="() => revealed = false">Visualize</button>
 }
 @if (ExtrasProvider?.Invoke(Value) is RenderFragment extrasFragment)
 {
@@ -64,9 +72,11 @@ else
 }
 @if (CanRemoveValue())
 {
-    <span class="box-value clickable remove"
-          @onclick="RemoveValueAsync"
-          data-reu-tooltip="Remove element">✕</span>
+    <button type="button"
+            class="box-value clickable remove"
+            @onclick="RemoveValueAsync"
+            aria-label="Remove element"
+            data-reu-tooltip="Remove element">✕</button>
 }
 @if (Exception is not null)
 {

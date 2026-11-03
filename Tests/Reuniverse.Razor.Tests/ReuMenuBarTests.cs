@@ -195,4 +195,41 @@ public class ReuMenuBarTests : BunitContext
         // Assert
         await Assert.That(cut.FindAll(".reu-menubar-dropdown .reu-menubar-item")[1].TextContent).Contains(">");
     }
+    [Test]
+    public async Task Render_WithSubitems_AnnouncesClosedPopup()
+    {
+        // Act
+        var cut = RenderMenuBar(CreateFileMenu());
+
+        // Assert
+        var item = cut.Find(".reu-menubar-item");
+        await Assert.That(item.GetAttribute("aria-haspopup")).IsEqualTo("true");
+        await Assert.That(item.GetAttribute("aria-expanded")).IsEqualTo("false");
+    }
+
+    [Test]
+    public async Task Click_WithSubitems_AnnouncesOpenPopup()
+    {
+        // Arrange
+        var cut = RenderMenuBar(CreateFileMenu());
+
+        // Act
+        ClickItem(cut, "File");
+
+        // Assert
+        await Assert.That(cut.Find(".reu-menubar-item").GetAttribute("aria-expanded")).IsEqualTo("true");
+    }
+
+    [Test]
+    public async Task Render_WithoutSubitems_AnnouncesNoPopup()
+    {
+        // Act
+        var cut = RenderMenuBar(new ReuMenuBarItemData { Name = "Help" });
+
+        // Assert
+        var item = cut.Find(".reu-menubar-item");
+        await Assert.That(item.TagName).IsEqualTo("BUTTON");
+        await Assert.That(item.HasAttribute("aria-haspopup")).IsFalse();
+        await Assert.That(item.HasAttribute("aria-expanded")).IsFalse();
+    }
 }

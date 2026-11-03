@@ -225,6 +225,12 @@ button, input[type=submit], input[type=button] {
     all: unset;
 }
 
+/* unsetting them above also takes away their focus ring, which keyboard users need to see where they are */
+:where(button, input[type=submit], input[type=button]):focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+}
+
 a {
     color: var(--color-link);
     text-decoration: none;

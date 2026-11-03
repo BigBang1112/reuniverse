@@ -190,4 +190,62 @@ public class ReuExpansionPanelsTests : BunitContext
         // Assert
         await Assert.That(cut.FindAll(".content-container.expanded").Count).IsEqualTo(1);
     }
+    [Test]
+    public async Task Render_WhenCollapsed_MarksHeaderCollapsed()
+    {
+        // Act
+        var cut = RenderPanels(singleExpansion: false);
+
+        // Assert
+        await Assert.That(cut.FindAll(".expandable")[0].GetAttribute("aria-expanded")).IsEqualTo("false");
+    }
+
+    [Test]
+    public async Task Render_WhenCollapsed_MakesContentInert()
+    {
+        // Act
+        var cut = RenderPanels(singleExpansion: false);
+
+        // Assert
+        await Assert.That(cut.FindAll(".content-container")[0].HasAttribute("inert")).IsTrue();
+    }
+
+    [Test]
+    public async Task Toggle_WhenCollapsed_MarksHeaderExpanded()
+    {
+        // Arrange
+        var cut = RenderPanels(singleExpansion: false);
+
+        // Act
+        cut.FindAll(".expandable")[0].Click();
+
+        // Assert
+        await Assert.That(cut.FindAll(".expandable")[0].GetAttribute("aria-expanded")).IsEqualTo("true");
+        await Assert.That(cut.FindAll(".content-container")[0].HasAttribute("inert")).IsFalse();
+    }
+
+    [Test]
+    public async Task Render_WithPanels_LinksHeaderToContent()
+    {
+        // Act
+        var cut = RenderPanels(singleExpansion: false);
+
+        // Assert
+        var headers = cut.FindAll(".expandable");
+        var contents = cut.FindAll(".content-container");
+        await Assert.That(headers[0].GetAttribute("aria-controls")).IsEqualTo(contents[0].Id);
+        await Assert.That(headers[1].GetAttribute("aria-controls")).IsEqualTo(contents[1].Id);
+        await Assert.That(contents[0].Id).IsNotEqualTo(contents[1].Id);
+    }
+
+    [Test]
+    public async Task Render_WithPanels_UsesButtonHeaders()
+    {
+        // Act
+        var cut = RenderPanels(singleExpansion: false);
+
+        // Assert
+        await Assert.That(cut.FindAll(".expandable")[0].TagName).IsEqualTo("BUTTON");
+        await Assert.That(cut.FindAll(".expandable")[0].GetAttribute("type")).IsEqualTo("button");
+    }
 }

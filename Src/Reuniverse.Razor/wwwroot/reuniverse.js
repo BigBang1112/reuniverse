@@ -803,3 +803,147 @@
         });
     });
 })();
+
+// Reuniverse modal focus.
+//
+// A modal dialog (role="dialog" with aria-modal="true", such as an open ReuModal) takes the
+// focus when it appears, keeps Tab and Shift+Tab within it, and hands the focus back to where it
+// was once it is gone, so the keyboard never ends up behind the backdrop or back at the start of
+// the page. The dialog itself is focused unless something in it has autofocus, so that a screen
+// reader starts with its title. If this script never loads, the focus stays where it was.
+(function () {
+    "use strict";
+
+    const dialogSelector = '[role="dialog"][aria-modal="true"]';
+    const focusableSelector = [
+        "a[href]",
+        "area[href]",
+        "button:not([disabled])",
+        "input:not([disabled]):not([type=hidden])",
+        "select:not([disabled])",
+        "textarea:not([disabled])",
+        "iframe",
+        "summary",
+        "[contenteditable]:not([contenteditable=false])",
+        "[tabindex]:not([tabindex='-1'])"
+    ].join(",");
+
+    // each open dialog and what had the focus before it appeared
+    const openers = new Map();
+
+    function topmost() {
+        const dialogs = document.querySelectorAll(dialogSelector);
+        return dialogs.length > 0 ? dialogs[dialogs.length - 1] : null;
+    }
+
+    function focusables(dialog) {
+        return Array.from(dialog.querySelectorAll(focusableSelector)).filter(function (element) {
+            return element.tabIndex >= 0 && !element.closest("[inert]") && element.getClientRects().length > 0;
+        });
+    }
+
+    function open(dialog) {
+        openers.set(dialog, document.activeElement);
+
+        if (dialog.contains(document.activeElement)) {
+            return;
+        }
+
+        const target = dialog.querySelector("[autofocus]")
+            ?? (dialog.hasAttribute("tabindex") ? dialog : focusables(dialog)[0]);
+
+        target?.focus();
+    }
+
+    function close(dialog) {
+        const opener = openers.get(dialog);
+        openers.delete(dialog);
+
+        // only when the focus went away with the dialog, as it may have been moved on purpose
+        const lost = !document.activeElement || document.activeElement === document.body;
+
+        if (lost && opener instanceof HTMLElement && opener.isConnected) {
+            opener.focus();
+        }
+    }
+
+    function openAll(root) {
+        if (root.matches(dialogSelector) && !openers.has(root)) {
+            open(root);
+        }
+
+        root.querySelectorAll(dialogSelector).forEach(function (dialog) {
+            if (!openers.has(dialog)) {
+                open(dialog);
+            }
+        });
+    }
+
+    new MutationObserver(function (mutations) {
+        openers.forEach(function (_, dialog) {
+            if (!dialog.isConnected) {
+                close(dialog);
+            }
+        });
+
+        for (const mutation of mutations) {
+            mutation.addedNodes.forEach(function (node) {
+                if (node instanceof Element) {
+                    openAll(node);
+                }
+            });
+        }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+
+    openAll(document.documentElement);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key !== "Tab" || event.defaultPrevented) {
+            return;
+        }
+
+        const dialog = topmost();
+
+        if (!dialog) {
+            return;
+        }
+
+        const items = focusables(dialog);
+        const active = document.activeElement;
+
+        if (items.length === 0) {
+            event.preventDefault();
+            dialog.focus();
+            return;
+        }
+
+        const first = items[0];
+        const last = items[items.length - 1];
+        const outside = !dialog.contains(active);
+
+        if (event.shiftKey && (outside || active === first || active === dialog)) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && (outside || active === last)) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
+})();
+
+// Reuniverse tab keys.
+//
+// ReuTabs switches tabs with the arrow keys, Home and End, which Blazor cannot cancel for some
+// keys and not others. This keeps them from also scrolling the page. If this script never
+// loads, the keys still switch tabs.
+(function () {
+    "use strict";
+
+    const keys = new Set(["ArrowLeft", "ArrowRight", "Home", "End"]);
+
+    document.addEventListener("keydown", function (event) {
+        if (keys.has(event.key) && event.target instanceof Element && event.target.matches('[role="tablist"] > * > [role="tab"]')) {
+            event.preventDefault();
+        }
+    });
+})();

@@ -1,10 +1,16 @@
 @implements IDisposable
 
 <div class="reu-expansion-panel @CssClass" @attributes="AdditionalAttributes">
-    <div class="expandable" @onclick="ToggleExpanded" @onmousedown:preventDefault="true">
+    <button type="button"
+            class="expandable"
+            aria-expanded="@(Expanded ? "true" : "false")"
+            aria-controls="@contentId"
+            @onclick="ToggleExpanded"
+            @onmousedown:preventDefault="true">
         @TitleContent
-    </div>
-    <div class="content-container @(Expanded ? "expanded" : "collapsed")">
+    </button>
+    @* only hidden by its height, so inert keeps it from being focused or read out while collapsed *@
+    <div class="content-container @(Expanded ? "expanded" : "collapsed")" id="@contentId" inert="@(!Expanded)">
         <div class="content">
             @ChildContent
         </div>
@@ -35,6 +41,8 @@
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private readonly string contentId = ReuId.Next("reu-expansion-panel-content");
 
     protected override async Task OnInitializedAsync()
     {

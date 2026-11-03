@@ -31,7 +31,7 @@ public static class ReuObjectTreeTestExtensions
     public static void EditNumber(this IRenderedComponent<ReuObjectTree> cut, int row, string value) => cut.FindAll("input[type=number]")[row].Change(value);
 
     public static string PageInfo(this IRenderedComponent<ReuObjectTree> cut) => cut.Find(".page-info").TextContent;
-    public static int ElementRowCount(this IRenderedComponent<ReuObjectTree> cut) => cut.FindAll("code.box.general").Count;
+    public static int ElementRowCount(this IRenderedComponent<ReuObjectTree> cut) => cut.FindAll(".box.general > code").Count;
     public static int RemoveButtonCount(this IRenderedComponent<ReuObjectTree> cut) => cut.FindAll(".remove").Count;
     public static int NumberInputCount(this IRenderedComponent<ReuObjectTree> cut) => cut.FindAll("input[type=number]").Count;
     public static string? NumberValue(this IRenderedComponent<ReuObjectTree> cut, int row) => cut.FindAll("input[type=number]")[row].GetAttribute("value");

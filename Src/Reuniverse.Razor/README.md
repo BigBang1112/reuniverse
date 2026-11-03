@@ -15,7 +15,7 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
-For tooltips, the [error panel](#error-panel), the [update prompt](#update-prompt) and the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown, errors only show in `#blazor-error-ui`, new versions of a PWA are not announced and the navbar falls back to static width breakpoints:
+For tooltips, the [error panel](#error-panel), the [update prompt](#update-prompt), the responsive `<ReuNavMenu>` and keyboard focus in `<ReuModal>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown, errors only show in `#blazor-error-ui`, new versions of a PWA are not announced, the navbar falls back to static width breakpoints and an open modal neither takes the focus nor keeps it:
 
 ```html
 <script src="@Assets["_content/Reuniverse.Razor/reuniverse.js"]" defer></script>
@@ -497,6 +497,8 @@ Tabs that show the content of the selected `<ReuTab>`. The first tab is selected
 - `OnClosed` - Callback invoked when the close button is clicked.
 
 A tab stays until it is removed from the markup, so remove it in `OnClosed`. If it was selected, the tab next to it is selected instead.
+
+The tabs follow the [ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/), so screen readers announce them as tabs. The tab bar is a single stop for Tab, which goes on to the content of the selected tab; the arrow keys, Home and End move between the tabs and select them. A tab closed from the keyboard moves the focus to the tab selected in its place.
 
 Example:
 

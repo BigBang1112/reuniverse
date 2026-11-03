@@ -4,13 +4,17 @@
          style="--reu-modal-max-width: @MaxWidth; --reu-modal-height: @Height;">
         <div class="reu-modal-panel @CssClass"
              @onclick:stopPropagation="true"
+             @onkeydown="HandleKeyDown"
+             @onkeydown:stopPropagation="true"
              role="dialog"
              aria-modal="true"
+             aria-labelledby="@(HasTitle ? titleId : null)"
+             tabindex="-1"
              @attributes="AdditionalAttributes">
-            @if (TitleContent is not null || Title is not null || ShowCloseButton)
+            @if (HasTitle || ShowCloseButton)
             {
                 <div class="reu-modal-header">
-                    <div class="reu-modal-title">
+                    <div class="reu-modal-title" id="@titleId">
                         @if (TitleContent is not null)
                         {
                             @TitleContent
@@ -22,7 +26,7 @@
                     </div>
                     @if (ShowCloseButton)
                     {
-                        <button class="reu-modal-close-btn" @onclick="CloseAsync" aria-label="Close" data-reu-tooltip="Close">✕</button>
+                        <button type="button" class="reu-modal-close-btn" @onclick="CloseAsync" aria-label="Close" data-reu-tooltip="Close">✕</button>
                     }
                 </div>
             }
@@ -89,6 +93,12 @@
     public bool CloseOnBackdropClick { get; set; } = true;
 
     /// <summary>
+    /// Whether pressing Escape closes the modal. Defaults to <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool CloseOnEscape { get; set; } = true;
+
+    /// <summary>
     /// Callback invoked after the modal has been closed.
     /// </summary>
     [Parameter]
@@ -115,10 +125,23 @@
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
 
+    private readonly string titleId = ReuId.Next("reu-modal-title");
+
+    private bool HasTitle => TitleContent is not null || Title is not null;
+
     private async Task CloseAsync()
     {
         await IsOpenChanged.InvokeAsync(false);
         await OnClosed.InvokeAsync();
+    }
+
+    // stops here, so that a modal opened from another closes on its own
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (CloseOnEscape && e.Key == "Escape")
+        {
+            await CloseAsync();
+        }
     }
 
     private async Task HandleBackdropClick()
