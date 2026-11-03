@@ -375,7 +375,7 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - `IconWidth` - Icon width in pixels. (default: 32)
 - `IconHeight` - Icon height in pixels. (default: 32)
 - `IconOnly` - Whether to show only the icon with no label text.
-- `Title` - Tooltip/title text for the nav item.
+- `Title` - Tooltip text for the nav item. Defaults to `Name`.
 - `ChildContent` - Nested `<ReuNavItem>` elements, shown as a submenu. The item keeps its own `Href`, which is optional.
 - `CssClass` - Additional CSS classes to apply to the nav item element.
 - Additional attributes are passed to the nav item element.

@@ -2,7 +2,7 @@
 
 <div class="reu-file-browser @CssClass" @attributes="AdditionalAttributes">
     <div class="toolbar">
-        <button class="up-one-level" @onclick="NavigateUp" disabled="@(path.Count <= 1)" title="Up one level">
+        <button class="up-one-level" @onclick="NavigateUp" disabled="@(path.Count <= 1)" data-reu-tooltip="Up one level">
             <img src="_content/Reuniverse.Razor/icons/arrow_upward_alt.svg" alt="Up one level" width="24" height="24" />
         </button>
         <div class="breadcrumb">

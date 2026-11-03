@@ -80,7 +80,7 @@ else
         IconType == IconType.NuGet ? "reu-nuget" : null
     }.OfType<string>());
 
-    private RenderFragment Item => @<div class="nav-item @CssClass" title="@(Title ?? Name)" @attributes="AdditionalAttributes">
+    private RenderFragment Item => @<div class="nav-item @CssClass" data-reu-tooltip="@(Title ?? Name)" @attributes="AdditionalAttributes">
         @* NavLink would count going nowhere as being on the current page *@
         @if (IsNavLink && Href is not null)
         {

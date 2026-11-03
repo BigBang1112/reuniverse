@@ -7,7 +7,7 @@
                     <span class="tab-title">@tab.TitleContent</span>
                     @if (tab.ShowCloseButton)
                     {
-                        <button class="tab-close-btn" @onclick="() => tab.OnClosed.InvokeAsync()" @onclick:stopPropagation="true" title="Close">✕</button>
+                        <button class="tab-close-btn" @onclick="() => tab.OnClosed.InvokeAsync()" @onclick:stopPropagation="true" aria-label="Close" data-reu-tooltip="Close">✕</button>
                     }
                 </div>
             }
