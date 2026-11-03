@@ -345,6 +345,7 @@
             tooltip.id = tooltipId;
             tooltip.className = "reu-tooltip";
             tooltip.setAttribute("role", "tooltip");
+            resizes.observe(tooltip);
         }
 
         if (!tooltip.isConnected) {
@@ -356,8 +357,11 @@
 
     function place() {
         const { width, height } = tooltip.getBoundingClientRect();
-        const maxLeft = window.innerWidth - width - edgeGap;
-        const fitsBelow = anchorBottom + height + edgeGap <= window.innerHeight;
+        // without the scrollbars, which the tooltip would otherwise end up under
+        const viewportWidth = document.documentElement.clientWidth;
+        const viewportHeight = document.documentElement.clientHeight;
+        const maxLeft = viewportWidth - width - edgeGap;
+        const fitsBelow = anchorBottom + height + edgeGap <= viewportHeight;
 
         const left = Math.max(edgeGap, Math.min(anchorX, maxLeft));
         const top = fitsBelow ? anchorBottom : Math.max(edgeGap, anchorTop - height - edgeGap);
@@ -426,6 +430,14 @@
             }, showDelay);
         }
     }
+
+    // Places it again when its size changes after it was placed, such as once the font has
+    // loaded, as it could otherwise end up past the edge of the window.
+    const resizes = new ResizeObserver(function () {
+        if (target) {
+            place();
+        }
+    });
 
     // Keeps up with the target while the tooltip is visible, as an element that is
     // removed or changed under a still cursor does not raise any pointer events.
