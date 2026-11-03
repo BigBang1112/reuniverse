@@ -668,3 +668,138 @@
         }
     }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
 })();
+
+// Reuniverse update prompt.
+//
+// An installed app keeps running the version its service worker cached, and a new service
+// worker only takes over on its own once every tab of the app is closed. This watches for a
+// new one and offers to switch to it with a reload. Switching needs the service worker to
+// call skipWaiting() when it is sent { type: "SKIP_WAITING" }; one that already does so
+// right on install has taken over by then, so the reload is all that is left. It also checks
+// for a new version every hour and when the page is shown again, as an app that never
+// navigates would otherwise only check on load. Without a service worker it does nothing.
+(function () {
+    "use strict";
+
+    if (!("serviceWorker" in navigator)) {
+        return;
+    }
+
+    const checkInterval = 60 * 60 * 1000;
+    const minCheckGap = 5 * 60 * 1000;
+
+    let registration = null;
+    let prompt = null;
+    let isOpen = false;
+    let isUpdating = false;
+    let lastCheck = Date.now();
+
+    function update() {
+        const waiting = registration.waiting;
+
+        if (!waiting) {
+            location.reload();
+            return;
+        }
+
+        // Reloading before the new worker takes over would only load the old version again.
+        isUpdating = true;
+        prompt.querySelector(".reu-update-reload").disabled = true;
+        prompt.querySelector(".reu-update-reload").textContent = "Updating…";
+        waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+
+    function dismiss() {
+        isOpen = false;
+        prompt.remove();
+        reattach.disconnect();
+    }
+
+    function createPrompt() {
+        prompt = document.createElement("section");
+        prompt.className = "reu-update-prompt";
+        prompt.setAttribute("role", "status");
+        prompt.innerHTML = `
+            <div class="reu-update-title">A new version is available</div>
+            <p class="reu-update-message">Updating reloads the page, so anything unsaved will be lost.</p>
+            <div class="reu-update-actions">
+                <button type="button" class="reu-button reu-update-later">Later</button>
+                <button type="button" class="reu-button reu-button-blue reu-update-reload">Update</button>
+            </div>`;
+
+        prompt.addEventListener("click", function (event) {
+            if (event.target.closest(".reu-update-later")) {
+                dismiss();
+            } else if (event.target.closest(".reu-update-reload")) {
+                update();
+            }
+        });
+    }
+
+    function show() {
+        if (isOpen) {
+            return;
+        }
+
+        if (!prompt) {
+            createPrompt();
+        }
+
+        isOpen = true;
+        document.body.append(prompt);
+        reattach.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    // Enhanced navigation replaces the contents of <body> along with the prompt.
+    const reattach = new MutationObserver(function () {
+        if (isOpen && !prompt.isConnected) {
+            document.body.append(prompt);
+        }
+    });
+
+    // Without a controller, this is the first service worker rather than a new version of one.
+    function watch(worker) {
+        function check() {
+            if (worker.state === "installed" && navigator.serviceWorker.controller) {
+                show();
+            }
+        }
+
+        if (worker) {
+            worker.addEventListener("statechange", check);
+            check();
+        }
+    }
+
+    function checkForUpdate() {
+        lastCheck = Date.now();
+
+        // Being offline leaves the current version running, which is all there is to do.
+        registration.update().catch(function () { });
+    }
+
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (isUpdating) {
+            location.reload();
+        }
+    });
+
+    navigator.serviceWorker.ready.then(function (ready) {
+        registration = ready;
+
+        watch(registration.waiting);
+        watch(registration.installing);
+
+        registration.addEventListener("updatefound", function () {
+            watch(registration.installing);
+        });
+
+        setInterval(checkForUpdate, checkInterval);
+
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "visible" && Date.now() - lastCheck >= minCheckGap) {
+                checkForUpdate();
+            }
+        });
+    });
+})();

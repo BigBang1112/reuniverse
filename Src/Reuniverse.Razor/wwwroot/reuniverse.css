@@ -780,6 +780,55 @@ footer.reu-footer {
         padding: 0.4rem 1rem;
     }
 
+/* Update prompt, created by reuniverse.js when a new version of the app is ready.
+   In a corner, as it can wait, and level with the error panel above the upload screen. */
+.reu-update-prompt {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 10000;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: min(22rem, calc(100vw - 2rem));
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-top: 3px solid var(--color-blue);
+    border-radius: 8px;
+    background: var(--color-modal-surface);
+    box-shadow: var(--shadow-modal);
+    color: var(--color-text-primary);
+    font-size: 90%;
+    animation: reu-modal-panel-in 0.18s ease;
+}
+
+    .reu-update-prompt button:focus-visible {
+        outline: 2px solid var(--color-link);
+        outline-offset: 2px;
+    }
+
+.reu-update-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.reu-update-message {
+    margin: 0;
+    color: var(--color-text-secondary);
+}
+
+.reu-update-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+    .reu-update-actions .reu-button {
+        padding: 0.4rem 1rem;
+    }
+
 #components-reconnect-modal {
     display: none;
     background-color: var(--color-modal-bg);
@@ -827,7 +876,8 @@ footer.reu-footer {
 
 @media (prefers-reduced-motion: reduce) {
     .reu-tooltip,
-    .reu-error-panel {
+    .reu-error-panel,
+    .reu-update-prompt {
         animation: none;
     }
 }

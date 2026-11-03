@@ -15,7 +15,7 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
-For tooltips, the [error panel](#error-panel) and the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown, errors only show in `#blazor-error-ui` and the navbar falls back to static width breakpoints:
+For tooltips, the [error panel](#error-panel), the [update prompt](#update-prompt) and the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown, errors only show in `#blazor-error-ui`, new versions of a PWA are not announced and the navbar falls back to static width breakpoints:
 
 ```html
 <script src="@Assets["_content/Reuniverse.Razor/reuniverse.js"]" defer></script>
@@ -71,6 +71,22 @@ You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick`
 When Blazor reports an unhandled error, `reuniverse.js` shows a themed panel with the error log in place of `#blazor-error-ui`, with buttons to copy the log and to reload the page. It needs no setup other than the script, but the `#blazor-error-ui` element has to stay in the page, as that is how Blazor reports the error.
 
 The log holds the last 100 errors written to the console, along with uncaught errors and rejected promises, which do not open the panel by themselves. It is kept until the panel is dismissed or the page is reloaded.
+
+### Update prompt
+
+In a PWA, `reuniverse.js` shows a prompt in the corner of the page once a new version of the app is installed, with a button to switch to it by reloading the page. It also checks for a new version every hour and when the page is shown again, as an app that does not navigate would otherwise only check when it is opened. Without a service worker, as in a Blazor Web App, it does nothing.
+
+A new service worker only takes over once every tab of the app is closed, unless it calls `skipWaiting()`. For the prompt to be able to switch to it, the service worker has to call it when asked, and not on install, as the version still running would lose its cache (`wwwroot/service-worker.published.js`):
+
+```js
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+```
+
+A service worker that still calls `skipWaiting()` on install has already taken over when the prompt shows, so updating then just reloads the page.
 
 ### Components
 
