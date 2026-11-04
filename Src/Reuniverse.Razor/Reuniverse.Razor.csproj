@@ -10,6 +10,9 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>reuniverse, razor, blazor, gbx</PackageTags>
         <PackageReleaseNotes>
+- Added PWA update prompt
+- Follow ARIA standards better
+- More integrated new tooltips, no more mid-word wrapping
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
