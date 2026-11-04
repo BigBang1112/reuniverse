@@ -42,20 +42,20 @@ public abstract class BrowserTestBase
     /// <summary>
     /// Opens the page with time standing still, so that timers only run when the test moves the clock.
     /// </summary>
-    protected async Task GoToWithPausedClockAsync(string body, string head = "")
+    protected async Task GoToWithPausedClockAsync(string body, string head = "", string htmlAttributes = "")
     {
         var start = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         await Page.Clock.InstallAsync(new ClockInstallOptions { TimeDate = start });
-        await GoToAsync(body, head);
+        await GoToAsync(body, head, htmlAttributes);
         await Page.Clock.PauseAtAsync(start.AddMinutes(1));
     }
 
-    protected async Task GoToAsync(string body, string head = "")
+    protected async Task GoToAsync(string body, string head = "", string htmlAttributes = "")
     {
         html = $"""
             <!DOCTYPE html>
-            <html>
+            <html {htmlAttributes}>
             <head>
                 <meta charset="utf-8" />
                 {head}

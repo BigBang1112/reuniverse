@@ -689,11 +689,14 @@
 // call skipWaiting() when it is sent { type: "SKIP_WAITING" }; one that already does so
 // right on install has taken over by then, so the reload is all that is left. It also checks
 // for a new version every hour and when the page is shown again, as an app that never
-// navigates would otherwise only check on load. Without a service worker it does nothing.
+// navigates would otherwise only check on load. Without a service worker it does nothing,
+// and neither does it with data-reu-update-prompt="off" on <html>, for an app that handles
+// its updates itself.
 (function () {
     "use strict";
 
-    if (!("serviceWorker" in navigator)) {
+    if (!("serviceWorker" in navigator)
+        || document.documentElement.getAttribute("data-reu-update-prompt") === "off") {
         return;
     }
 

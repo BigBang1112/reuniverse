@@ -88,6 +88,12 @@ self.addEventListener('message', event => {
 
 A service worker that still calls `skipWaiting()` on install has already taken over when the prompt shows, so updating then just reloads the page.
 
+To handle updates yourself, opt out with the `data-reu-update-prompt="off"` attribute on `<html>` (`wwwroot/index.html`). That turns off both the prompt and the update checks, while the rest of the script keeps working:
+
+```html
+<html lang="en" data-reu-update-prompt="off">
+```
+
 ### Components
 
 To use the components:

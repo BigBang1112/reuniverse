@@ -7,6 +7,7 @@ public class UpdatePromptScriptTests : BrowserTestBase
     private const string PromptSelector = ".reu-update-prompt";
     private const string UpdateSelector = ".reu-update-reload";
     private const string LaterSelector = ".reu-update-later";
+    private const string OptOut = """data-reu-update-prompt="off" """;
 
     /// <summary>
     /// Stands in for the service worker API, which the insecure origin the tests run on does not have.
@@ -350,5 +351,74 @@ public class UpdatePromptScriptTests : BrowserTestBase
 
         // Assert
         await Assert.That(errors).IsEmpty();
+    }
+
+    [Test]
+    public async Task Load_WithWaitingWorker_OptedOut_DoesNotShowPrompt()
+    {
+        // Arrange
+        await FakeServiceWorkerAsync(waiting: true);
+
+        // Act
+        await GoToAsync("", Script, OptOut);
+
+        // Assert
+        await Assert.That(await CountPromptsAsync()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task NewVersionInstalled_OptedOut_DoesNotShowPrompt()
+    {
+        // Arrange
+        await FakeServiceWorkerAsync();
+        await GoToAsync("", Script, OptOut);
+
+        // Act
+        await InstallAsync();
+
+        // Assert
+        await Assert.That(await CountPromptsAsync()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task HourPassed_OptedOut_DoesNotCheckForUpdate()
+    {
+        // Arrange
+        await FakeServiceWorkerAsync();
+        await GoToWithPausedClockAsync("", Script, OptOut);
+
+        // Act
+        await Page.Clock.RunForAsync(60 * 60 * 1000);
+
+        // Assert
+        await Assert.That(await GetUpdateCheckCountAsync()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task PageShownAgain_OptedOut_DoesNotCheckForUpdate()
+    {
+        // Arrange
+        await FakeServiceWorkerAsync();
+        await GoToWithPausedClockAsync("", Script, OptOut);
+
+        // Act
+        await Page.Clock.RunForAsync(5 * 60 * 1000);
+        await ShowPageAgainAsync();
+
+        // Assert
+        await Assert.That(await GetUpdateCheckCountAsync()).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task Load_WithWaitingWorker_OtherOptOutValue_ShowsPrompt()
+    {
+        // Arrange
+        await FakeServiceWorkerAsync(waiting: true);
+
+        // Act
+        await GoToAsync("", Script, """data-reu-update-prompt="on" """);
+
+        // Assert
+        await Assert.That(await Page.Locator(PromptSelector).IsVisibleAsync()).IsTrue();
     }
 }
