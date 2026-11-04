@@ -39,14 +39,14 @@ public class ErrorPanelScriptTests : BrowserTestBase
 
     private async Task WaitForPanelAsync()
     {
-        await Page.WaitForSelectorAsync(PanelSelector, new PageWaitForSelectorOptions { State = WaitForSelectorState.Attached });
+        await Page.Locator(PanelSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached });
     }
 
     private Task<bool> IsPanelOpenAsync() => Page.Locator(PanelSelector).IsVisibleAsync();
 
-    private Task<string> GetLogAsync() => Page.EvalOnSelectorAsync<string>(LogSelector, "log => log.textContent");
+    private Task<string> GetLogAsync() => Page.Locator(LogSelector).EvaluateAsync<string>("log => log.textContent");
 
-    private Task<bool> IsDetailsOpenAsync() => Page.EvalOnSelectorAsync<bool>(".reu-error-details", "details => details.open");
+    private Task<bool> IsDetailsOpenAsync() => Page.Locator(".reu-error-details").EvaluateAsync<bool>("details => details.open");
 
     private Task WaitForCopyLabelAsync(string label) => Page.WaitForFunctionAsync("label => document.querySelector('.reu-error-copy').textContent === label", label);
 
@@ -278,7 +278,7 @@ public class ErrorPanelScriptTests : BrowserTestBase
         // Arrange
         await OpenAsync();
         await FailAsync("first");
-        await Page.ClickAsync(DismissSelector);
+        await Page.Locator(DismissSelector).ClickAsync();
 
         // Act
         await LogErrorAsync("second");
@@ -298,7 +298,7 @@ public class ErrorPanelScriptTests : BrowserTestBase
         await FailAsync("boom");
 
         // Act
-        await Page.ClickAsync(DismissSelector);
+        await Page.Locator(DismissSelector).ClickAsync();
 
         // Assert
         await Assert.That(await Page.Locator(PanelSelector).CountAsync()).IsEqualTo(0);
@@ -312,7 +312,7 @@ public class ErrorPanelScriptTests : BrowserTestBase
         await FailAsync("boom");
 
         // Act
-        await Page.RunAndWaitForNavigationAsync(() => Page.ClickAsync(ReloadSelector));
+        await RunAndWaitForReloadAsync(() => Page.Locator(ReloadSelector).ClickAsync());
 
         // Assert
         await Assert.That(await Page.Locator(PanelSelector).CountAsync()).IsEqualTo(0);
@@ -332,7 +332,7 @@ public class ErrorPanelScriptTests : BrowserTestBase
         await FailAsync("copy me");
 
         // Act
-        await Page.ClickAsync(CopySelector);
+        await Page.Locator(CopySelector).ClickAsync();
         await WaitForCopyLabelAsync("Copied");
 
         // Assert
@@ -346,7 +346,7 @@ public class ErrorPanelScriptTests : BrowserTestBase
         await Page.AddInitScriptAsync("""Object.defineProperty(navigator, "clipboard", { value: { writeText: async () => { } } })""");
         await GoToWithPausedClockAsync(BlazorErrorUi, Script);
         await FailAsync("copy me");
-        await Page.ClickAsync(CopySelector);
+        await Page.Locator(CopySelector).ClickAsync();
         await WaitForCopyLabelAsync("Copied");
 
         // Act
@@ -365,7 +365,7 @@ public class ErrorPanelScriptTests : BrowserTestBase
         await FailAsync("select me");
 
         // Act
-        await Page.ClickAsync(CopySelector);
+        await Page.Locator(CopySelector).ClickAsync();
         await Page.WaitForFunctionAsync("getSelection().toString().length > 0");
 
         // Assert
@@ -417,12 +417,10 @@ public class ErrorPanelScriptTests : BrowserTestBase
         await FailAsync(new string('x', 1000));
 
         // Assert
-        await Assert.That(await Page.EvalOnSelectorAsync<bool>(LogSelector, "log => log.scrollWidth > log.clientWidth")).IsTrue();
-        await Assert.That(await Page.EvalOnSelectorAsync<bool>(PanelSelector, "panel => panel.scrollWidth <= panel.clientWidth")).IsTrue();
-        await Assert.That(await Page.EvalOnSelectorAsync<bool>(
-            LogSelector,
-            "log => log.firstElementChild.offsetWidth === log.lastElementChild.offsetWidth"
-            )).IsTrue();
+        await Assert.That(await Page.Locator(LogSelector).EvaluateAsync<bool>("log => log.scrollWidth > log.clientWidth")).IsTrue();
+        await Assert.That(await Page.Locator(PanelSelector).EvaluateAsync<bool>("panel => panel.scrollWidth <= panel.clientWidth")).IsTrue();
+        await Assert.That(await Page.Locator(LogSelector).EvaluateAsync<bool>(
+            "log => log.firstElementChild.offsetWidth === log.lastElementChild.offsetWidth")).IsTrue();
     }
 
     [Test]
@@ -442,9 +440,7 @@ public class ErrorPanelScriptTests : BrowserTestBase
         await RevealBlazorErrorAsync();
 
         // Assert
-        await Assert.That(await Page.EvalOnSelectorAsync<bool>(
-            LogSelector,
-            "log => log.scrollTop > 0 && Math.abs(log.scrollTop - log.lastElementChild.offsetTop) <= 1 || log.scrollTop + log.clientHeight >= log.scrollHeight - 1"
-            )).IsTrue();
+        await Assert.That(await Page.Locator(LogSelector).EvaluateAsync<bool>(
+            "log => log.scrollTop > 0 && Math.abs(log.scrollTop - log.lastElementChild.offsetTop) <= 1 || log.scrollTop + log.clientHeight >= log.scrollHeight - 1")).IsTrue();
     }
 }

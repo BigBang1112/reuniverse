@@ -68,4 +68,25 @@ public class ReuFriendlyTypeTests : BunitContext
         // Assert
         await Assert.That(clicked).IsEqualTo(typeof(int));
     }
+    [Test]
+    public async Task Render_WithOnClick_UsesButtons()
+    {
+        // Act
+        var cut = Render<ReuFriendlyType>(parameters => parameters
+            .Add(x => x.Type, typeof(List<int>))
+            .Add(x => x.OnClick, _ => { }));
+
+        // Assert
+        await cut.FindAll(".type").Select(x => x.TagName).ShouldEqualInOrderAsync("BUTTON", "BUTTON");
+    }
+
+    [Test]
+    public async Task Render_WithoutOnClick_UsesPlainText()
+    {
+        // Act
+        var cut = RenderType(typeof(List<int>));
+
+        // Assert
+        await cut.FindAll(".type").Select(x => x.TagName).ShouldEqualInOrderAsync("SPAN", "SPAN");
+    }
 }

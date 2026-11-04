@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
@@ -190,5 +191,110 @@ public class ReuModalTests : BunitContext
 
         // Assert
         await Assert.That(isOpen).IsNull();
+    }
+    private static AngleSharp.Dom.IElement Panel(IRenderedComponent<ReuModal> cut) => cut.Find("[role=dialog]");
+
+    [Test]
+    public async Task Render_WithTitle_LabelsDialogWithTitle()
+    {
+        // Act
+        var cut = RenderOpenModal(parameters => parameters.Add(x => x.Title, "Settings"));
+
+        // Assert
+        await Assert.That(Panel(cut).GetAttribute("aria-labelledby")).IsEqualTo(cut.Find(".reu-modal-title").Id);
+    }
+
+    [Test]
+    public async Task Render_WithoutTitle_LeavesDialogUnlabelled()
+    {
+        // Act
+        var cut = RenderOpenModal();
+
+        // Assert
+        await Assert.That(Panel(cut).HasAttribute("aria-labelledby")).IsFalse();
+    }
+
+    [Test]
+    public async Task Render_WithAriaLabel_KeepsAriaLabel()
+    {
+        // Act
+        var cut = RenderOpenModal(parameters => parameters.AddUnmatched("aria-label", "Custom"));
+
+        // Assert
+        await Assert.That(Panel(cut).GetAttribute("aria-label")).IsEqualTo("Custom");
+    }
+
+    [Test]
+    public async Task Render_WhenOpen_CanFocusDialog()
+    {
+        // Act
+        var cut = RenderOpenModal();
+
+        // Assert
+        await Assert.That(Panel(cut).GetAttribute("tabindex")).IsEqualTo("-1");
+    }
+
+    [Test]
+    public async Task Render_WithCloseButton_DoesNotSubmitForms()
+    {
+        // Act
+        var cut = RenderOpenModal();
+
+        // Assert
+        await Assert.That(cut.Find(".reu-modal-close-btn").GetAttribute("type")).IsEqualTo("button");
+    }
+
+    [Test]
+    public async Task KeyDown_WithEscape_RequestsClose()
+    {
+        // Arrange
+        bool? isOpen = null;
+        var cut = RenderOpenModal(parameters => parameters.Add(x => x.IsOpenChanged, value => isOpen = value));
+
+        // Act
+        Panel(cut).KeyDown(new KeyboardEventArgs { Key = "Escape" });
+
+        // Assert
+        await Assert.That(isOpen).IsFalse();
+    }
+
+    [Test]
+    public async Task KeyDown_WithEscapeAndCloseOnEscapeOff_KeepsOpen()
+    {
+        // Arrange
+        bool? isOpen = null;
+        var cut = RenderOpenModal(parameters => parameters
+            .Add(x => x.CloseOnEscape, false)
+            .Add(x => x.IsOpenChanged, value => isOpen = value));
+
+        // Act
+        Panel(cut).KeyDown(new KeyboardEventArgs { Key = "Escape" });
+
+        // Assert
+        await Assert.That(isOpen).IsNull();
+    }
+
+    [Test]
+    public async Task KeyDown_WithOtherKey_KeepsOpen()
+    {
+        // Arrange
+        bool? isOpen = null;
+        var cut = RenderOpenModal(parameters => parameters.Add(x => x.IsOpenChanged, value => isOpen = value));
+
+        // Act
+        Panel(cut).KeyDown(new KeyboardEventArgs { Key = "Enter" });
+
+        // Assert
+        await Assert.That(isOpen).IsNull();
+    }
+
+    [Test]
+    public async Task Render_WhenOpen_StopsKeysFromReachingOuterModal()
+    {
+        // Act
+        var cut = RenderOpenModal();
+
+        // Assert
+        await Assert.That(Panel(cut).HasAttribute("blazor:onkeydown:stoppropagation")).IsTrue();
     }
 }

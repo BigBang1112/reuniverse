@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
@@ -329,5 +330,184 @@ public class ReuTabsTests : BunitContext
 
         // Assert
         await Assert.That(act).ThrowsNothing();
+    }
+    private const string FocusIdentifier = "Blazor._internal.domWrapper.focus";
+
+    // bUnit leaves the reference out of the markup of elements kept from an earlier render, so it is compared to the tab's own
+    private async Task ShouldHaveFocusedHeaderAsync(ReuTab tab)
+    {
+        var target = (ElementReference)JSInterop.VerifyFocusAsyncInvoke().Arguments[0]!;
+        await Assert.That(target.Id).IsEqualTo(tab.HeaderElement.Id);
+    }
+
+    private bool AnythingFocused() => JSInterop.Invocations.Any(x => x.Identifier == FocusIdentifier);
+
+    [Test]
+    public async Task Render_WithTabs_UsesTabRoles()
+    {
+        // Act
+        var cut = RenderTabs();
+
+        // Assert
+        await Assert.That(cut.Find(".header").GetAttribute("role")).IsEqualTo("tablist");
+        await cut.FindAll(".tab-title").Select(x => x.GetAttribute("role")).ShouldEqualInOrderAsync("tab", "tab");
+        await Assert.That(cut.FindAll("[role=tabpanel]").Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Render_WithTabs_MarksOnlySelectedTab()
+    {
+        // Act
+        var cut = RenderTabs();
+
+        // Assert
+        await cut.FindAll(".tab-title").Select(x => x.GetAttribute("aria-selected")).ShouldEqualInOrderAsync("true", "false");
+    }
+
+    [Test]
+    public async Task Render_WithTabs_PutsOnlySelectedTabInTabOrder()
+    {
+        // Act
+        var cut = RenderTabs();
+
+        // Assert
+        await cut.FindAll(".tab-title").Select(x => x.GetAttribute("tabindex")).ShouldEqualInOrderAsync("0", "-1");
+    }
+
+    [Test]
+    public async Task Render_WithTabs_LinksSelectedTabAndPanel()
+    {
+        // Act
+        var cut = RenderTabs();
+
+        // Assert
+        var header = cut.Find(".tab-title[aria-selected=true]");
+        var panel = cut.Find("[role=tabpanel]");
+        await Assert.That(header.GetAttribute("aria-controls")).IsEqualTo(panel.Id);
+        await Assert.That(panel.GetAttribute("aria-labelledby")).IsEqualTo(header.Id);
+    }
+
+    [Test]
+    public async Task Render_WithTabs_GivesEachTabItsOwnId()
+    {
+        // Act
+        var cut = RenderTabs();
+
+        // Assert
+        var ids = cut.FindAll(".tab-title").Select(x => x.Id).ToList();
+        await Assert.That(ids.Distinct().Count()).IsEqualTo(2);
+    }
+
+    [Test]
+    public async Task ClickTab_WithOtherTab_MovesSelectionAndTabOrder()
+    {
+        // Arrange
+        var cut = RenderTabs();
+
+        // Act
+        cut.FindAll(".tab")[1].Click();
+
+        // Assert
+        await cut.FindAll(".tab-title").Select(x => x.GetAttribute("aria-selected")).ShouldEqualInOrderAsync("false", "true");
+        await cut.FindAll(".tab-title").Select(x => x.GetAttribute("tabindex")).ShouldEqualInOrderAsync("-1", "0");
+    }
+
+    [Test]
+    [Arguments(0, "ArrowRight", "Two")]
+    [Arguments(2, "ArrowRight", "One")]
+    [Arguments(1, "ArrowLeft", "One")]
+    [Arguments(0, "ArrowLeft", "Three")]
+    [Arguments(1, "Home", "One")]
+    [Arguments(1, "End", "Three")]
+    public async Task KeyDown_OnTab_SelectsTab(int start, string key, string expected)
+    {
+        // Arrange
+        var cut = RenderConditionalTabs(["One", "Two", "Three"]);
+        cut.FindAll(".tab")[start].Click();
+
+        // Act
+        cut.FindAll(".tab-title")[start].KeyDown(new KeyboardEventArgs { Key = key });
+
+        // Assert
+        await Assert.That(cut.Find(".tab.selected").TextContent).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task KeyDown_OnTab_FocusesSelectedTab()
+    {
+        // Arrange
+        var cut = RenderTabs();
+
+        // Act
+        cut.FindAll(".tab-title")[0].KeyDown(new KeyboardEventArgs { Key = "ArrowRight" });
+
+        // Assert
+        await ShouldHaveFocusedHeaderAsync(cut.FindComponents<ReuTab>()[1].Instance);
+    }
+
+    [Test]
+    public async Task KeyDown_WithOtherKey_KeepsSelectionAndFocus()
+    {
+        // Arrange
+        var cut = RenderTabs();
+
+        // Act
+        cut.FindAll(".tab-title")[0].KeyDown(new KeyboardEventArgs { Key = "a" });
+
+        // Assert
+        await Assert.That(cut.Find(".tab.selected").TextContent).IsEqualTo("One");
+        await Assert.That(AnythingFocused()).IsFalse();
+    }
+
+    [Test]
+    public async Task Render_WithShowCloseButton_PutsOnlySelectedCloseButtonInTabOrder()
+    {
+        // Act
+        var cut = RenderConditionalTabs(["One", "Two"], closable: true);
+
+        // Assert
+        await cut.FindAll(".tab-close-btn").Select(x => x.GetAttribute("tabindex")).ShouldEqualInOrderAsync(null, "-1");
+    }
+
+    [Test]
+    public async Task Render_WithShowCloseButton_NamesCloseButtonAfterTab()
+    {
+        // Act
+        var cut = RenderConditionalTabs(["One"], closable: true);
+
+        // Assert
+        var button = cut.Find(".tab-close-btn");
+        await Assert.That(button.GetAttribute("aria-label")).IsEqualTo("Close tab");
+        await Assert.That(button.GetAttribute("aria-labelledby")).IsEqualTo($"{button.Id} {cut.Find(".tab-title").Id}");
+    }
+
+    [Test]
+    public async Task CloseButton_FromKeyboardOnSelectedTab_FocusesNextSelectedTab()
+    {
+        // Arrange
+        var cut = RenderConditionalTabs(["One", "Two", "Three"], closable: true);
+        cut.FindAll(".tab")[1].Click();
+        cut.FindAll(".tab-close-btn")[1].Click(new MouseEventArgs { Detail = 0 });
+
+        // Act
+        Rerender(cut);
+
+        // Assert
+        await Assert.That(cut.Find(".tab.selected").TextContent).StartsWith("Three");
+        await ShouldHaveFocusedHeaderAsync(cut.Instance.SelectedTab!);
+    }
+
+    [Test]
+    public async Task CloseButton_FromMouse_LeavesFocusAlone()
+    {
+        // Arrange
+        var cut = RenderConditionalTabs(["One", "Two"], closable: true);
+        cut.FindAll(".tab-close-btn")[0].Click(new MouseEventArgs { Detail = 1 });
+
+        // Act
+        Rerender(cut);
+
+        // Assert
+        await Assert.That(AnythingFocused()).IsFalse();
     }
 }

@@ -11,22 +11,30 @@
         }
     </div>
 }
-<div class="box general @(Selected ? "active" : "")" @onclick="() => OnSelect.InvokeAsync(Value)">@Value.Property.Name</div>
+<button type="button"
+        class="box general @(Selected ? "active" : "")"
+        aria-current="@(Selected ? "true" : null)"
+        @onclick="() => OnSelect.InvokeAsync(Value)">@Value.Property.Name</button>
 @if (IsExpandable)
 {
-    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "active" : "")">
+    <button type="button"
+            class="box general expander @(IsExpanded ? "active" : "")"
+            aria-expanded="@(IsExpanded ? "true" : "false")"
+            aria-label="Expand"
+            @onclick="OnExpandToggle">
         @(IsExpanded ? "▼" : "▶")
-    </div>
+    </button>
 }
 @try
 {
     @if (!revealed && VisualizationProvider?.Invoke(Value) is RenderFragment renderFragment)
     {
-        <span class="box-value clickable"
-              @onclick="Reveal"
-              data-reu-tooltip="Reveal the actual value">
+        <button type="button"
+                class="box-value clickable"
+                @onclick="Reveal"
+                data-reu-tooltip="Reveal the actual value">
             @renderFragment
-        </span>
+        </button>
     }
     else if (TryGetValueComponent(out var componentType))
     {
@@ -44,11 +52,12 @@
     {
         @if (CanCreateInstance())
         {
-            <span class="box-value clickable"
-                  @onclick="CreateInstance"
-                  data-reu-tooltip="Create a new instance">
+            <button type="button"
+                    class="box-value clickable"
+                    @onclick="CreateInstance"
+                    data-reu-tooltip="Create a new instance">
                 @(Value.Property.CanRead ? "null" : "(cannot get)")
-            </span>
+            </button>
         }
         else
         {
@@ -62,7 +71,7 @@
 
     @if (revealed)
     {
-        <span class="box-value clickable" @onclick="() => revealed = false">Visualize</span>
+        <button type="button" class="box-value clickable" @onclick="() => revealed = false">Visualize</button>
     }
 
     @if (ExtrasProvider?.Invoke(Value) is RenderFragment extrasFragment)
@@ -72,14 +81,16 @@
 
     @if (CanRemoveValue())
     {
-        <span class="box-value clickable remove"
-              @onclick="RemoveValueAsync"
-              data-reu-tooltip="Set to null">✕</span>
+        <button type="button"
+                class="box-value clickable remove"
+                @onclick="RemoveValueAsync"
+                aria-label="Set to null"
+                data-reu-tooltip="Set to null">✕</button>
     }
 
     @if (prevValue is not null)
     {
-        <span class="box-value clickable" @onclick="RevertValueAsync">Revert</span>
+        <button type="button" class="box-value clickable" @onclick="RevertValueAsync">Revert</button>
     }
 
     @if (!HideType && IsDifferentType(out var actualType))

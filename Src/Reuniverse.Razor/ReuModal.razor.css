@@ -26,6 +26,11 @@
     animation: reu-modal-panel-in 0.18s ease;
 }
 
+    /* focused by reuniverse.js on open, so that a screen reader starts with the title */
+    .reu-modal-panel:focus {
+        outline: none;
+    }
+
 .reu-modal-header {
     display: flex;
     align-items: center;
@@ -42,11 +47,18 @@
 }
 
 .reu-modal-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    box-sizing: border-box;
+    width: 1.9rem;
+    height: 1.9rem;
+    padding-top: 0.1em;
     cursor: pointer;
     color: var(--color-text-secondary);
     font-size: 1.1rem;
     line-height: 1;
-    padding: 0.4rem 0.5rem;
     border-radius: 4px;
     transition: color 0.1s ease, background-color 0.1s ease;
 }

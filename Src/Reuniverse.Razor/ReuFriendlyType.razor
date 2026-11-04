@@ -12,7 +12,7 @@ else
 
     @if (TypeExtensions.Keywords.TryGetValue(Type, out var keyword))
     {
-        <span class="type keyword" @onclick="() => OnClick.InvokeAsync(Type)">@keyword</span>
+        @TypeName((keyword, "keyword"))
     }
     else if (Nullable.GetUnderlyingType(Type) is Type nullable)
     {
@@ -35,7 +35,7 @@ else
         }
 
         <span>
-            <span class="type @GetColorClass()" @onclick="() => OnClick.InvokeAsync(Type)">@genericTypeName</span><span>&lt;</span>
+            @TypeName((genericTypeName, GetColorClass()))<span>&lt;</span>
             @for (int i = 0; i < genericArgs.Length; i++)
             {
                 <ReuFriendlyType Type="genericArgs[i]" OnClick="OnClick"></ReuFriendlyType>
@@ -46,7 +46,7 @@ else
     }
     else
     {
-        <span class="type @GetColorClass()" @onclick="() => OnClick.InvokeAsync(Type)">@Type.Name</span>
+        @TypeName((Type.Name, GetColorClass()))
     }
 }
 
@@ -62,6 +62,11 @@ else
     /// </summary>
     [Parameter]
     public EventCallback<Type> OnClick { get; set; }
+
+    // only a button when there is something to do on click, as it would be a dead end otherwise
+    private RenderFragment<(string Name, string ColorClass)> TypeName => type => OnClick.HasDelegate
+        ? @<button type="button" class="type @type.ColorClass" @onclick="() => OnClick.InvokeAsync(Type)">@type.Name</button>
+        : @<span class="type @type.ColorClass">@type.Name</span>;
 
     string GetColorClass()
     {

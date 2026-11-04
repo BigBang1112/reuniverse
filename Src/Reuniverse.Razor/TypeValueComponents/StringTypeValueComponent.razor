@@ -2,9 +2,10 @@
 
 @if (Value is null)
 {
-    <span class="box-value clickable"
-          @onclick="() => Value = string.Empty"
-          data-reu-tooltip="Set to empty string">@None</span>
+    <button type="button"
+            class="box-value clickable"
+            @onclick="() => Value = string.Empty"
+            data-reu-tooltip="Set to empty string">@None</button>
 }
 else
 {

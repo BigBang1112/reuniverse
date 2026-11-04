@@ -33,6 +33,16 @@
         border-right: 2px solid var(--color-button-border);
     }
 
+    /* around the whole tab rather than just its title */
+    .tab:has(> .tab-title:focus-visible) {
+        outline: 2px solid var(--color-link);
+        outline-offset: -2px;
+    }
+
+.tab-title:focus-visible {
+    outline: none;
+}
+
 .tab-close-btn {
     display: flex;
     align-items: center;

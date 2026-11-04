@@ -2,7 +2,7 @@
 
 @if (Selected)
 {
-    <div class="content">
+    <div class="content" role="tabpanel" id="@PanelId" aria-labelledby="@HeaderId" tabindex="0">
         @ChildContent
     </div>
 }
@@ -36,6 +36,11 @@
     public EventCallback OnClosed { get; set; }
 
     public bool Selected { get; internal set; }
+
+    internal string HeaderId { get; } = ReuId.Next("reu-tab");
+    internal string PanelId => $"{HeaderId}-panel";
+    internal string CloseButtonId => $"{HeaderId}-close";
+    internal ElementReference HeaderElement { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

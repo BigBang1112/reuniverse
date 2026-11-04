@@ -7,7 +7,11 @@
         <ReuFriendlyType Type="Value.Key.GetType()" OnClick="OnTypeClick"></ReuFriendlyType>
     </div>
 }
-<div class="box general @(Selected ? "active" : "")" @onclick="() => OnSelect.InvokeAsync(Value)">&nbsp;</div>
+<button type="button"
+        class="box general @(Selected ? "active" : "")"
+        aria-current="@(Selected ? "true" : null)"
+        aria-label="Select entry"
+        @onclick="() => OnSelect.InvokeAsync(Value)">&nbsp;</button>
 @if (TryGetValueComponent(Value.Key, out var keyComponentType))
 {
     var parameters = new Dictionary<string, object?>
@@ -26,17 +30,22 @@ else
 }
 @if (IsExpandable)
 {
-    <div @onclick="OnExpandToggle" class="box general expander @(IsExpanded ? "active" : "")">
+    <button type="button"
+            class="box general expander @(IsExpanded ? "active" : "")"
+            aria-expanded="@(IsExpanded ? "true" : "false")"
+            aria-label="Expand"
+            @onclick="OnExpandToggle">
         @(IsExpanded ? "▼" : "▶")
-    </div>
+    </button>
 }
 @if (!revealed && VisualizationProvider?.Invoke(Value) is RenderFragment renderFragment)
 {
-    <span class="box-value clickable"
-          @onclick="Reveal"
-          data-reu-tooltip="Reveal the actual value">
+    <button type="button"
+            class="box-value clickable"
+            @onclick="Reveal"
+            data-reu-tooltip="Reveal the actual value">
         @renderFragment
-    </span>
+    </button>
 }
 else if (TryGetValueComponent(Value.Value, out var valueComponentType))
 {
@@ -67,7 +76,7 @@ else
 }
 @if (revealed)
 {
-    <span class="box-value clickable" @onclick="() => revealed = false">Visualize</span>
+    <button type="button" class="box-value clickable" @onclick="() => revealed = false">Visualize</button>
 }
 @if (ExtrasProvider?.Invoke(Value) is RenderFragment extrasFragment)
 {
@@ -75,9 +84,11 @@ else
 }
 @if (CanRemoveValue())
 {
-    <span class="box-value clickable remove"
-          @onclick="RemoveValueAsync"
-          data-reu-tooltip="Remove element">✕</span>
+    <button type="button"
+            class="box-value clickable remove"
+            @onclick="RemoveValueAsync"
+            aria-label="Remove element"
+            data-reu-tooltip="Remove element">✕</button>
 }
 @if (Exception is not null)
 {

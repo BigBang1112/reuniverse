@@ -256,6 +256,131 @@ public class TooltipScriptTests : BrowserTestBase
         await Assert.That(box!.X + box.Width).IsLessThanOrEqualTo(1000);
     }
 
+    // whether a line break falls inside a word rather than between words
+    private Task<bool> SplitsWordAsync() => Tooltip.EvaluateAsync<bool>("""
+        element => {
+            const text = element.firstChild;
+            return [...text.data.matchAll(/\S+/g)].some(word => {
+                const range = document.createRange();
+                range.setStart(text, word.index);
+                range.setEnd(text, word.index + word[0].length);
+                return range.getClientRects().length > 1;
+            });
+        }
+        """);
+
+    private async Task<float> LineCountAsync()
+    {
+        var box = await Tooltip.BoundingBoxAsync();
+        var lineHeight = await Tooltip.EvaluateAsync<float>("element => parseFloat(getComputedStyle(element).lineHeight)");
+        return MathF.Floor(box!.Height / lineHeight);
+    }
+
+    [Test]
+    public async Task Hover_MovingNearRightEdge_KeepsShortTextOnOneLine()
+    {
+        // Arrange
+        await OpenAsync("""<div id="full" style="position: fixed; inset: 0;" data-reu-tooltip="A hint of several words"></div>""");
+        await Page.Mouse.MoveAsync(995, 100);
+        await WaitAsync();
+
+        // Act
+        await Page.Mouse.MoveAsync(990, 100);
+
+        // Assert
+        await Assert.That(await LineCountAsync()).IsEqualTo(1);
+        await Assert.That(await SplitsWordAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task Hover_NearRightEdgeAfterOtherTarget_KeepsShortTextOnOneLine()
+    {
+        // Arrange
+        await OpenAsync("""
+            <div id="first" style="position: absolute; right: 0; top: 0; width: 20px; height: 20px;" data-reu-tooltip="First"></div>
+            <div id="right" style="position: absolute; right: 0; top: 200px; width: 20px; height: 20px;" data-reu-tooltip="A hint of several words"></div>
+            """);
+        await HoverAsync("#first");
+
+        // Act
+        await HoverAsync("#right");
+
+        // Assert
+        await Assert.That(await LineCountAsync()).IsEqualTo(1);
+        await Assert.That(await SplitsWordAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task Hover_MovingNearRightEdge_WrapsLongTextBetweenWords()
+    {
+        // Arrange
+        var text = string.Join(' ', Enumerable.Repeat("several words", 12));
+        await OpenAsync($"""<div id="full" style="position: fixed; inset: 0;" data-reu-tooltip="{text}"></div>""");
+        await Page.Mouse.MoveAsync(995, 100);
+        await WaitAsync();
+
+        // Act
+        await Page.Mouse.MoveAsync(990, 100);
+
+        // Assert
+        await Assert.That(await SplitsWordAsync()).IsFalse();
+        var box = await Tooltip.BoundingBoxAsync();
+        await Assert.That(box!.X).IsGreaterThanOrEqualTo(0);
+        await Assert.That(box.X + box.Width).IsLessThanOrEqualTo(1000);
+    }
+
+    [Test]
+    public async Task Hover_InNarrowWindow_WrapsBetweenWordsInsideWindow()
+    {
+        // Arrange
+        await Page.SetViewportSizeAsync(200, 400);
+        await OpenAsync("""<div id="full" style="position: fixed; inset: 0;" data-reu-tooltip="A hint with enough words to need several lines"></div>""");
+
+        // Act
+        await Page.Mouse.MoveAsync(190, 100);
+        await WaitAsync();
+
+        // Assert
+        await Assert.That(await SplitsWordAsync()).IsFalse();
+        var box = await Tooltip.BoundingBoxAsync();
+        await Assert.That(box!.X).IsGreaterThanOrEqualTo(0);
+        await Assert.That(box.X + box.Width).IsLessThanOrEqualTo(200);
+    }
+
+    [Test]
+    public async Task Hover_WordWiderThanWindow_BreaksItToStayInside()
+    {
+        // Arrange
+        await Page.SetViewportSizeAsync(200, 400);
+        await OpenAsync($"""<div id="full" style="position: fixed; inset: 0;" data-reu-tooltip="{new string('x', 80)}"></div>""");
+
+        // Act
+        await Page.Mouse.MoveAsync(100, 100);
+        await WaitAsync();
+
+        // Assert
+        var box = await Tooltip.BoundingBoxAsync();
+        await Assert.That(box!.X).IsGreaterThanOrEqualTo(0);
+        await Assert.That(box.X + box.Width).IsLessThanOrEqualTo(200);
+        await Assert.That(await Tooltip.EvaluateAsync<bool>("element => element.scrollWidth <= element.clientWidth")).IsTrue();
+    }
+
+    [Test]
+    public async Task Hover_NearRightEdgeOfScrollingPage_StaysInsideWindow()
+    {
+        // Arrange
+        await OpenAsync("""<div id="full" style="height: 3000px;" data-reu-tooltip="A hint of several words"></div>""");
+        var clientWidth = await Page.EvaluateAsync<float>("document.documentElement.clientWidth");
+
+        // Act
+        await Page.Mouse.MoveAsync(clientWidth - 2, 100);
+        await WaitAsync();
+
+        // Assert
+        var box = await Tooltip.BoundingBoxAsync();
+        await Assert.That(box!.X + box.Width).IsLessThanOrEqualTo(clientWidth);
+    }
+
     [Test]
     public async Task Hover_NearBottomEdge_FlipsAboveCursor()
     {

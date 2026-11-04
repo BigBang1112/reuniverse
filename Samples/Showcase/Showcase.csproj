@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
         <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -27,6 +28,7 @@
         <PackageReference Include="GBX.NET.LZO" Version="2.1.5" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.3" PrivateAssets="all" />
+        <PackageReference Include="SimplestGitSourceGenerator" Version="1.0.6"  PrivateAssets="all" />
         <PackageReference Include="TmEssentials.Razor" Version="1.1.3" />
         <PackageReference Include="TmScores" Version="1.0.0" />
     </ItemGroup>

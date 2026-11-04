@@ -15,7 +15,7 @@ In Blazor Web App:
 <link rel="stylesheet" href="@Assets["_content/Reuniverse.Razor/Reuniverse.Razor.bundle.scp.css"]" />
 ```
 
-For tooltips, the [error panel](#error-panel) and the responsive `<ReuNavMenu>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown, errors only show in `#blazor-error-ui` and the navbar falls back to static width breakpoints:
+For tooltips, the [error panel](#error-panel), the [update prompt](#update-prompt), the responsive `<ReuNavMenu>` and keyboard focus in `<ReuModal>`, also reference the script before the closing `</body>` tag. It works without interactivity, so tooltips also work with static SSR. If omitted, tooltips are not shown, errors only show in `#blazor-error-ui`, new versions of a PWA are not announced, the navbar falls back to static width breakpoints and an open modal neither takes the focus nor keeps it:
 
 ```html
 <script src="@Assets["_content/Reuniverse.Razor/reuniverse.js"]" defer></script>
@@ -71,6 +71,28 @@ You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick`
 When Blazor reports an unhandled error, `reuniverse.js` shows a themed panel with the error log in place of `#blazor-error-ui`, with buttons to copy the log and to reload the page. It needs no setup other than the script, but the `#blazor-error-ui` element has to stay in the page, as that is how Blazor reports the error.
 
 The log holds the last 100 errors written to the console, along with uncaught errors and rejected promises, which do not open the panel by themselves. It is kept until the panel is dismissed or the page is reloaded.
+
+### Update prompt
+
+In a PWA, `reuniverse.js` shows a prompt in the corner of the page once a new version of the app is installed, with a button to switch to it by reloading the page. It also checks for a new version every hour and when the page is shown again, as an app that does not navigate would otherwise only check when it is opened. Without a service worker, as in a Blazor Web App, it does nothing.
+
+A new service worker only takes over once every tab of the app is closed, unless it calls `skipWaiting()`. For the prompt to be able to switch to it, the service worker has to call it when asked, and not on install, as the version still running would lose its cache (`wwwroot/service-worker.published.js`):
+
+```js
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+```
+
+A service worker that still calls `skipWaiting()` on install has already taken over when the prompt shows, so updating then just reloads the page.
+
+To handle updates yourself, opt out with the `data-reu-update-prompt="off"` attribute on `<html>` (`wwwroot/index.html`). That turns off both the prompt and the update checks, while the rest of the script keeps working:
+
+```html
+<html lang="en" data-reu-update-prompt="off">
+```
 
 ### Components
 
@@ -359,7 +381,7 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - `IconWidth` - Icon width in pixels. (default: 32)
 - `IconHeight` - Icon height in pixels. (default: 32)
 - `IconOnly` - Whether to show only the icon with no label text.
-- `Title` - Tooltip/title text for the nav item.
+- `Title` - Tooltip text for the nav item. Defaults to `Name`.
 - `ChildContent` - Nested `<ReuNavItem>` elements, shown as a submenu. The item keeps its own `Href`, which is optional.
 - `CssClass` - Additional CSS classes to apply to the nav item element.
 - Additional attributes are passed to the nav item element.
@@ -481,6 +503,8 @@ Tabs that show the content of the selected `<ReuTab>`. The first tab is selected
 - `OnClosed` - Callback invoked when the close button is clicked.
 
 A tab stays until it is removed from the markup, so remove it in `OnClosed`. If it was selected, the tab next to it is selected instead.
+
+The tabs follow the [ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/), so screen readers announce them as tabs. The tab bar is a single stop for Tab, which goes on to the content of the selected tab; the arrow keys, Home and End move between the tabs and select them. A tab closed from the keyboard moves the focus to the tab selected in its place.
 
 Example:
 

@@ -345,6 +345,7 @@
             tooltip.id = tooltipId;
             tooltip.className = "reu-tooltip";
             tooltip.setAttribute("role", "tooltip");
+            resizes.observe(tooltip);
         }
 
         if (!tooltip.isConnected) {
@@ -356,8 +357,11 @@
 
     function place() {
         const { width, height } = tooltip.getBoundingClientRect();
-        const maxLeft = window.innerWidth - width - edgeGap;
-        const fitsBelow = anchorBottom + height + edgeGap <= window.innerHeight;
+        // without the scrollbars, which the tooltip would otherwise end up under
+        const viewportWidth = document.documentElement.clientWidth;
+        const viewportHeight = document.documentElement.clientHeight;
+        const maxLeft = viewportWidth - width - edgeGap;
+        const fitsBelow = anchorBottom + height + edgeGap <= viewportHeight;
 
         const left = Math.max(edgeGap, Math.min(anchorX, maxLeft));
         const top = fitsBelow ? anchorBottom : Math.max(edgeGap, anchorTop - height - edgeGap);
@@ -426,6 +430,14 @@
             }, showDelay);
         }
     }
+
+    // Places it again when its size changes after it was placed, such as once the font has
+    // loaded, as it could otherwise end up past the edge of the window.
+    const resizes = new ResizeObserver(function () {
+        if (target) {
+            place();
+        }
+    });
 
     // Keeps up with the target while the tooltip is visible, as an element that is
     // removed or changed under a still cursor does not raise any pointer events.
@@ -667,4 +679,286 @@
             show();
         }
     }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
+})();
+
+// Reuniverse update prompt.
+//
+// An installed app keeps running the version its service worker cached, and a new service
+// worker only takes over on its own once every tab of the app is closed. This watches for a
+// new one and offers to switch to it with a reload. Switching needs the service worker to
+// call skipWaiting() when it is sent { type: "SKIP_WAITING" }; one that already does so
+// right on install has taken over by then, so the reload is all that is left. It also checks
+// for a new version every hour and when the page is shown again, as an app that never
+// navigates would otherwise only check on load. Without a service worker it does nothing,
+// and neither does it with data-reu-update-prompt="off" on <html>, for an app that handles
+// its updates itself.
+(function () {
+    "use strict";
+
+    if (!("serviceWorker" in navigator)
+        || document.documentElement.getAttribute("data-reu-update-prompt") === "off") {
+        return;
+    }
+
+    const checkInterval = 60 * 60 * 1000;
+    const minCheckGap = 5 * 60 * 1000;
+
+    let registration = null;
+    let prompt = null;
+    let isOpen = false;
+    let isUpdating = false;
+    let lastCheck = Date.now();
+
+    function update() {
+        const waiting = registration.waiting;
+
+        if (!waiting) {
+            location.reload();
+            return;
+        }
+
+        // Reloading before the new worker takes over would only load the old version again.
+        isUpdating = true;
+        prompt.querySelector(".reu-update-reload").disabled = true;
+        prompt.querySelector(".reu-update-reload").textContent = "Updating…";
+        waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+
+    function dismiss() {
+        isOpen = false;
+        prompt.remove();
+        reattach.disconnect();
+    }
+
+    function createPrompt() {
+        prompt = document.createElement("section");
+        prompt.className = "reu-update-prompt";
+        prompt.setAttribute("role", "status");
+        prompt.innerHTML = `
+            <div class="reu-update-title">A new version is available</div>
+            <p class="reu-update-message">Updating reloads the page, so anything unsaved will be lost.</p>
+            <div class="reu-update-actions">
+                <button type="button" class="reu-button reu-update-later">Later</button>
+                <button type="button" class="reu-button reu-button-blue reu-update-reload">Update</button>
+            </div>`;
+
+        prompt.addEventListener("click", function (event) {
+            if (event.target.closest(".reu-update-later")) {
+                dismiss();
+            } else if (event.target.closest(".reu-update-reload")) {
+                update();
+            }
+        });
+    }
+
+    function show() {
+        if (isOpen) {
+            return;
+        }
+
+        if (!prompt) {
+            createPrompt();
+        }
+
+        isOpen = true;
+        document.body.append(prompt);
+        reattach.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    // Enhanced navigation replaces the contents of <body> along with the prompt.
+    const reattach = new MutationObserver(function () {
+        if (isOpen && !prompt.isConnected) {
+            document.body.append(prompt);
+        }
+    });
+
+    // Without a controller, this is the first service worker rather than a new version of one.
+    function watch(worker) {
+        function check() {
+            if (worker.state === "installed" && navigator.serviceWorker.controller) {
+                show();
+            }
+        }
+
+        if (worker) {
+            worker.addEventListener("statechange", check);
+            check();
+        }
+    }
+
+    function checkForUpdate() {
+        lastCheck = Date.now();
+
+        // Being offline leaves the current version running, which is all there is to do.
+        registration.update().catch(function () { });
+    }
+
+    navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (isUpdating) {
+            location.reload();
+        }
+    });
+
+    navigator.serviceWorker.ready.then(function (ready) {
+        registration = ready;
+
+        watch(registration.waiting);
+        watch(registration.installing);
+
+        registration.addEventListener("updatefound", function () {
+            watch(registration.installing);
+        });
+
+        setInterval(checkForUpdate, checkInterval);
+
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "visible" && Date.now() - lastCheck >= minCheckGap) {
+                checkForUpdate();
+            }
+        });
+    });
+})();
+
+// Reuniverse modal focus.
+//
+// A modal dialog (role="dialog" with aria-modal="true", such as an open ReuModal) takes the
+// focus when it appears, keeps Tab and Shift+Tab within it, and hands the focus back to where it
+// was once it is gone, so the keyboard never ends up behind the backdrop or back at the start of
+// the page. The dialog itself is focused unless something in it has autofocus, so that a screen
+// reader starts with its title. If this script never loads, the focus stays where it was.
+(function () {
+    "use strict";
+
+    const dialogSelector = '[role="dialog"][aria-modal="true"]';
+    const focusableSelector = [
+        "a[href]",
+        "area[href]",
+        "button:not([disabled])",
+        "input:not([disabled]):not([type=hidden])",
+        "select:not([disabled])",
+        "textarea:not([disabled])",
+        "iframe",
+        "summary",
+        "[contenteditable]:not([contenteditable=false])",
+        "[tabindex]:not([tabindex='-1'])"
+    ].join(",");
+
+    // each open dialog and what had the focus before it appeared
+    const openers = new Map();
+
+    function topmost() {
+        const dialogs = document.querySelectorAll(dialogSelector);
+        return dialogs.length > 0 ? dialogs[dialogs.length - 1] : null;
+    }
+
+    function focusables(dialog) {
+        return Array.from(dialog.querySelectorAll(focusableSelector)).filter(function (element) {
+            return element.tabIndex >= 0 && !element.closest("[inert]") && element.getClientRects().length > 0;
+        });
+    }
+
+    function open(dialog) {
+        openers.set(dialog, document.activeElement);
+
+        if (dialog.contains(document.activeElement)) {
+            return;
+        }
+
+        const target = dialog.querySelector("[autofocus]")
+            ?? (dialog.hasAttribute("tabindex") ? dialog : focusables(dialog)[0]);
+
+        target?.focus();
+    }
+
+    function close(dialog) {
+        const opener = openers.get(dialog);
+        openers.delete(dialog);
+
+        // only when the focus went away with the dialog, as it may have been moved on purpose
+        const lost = !document.activeElement || document.activeElement === document.body;
+
+        if (lost && opener instanceof HTMLElement && opener.isConnected) {
+            opener.focus();
+        }
+    }
+
+    function openAll(root) {
+        if (root.matches(dialogSelector) && !openers.has(root)) {
+            open(root);
+        }
+
+        root.querySelectorAll(dialogSelector).forEach(function (dialog) {
+            if (!openers.has(dialog)) {
+                open(dialog);
+            }
+        });
+    }
+
+    new MutationObserver(function (mutations) {
+        openers.forEach(function (_, dialog) {
+            if (!dialog.isConnected) {
+                close(dialog);
+            }
+        });
+
+        for (const mutation of mutations) {
+            mutation.addedNodes.forEach(function (node) {
+                if (node instanceof Element) {
+                    openAll(node);
+                }
+            });
+        }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+
+    openAll(document.documentElement);
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key !== "Tab" || event.defaultPrevented) {
+            return;
+        }
+
+        const dialog = topmost();
+
+        if (!dialog) {
+            return;
+        }
+
+        const items = focusables(dialog);
+        const active = document.activeElement;
+
+        if (items.length === 0) {
+            event.preventDefault();
+            dialog.focus();
+            return;
+        }
+
+        const first = items[0];
+        const last = items[items.length - 1];
+        const outside = !dialog.contains(active);
+
+        if (event.shiftKey && (outside || active === first || active === dialog)) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && (outside || active === last)) {
+            event.preventDefault();
+            first.focus();
+        }
+    });
+})();
+
+// Reuniverse tab keys.
+//
+// ReuTabs switches tabs with the arrow keys, Home and End, which Blazor cannot cancel for some
+// keys and not others. This keeps them from also scrolling the page. If this script never
+// loads, the keys still switch tabs.
+(function () {
+    "use strict";
+
+    const keys = new Set(["ArrowLeft", "ArrowRight", "Home", "End"]);
+
+    document.addEventListener("keydown", function (event) {
+        if (keys.has(event.key) && event.target instanceof Element && event.target.matches('[role="tablist"] > * > [role="tab"]')) {
+            event.preventDefault();
+        }
+    });
 })();

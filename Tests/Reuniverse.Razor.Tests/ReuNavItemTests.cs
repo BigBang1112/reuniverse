@@ -248,7 +248,7 @@ public class ReuNavItemTests : BunitContext
         var cut = Render<ReuNavItem>(parameters => parameters.Add(x => x.Name, "Home"));
 
         // Assert
-        await Assert.That(cut.Find(".nav-item").GetAttribute("title")).IsEqualTo("Home");
+        await Assert.That(cut.Find(".nav-item").GetAttribute("data-reu-tooltip")).IsEqualTo("Home");
     }
 
     [Test]
@@ -258,6 +258,6 @@ public class ReuNavItemTests : BunitContext
         var cut = Render<ReuNavItem>(parameters => parameters.Add(x => x.Name, "Home").Add(x => x.Title, "Go home"));
 
         // Assert
-        await Assert.That(cut.Find(".nav-item").GetAttribute("title")).IsEqualTo("Go home");
+        await Assert.That(cut.Find(".nav-item").GetAttribute("data-reu-tooltip")).IsEqualTo("Go home");
     }
 }

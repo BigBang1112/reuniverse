@@ -2,20 +2,26 @@
 <div class="reu-menubar-item-container">
     @if (Data.Href is null)
     {
-        <div class="reu-menubar-item @(Data.Items.Count > 0 && IsOpen ? "active" : "")" @onclick="OnClickAsync" @onmouseenter="OnMouseEnterAsync" @onmouseleave="OnMouseLeaveAsync">
+        <button type="button"
+                class="reu-menubar-item @(Data.Items.Count > 0 && IsOpen ? "active" : "")"
+                aria-haspopup="@(Data.Items.Count > 0 ? "true" : null)"
+                aria-expanded="@(Data.Items.Count > 0 ? (IsOpen ? "true" : "false") : null)"
+                @onclick="OnClickAsync"
+                @onmouseenter="OnMouseEnterAsync"
+                @onmouseleave="OnMouseLeaveAsync">
             @if (TemplateContent is null)
             {
                 <span>@Data.Name</span>
                 @if (Nested && Data.Items.Count > 0)
                 {
-                    <span>&nbsp;&gt;</span>
+                    <span aria-hidden="true">&nbsp;&gt;</span>
                 }
             }
             else
             {
                 <span>@TemplateContent(Data)</span>
             }
-        </div>
+        </button>
     }
     else
     {
@@ -25,7 +31,7 @@
                 <span>@Data.Name</span>
                 @if (Nested && Data.Items.Count > 0)
                 {
-                    <span>&nbsp;&gt;</span>
+                    <span aria-hidden="true">&nbsp;&gt;</span>
                 }
             }
             else

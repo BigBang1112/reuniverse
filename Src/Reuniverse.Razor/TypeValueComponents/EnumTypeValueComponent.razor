@@ -6,9 +6,10 @@
 }
 else if (Value is null)
 {
-    <span class="box-value clickable"
+    <button type="button"
+            class="box-value clickable"
             @onclick="() => Value = Enum.GetValues(Type).GetValue(0)"
-            data-reu-tooltip="Set to default value">@None</span>
+            data-reu-tooltip="Set to default value">@None</button>
 }
 else if (Attribute.IsDefined(Type, typeof(FlagsAttribute)))
 {
@@ -31,9 +32,10 @@ else if (Attribute.IsDefined(Type, typeof(FlagsAttribute)))
         }
         else
         {
-            <span class="box-value clickable"
-                  @onclick="() => RemoveFlag(flagValue)"
-                  data-reu-tooltip="Remove flag">@flagValue</span>
+            <button type="button"
+                    class="box-value clickable"
+                    @onclick="() => RemoveFlag(flagValue)"
+                    data-reu-tooltip="Remove flag">@flagValue</button>
         }
     }
 

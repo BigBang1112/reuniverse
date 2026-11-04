@@ -4,6 +4,9 @@
 
 .reu-menubar-item {
     display: block;
+    /* a button would otherwise only be as wide as its text in the dropdown */
+    box-sizing: border-box;
+    width: 100%;
     color: inherit;
     padding: 0.3rem 1rem;
     font-size: 80%;

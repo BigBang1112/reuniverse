@@ -16,9 +16,11 @@ else
     }
     @if (CanAddElement())
     {
-        <span class="box-value clickable add"
-              @onclick="AddElementAsync"
-              data-reu-tooltip="Add element">+</span>
+        <button type="button"
+                class="box-value clickable add"
+                @onclick="AddElementAsync"
+                aria-label="Add element"
+                data-reu-tooltip="Add element">+</button>
     }
 }
 

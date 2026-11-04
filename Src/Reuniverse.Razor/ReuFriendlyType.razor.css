@@ -1,4 +1,4 @@
-.type:hover {
+button.type:hover {
     cursor: pointer;
     text-decoration: underline;
 }
