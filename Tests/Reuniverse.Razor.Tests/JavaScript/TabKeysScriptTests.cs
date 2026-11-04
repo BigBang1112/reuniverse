@@ -18,7 +18,7 @@ public class TabKeysScriptTests : BrowserTestBase
     private async Task<bool> PressAsync(string selector, string key)
     {
         await GoToAsync(Body, Script);
-        await Page.FocusAsync(selector);
+        await Page.Locator(selector).FocusAsync();
         await Page.Keyboard.PressAsync(key);
         return await Page.EvaluateAsync<bool>("() => window.lastKeyPrevented");
     }

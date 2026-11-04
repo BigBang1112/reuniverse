@@ -191,7 +191,7 @@ public class UpdatePromptScriptTests : BrowserTestBase
         await OpenAsync();
 
         // Act
-        await Page.ClickAsync(LaterSelector);
+        await Page.Locator(LaterSelector).ClickAsync();
 
         // Assert
         await Assert.That(await CountPromptsAsync()).IsEqualTo(0);
@@ -203,7 +203,7 @@ public class UpdatePromptScriptTests : BrowserTestBase
         // Arrange
         await FakeServiceWorkerAsync(waiting: true);
         await OpenAsync();
-        await Page.ClickAsync(LaterSelector);
+        await Page.Locator(LaterSelector).ClickAsync();
 
         // Act
         await InstallAsync();
@@ -220,7 +220,7 @@ public class UpdatePromptScriptTests : BrowserTestBase
         await OpenAsync();
 
         // Act
-        await Page.ClickAsync(UpdateSelector);
+        await Page.Locator(UpdateSelector).ClickAsync();
 
         // Assert
         await Assert.That(await GetMessageTypesAsync()).IsEquivalentTo(["SKIP_WAITING"]);
@@ -234,10 +234,10 @@ public class UpdatePromptScriptTests : BrowserTestBase
         // Arrange
         await FakeServiceWorkerAsync(waiting: true);
         await OpenAsync();
-        await Page.ClickAsync(UpdateSelector);
+        await Page.Locator(UpdateSelector).ClickAsync();
 
         // Act
-        await Page.RunAndWaitForNavigationAsync(ActivateAsync);
+        await RunAndWaitForReloadAsync(ActivateAsync);
 
         // Assert
         await Assert.That(await GetLoadCountAsync()).IsEqualTo(2);
@@ -254,7 +254,7 @@ public class UpdatePromptScriptTests : BrowserTestBase
         await ActivateAsync();
 
         // Act
-        await Page.RunAndWaitForNavigationAsync(() => Page.ClickAsync(UpdateSelector));
+        await RunAndWaitForReloadAsync(() => Page.Locator(UpdateSelector).ClickAsync());
 
         // Assert
         await Assert.That(await GetLoadCountAsync()).IsEqualTo(2);
@@ -285,7 +285,7 @@ public class UpdatePromptScriptTests : BrowserTestBase
 
         // Act
         await Page.EvaluateAsync("document.body.replaceChildren()");
-        await Page.WaitForSelectorAsync(PromptSelector);
+        await Page.Locator(PromptSelector).WaitForAsync();
 
         // Assert
         await Assert.That(await CountPromptsAsync()).IsEqualTo(1);

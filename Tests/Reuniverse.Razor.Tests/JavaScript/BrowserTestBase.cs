@@ -92,8 +92,29 @@ public abstract class BrowserTestBase
         });
     }
 
+    /// <summary>
+    /// Runs the action and waits for the page to load again, which also works for reloads, unlike waiting for a URL.
+    /// </summary>
+    protected async Task RunAndWaitForReloadAsync(Func<Task> action)
+    {
+        var loaded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnLoad(object? sender, IPage page) => loaded.TrySetResult();
+
+        Page.Load += OnLoad;
+
+        try
+        {
+            await action();
+            await loaded.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        }
+        finally
+        {
+            Page.Load -= OnLoad;
+        }
+    }
+
     protected async Task<double> GetStyleNumberAsync(string selector, string property)
     {
-        return await Page.EvalOnSelectorAsync<double>(selector, $"element => parseFloat(element.style['{property}'])");
+        return await Page.Locator(selector).EvaluateAsync<double>($"element => parseFloat(element.style['{property}'])");
     }
 }

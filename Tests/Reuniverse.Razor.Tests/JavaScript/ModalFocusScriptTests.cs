@@ -21,7 +21,7 @@ public class ModalFocusScriptTests : BrowserTestBase
     private async Task LoadButtonsAsync()
     {
         await GoToAsync(Buttons, Script);
-        await Page.FocusAsync("#opener");
+        await Page.Locator("#opener").FocusAsync();
     }
 
     // MutationObserver callbacks run after the current task
@@ -137,7 +137,7 @@ public class ModalFocusScriptTests : BrowserTestBase
         // Arrange
         await LoadButtonsAsync();
         await ShowAsync(Dialog);
-        await Page.FocusAsync("#last");
+        await Page.Locator("#last").FocusAsync();
 
         // Act
         await Page.Keyboard.PressAsync("Tab");
@@ -152,7 +152,7 @@ public class ModalFocusScriptTests : BrowserTestBase
         // Arrange
         await LoadButtonsAsync();
         await ShowAsync(Dialog);
-        await Page.FocusAsync("#first");
+        await Page.Locator("#first").FocusAsync();
 
         // Act
         await Page.Keyboard.PressAsync("Shift+Tab");
@@ -167,7 +167,7 @@ public class ModalFocusScriptTests : BrowserTestBase
         // Arrange
         await LoadButtonsAsync();
         await ShowAsync("""<div role="dialog" aria-modal="true" tabindex="-1"><button id="first">First</button><div inert><button>Collapsed</button></div></div>""");
-        await Page.FocusAsync("#first");
+        await Page.Locator("#first").FocusAsync();
 
         // Act
         await Page.Keyboard.PressAsync("Tab");
@@ -209,7 +209,7 @@ public class ModalFocusScriptTests : BrowserTestBase
         // Arrange
         await LoadButtonsAsync();
         await ShowAsync(Dialog);
-        await Page.FocusAsync("#first");
+        await Page.Locator("#first").FocusAsync();
 
         // Act
         await RemoveAsync("#dialog");
@@ -238,7 +238,7 @@ public class ModalFocusScriptTests : BrowserTestBase
         // Arrange
         await LoadButtonsAsync();
         await ShowAsync(Dialog);
-        await Page.FocusAsync("#other");
+        await Page.Locator("#other").FocusAsync();
 
         // Act
         await RemoveAsync("#dialog");
@@ -268,9 +268,9 @@ public class ModalFocusScriptTests : BrowserTestBase
         // Arrange
         await LoadButtonsAsync();
         await ShowAsync(Dialog);
-        await Page.FocusAsync("#first");
+        await Page.Locator("#first").FocusAsync();
         await ShowAsync("""<div id="inner" role="dialog" aria-modal="true" tabindex="-1"><button id="inner-only">Only</button></div>""", "#dialog");
-        await Page.FocusAsync("#inner-only");
+        await Page.Locator("#inner-only").FocusAsync();
 
         // Act
         await Page.Keyboard.PressAsync("Tab");
@@ -285,7 +285,7 @@ public class ModalFocusScriptTests : BrowserTestBase
         // Arrange
         await LoadButtonsAsync();
         await ShowAsync(Dialog);
-        await Page.FocusAsync("#first");
+        await Page.Locator("#first").FocusAsync();
         await ShowAsync("""<div id="inner" role="dialog" aria-modal="true" tabindex="-1"><button>Only</button></div>""", "#dialog");
 
         // Act
