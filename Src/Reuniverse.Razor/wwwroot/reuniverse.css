@@ -656,6 +656,8 @@ footer.reu-footer {
     width: max-content;
     /* the percentage is of the window without its scrollbar, less the gap kept to each edge by reuniverse.js */
     max-width: min(20rem, calc(100% - 16px));
+    /* but as wide as the longest word, such as a file name, which takes precedence over the maximum */
+    min-width: min-content;
     /* 1px lower, as Rubik sits high in its line box. A whole pixel, as text snaps to them */
     padding: calc(0.25rem + 1px) 0.5rem calc(0.25rem - 1px);
     border: 1px solid var(--color-tooltip-border);
@@ -672,6 +674,20 @@ footer.reu-footer {
     white-space: pre-line;
     pointer-events: none;
     animation: reu-fade-in 0.1s ease-out;
+}
+
+/* each word, put in its own span by reuniverse.js */
+.reu-tooltip > span {
+    white-space: nowrap;
+}
+
+/* set by reuniverse.js when a word is wider than the window, so that it breaks to fit after all */
+.reu-tooltip.reu-tooltip-overflowing {
+    min-width: 0;
+}
+
+.reu-tooltip.reu-tooltip-overflowing > span {
+    white-space: inherit;
 }
 
 /* Error panel, created by reuniverse.js in place of #blazor-error-ui.

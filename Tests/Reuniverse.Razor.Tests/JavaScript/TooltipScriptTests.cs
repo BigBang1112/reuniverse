@@ -259,15 +259,49 @@ public class TooltipScriptTests : BrowserTestBase
     // whether a line break falls inside a word rather than between words
     private Task<bool> SplitsWordAsync() => Tooltip.EvaluateAsync<bool>("""
         element => {
-            const text = element.firstChild;
-            return [...text.data.matchAll(/\S+/g)].some(word => {
+            const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+            const texts = [];
+            while (walker.nextNode()) {
+                texts.push(walker.currentNode);
+            }
+            return texts.some(text => [...text.data.matchAll(/\S+/g)].some(word => {
                 const range = document.createRange();
                 range.setStart(text, word.index);
                 range.setEnd(text, word.index + word[0].length);
                 return range.getClientRects().length > 1;
-            });
+            }));
         }
         """);
+
+    [Test]
+    public async Task Hover_FileNameWiderThanMaximum_KeepsItOnOneLine()
+    {
+        // Arrange
+        await OpenAsync("""<button id="target" data-reu-tooltip="ENVIMIX.TM2U_Island@adamkooo.2026-09-22-17_36.zip">Target</button>""");
+
+        // Act
+        await HoverAsync("#target");
+
+        // Assert
+        await Assert.That(await LineCountAsync()).IsEqualTo(1);
+        await Assert.That(await Tooltip.TextContentAsync()).IsEqualTo("ENVIMIX.TM2U_Island@adamkooo.2026-09-22-17_36.zip");
+    }
+
+    [Test]
+    public async Task Hover_FileNameAmongWords_WrapsOnlyBetweenWords()
+    {
+        // Arrange
+        var text = "Open ENVIMIX.TM2U_Island@adamkooo.2026-09-22-17_36.zip " + string.Join(' ', Enumerable.Repeat("in several words", 6));
+        await OpenAsync($"""<button id="target" data-reu-tooltip="{text}">Target</button>""");
+
+        // Act
+        await HoverAsync("#target");
+
+        // Assert
+        await Assert.That(await SplitsWordAsync()).IsFalse();
+        await Assert.That(await LineCountAsync()).IsGreaterThan(1);
+        await Assert.That(await Tooltip.TextContentAsync()).IsEqualTo(text);
+    }
 
     private async Task<float> LineCountAsync()
     {

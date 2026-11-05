@@ -323,6 +323,7 @@
     const attribute = "data-reu-tooltip";
     const selector = `[${attribute}]`;
     const tooltipId = "reu-tooltip";
+    const overflowingClass = "reu-tooltip-overflowing";
 
     const showDelay = 500;
     const cursorGap = 16;
@@ -355,11 +356,32 @@
         return tooltip;
     }
 
+    // Each word goes in its own element that does not wrap, so that the lines break only between
+    // words, and not also after the hyphens or slashes in a file name, for example.
+    function fill(text) {
+        tooltip.classList.remove(overflowingClass);
+        tooltip.replaceChildren(...text.split(/(\s+)/).filter(Boolean).map(function (part) {
+            if (/^\s/.test(part)) {
+                return document.createTextNode(part);
+            }
+
+            const word = document.createElement("span");
+            word.textContent = part;
+            return word;
+        }));
+    }
+
     function place() {
-        const { width, height } = tooltip.getBoundingClientRect();
         // without the scrollbars, which the tooltip would otherwise end up under
         const viewportWidth = document.documentElement.clientWidth;
         const viewportHeight = document.documentElement.clientHeight;
+
+        // A word wider than the window has to break after all.
+        if (tooltip.getBoundingClientRect().width > viewportWidth - 2 * edgeGap) {
+            tooltip.classList.add(overflowingClass);
+        }
+
+        const { width, height } = tooltip.getBoundingClientRect();
         const maxLeft = viewportWidth - width - edgeGap;
         const fitsBelow = anchorBottom + height + edgeGap <= viewportHeight;
 
@@ -406,7 +428,8 @@
             changes.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: [attribute] });
         }
 
-        ensureTooltip().textContent = text;
+        ensureTooltip();
+        fill(text);
         place();
     }
 
@@ -451,7 +474,7 @@
         if (!text) {
             hide();
         } else if (tooltip.textContent !== text) {
-            tooltip.textContent = text;
+            fill(text);
             place();
         }
     });
