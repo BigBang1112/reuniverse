@@ -21,6 +21,5 @@ jobs:
       pack-path: |
         Src/Reuniverse.Razor/*.csproj
         Templates/*.csproj
-      main-project: Reuniverse.Razor
     secrets:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
