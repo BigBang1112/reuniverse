@@ -52,6 +52,8 @@ In Blazor WebAssembly (`wwwroot/index.html`):
 <script src="_content/Reuniverse.Razor/reuniverse.theme.js"></script>
 ```
 
+Without a saved theme, it follows the OS/browser color scheme preference. If the [Dark Reader](https://darkreader.org/) extension is active, it uses the dark theme instead and adds `<meta name="darkreader-lock">`, so the real dark theme shows rather than an inverted light one.
+
 The script exposes a `window.reuTheme` API:
 
 | Method | Description |
