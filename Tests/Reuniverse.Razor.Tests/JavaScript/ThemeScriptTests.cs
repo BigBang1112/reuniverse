@@ -6,7 +6,16 @@ public class ThemeScriptTests : BrowserTestBase
 {
     private const string Script = """<script src="/reuniverse.theme.js"></script>""";
 
-    private Task OpenAsync() => GoToAsync("", Script);
+    private const string DarkReaderAttributes = """data-darkreader-mode="dynamic" data-darkreader-scheme="dark" """;
+
+    private Task OpenAsync(string htmlAttributes = "", string headBeforeScript = "") => GoToAsync("", headBeforeScript + Script, htmlAttributes);
+
+    private Task<bool> IsDarkReaderLockedAsync() => Page.EvaluateAsync<bool>("""!!document.querySelector('meta[name="darkreader-lock"]')""");
+
+    private Task MarkLikeDarkReaderAsync() => Page.EvaluateAsync("""
+        document.documentElement.setAttribute("data-darkreader-mode", "dynamic");
+        document.documentElement.setAttribute("data-darkreader-scheme", "dark");
+        """);
 
     private Task SaveThemeAsync(string theme) => Page.AddInitScriptAsync($"""localStorage.setItem("reu-theme", "{theme}")""");
 
@@ -68,6 +77,121 @@ public class ThemeScriptTests : BrowserTestBase
 
         // Assert
         await Assert.That(await GetThemeAttributeAsync()).IsEqualTo("light");
+    }
+
+    [Test]
+    public async Task Load_WithoutSavedThemeAndDarkReaderAttributes_UsesDarkAndLocksDarkReader()
+    {
+        // Arrange
+        await PreferAsync(ColorScheme.Light);
+
+        // Act
+        await OpenAsync(htmlAttributes: DarkReaderAttributes);
+
+        // Assert
+        await Assert.That(await GetThemeAttributeAsync()).IsEqualTo("dark");
+        await Assert.That(await IsDarkReaderLockedAsync()).IsTrue();
+    }
+
+    [Test]
+    public async Task Load_WithoutSavedThemeAndDarkReaderMeta_UsesDarkAndLocksDarkReader()
+    {
+        // Arrange
+        await PreferAsync(ColorScheme.Light);
+
+        // Act
+        await OpenAsync(headBeforeScript: """<meta name="darkreader" content="test" />""");
+
+        // Assert
+        await Assert.That(await GetThemeAttributeAsync()).IsEqualTo("dark");
+        await Assert.That(await IsDarkReaderLockedAsync()).IsTrue();
+    }
+
+    [Test]
+    public async Task Load_WithoutSavedThemeAndDarkReaderLightScheme_UsesPreference()
+    {
+        // Arrange
+        await PreferAsync(ColorScheme.Light);
+
+        // Act
+        await OpenAsync(htmlAttributes: """data-darkreader-mode="dynamic" data-darkreader-scheme="light" """);
+
+        // Assert
+        await Assert.That(await GetThemeAttributeAsync()).IsEqualTo("light");
+        await Assert.That(await IsDarkReaderLockedAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task Load_WithSavedLightThemeAndDarkReader_KeepsLightAndDoesNotLock()
+    {
+        // Arrange
+        await PreferAsync(ColorScheme.Dark);
+        await SaveThemeAsync("light");
+
+        // Act
+        await OpenAsync(htmlAttributes: DarkReaderAttributes);
+
+        // Assert
+        await Assert.That(await GetThemeAttributeAsync()).IsEqualTo("light");
+        await Assert.That(await IsDarkReaderLockedAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task Load_WithoutDarkReader_DoesNotLock()
+    {
+        // Arrange
+        await PreferAsync(ColorScheme.Light);
+
+        // Act
+        await OpenAsync();
+
+        // Assert
+        await Assert.That(await IsDarkReaderLockedAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task DarkReaderMarksPageLater_WithoutSavedTheme_SwitchesToDarkAndLocks()
+    {
+        // Arrange
+        await PreferAsync(ColorScheme.Light);
+        await OpenAsync();
+
+        // Act
+        await MarkLikeDarkReaderAsync();
+        await Page.WaitForFunctionAsync("""document.documentElement.getAttribute("data-theme") === "dark" """);
+
+        // Assert
+        await Assert.That(await IsDarkReaderLockedAsync()).IsTrue();
+    }
+
+    [Test]
+    public async Task DarkReaderMarksPageLater_WithSavedLightTheme_KeepsLight()
+    {
+        // Arrange
+        await SaveThemeAsync("light");
+        await OpenAsync();
+
+        // Act
+        await MarkLikeDarkReaderAsync();
+        await Page.EvaluateAsync("new Promise(resolve => setTimeout(resolve, 50))");
+
+        // Assert
+        await Assert.That(await GetThemeAttributeAsync()).IsEqualTo("light");
+        await Assert.That(await IsDarkReaderLockedAsync()).IsFalse();
+    }
+
+    [Test]
+    public async Task Set_DarkWithDarkReader_LocksDarkReader()
+    {
+        // Arrange
+        await SaveThemeAsync("light");
+        await OpenAsync(htmlAttributes: DarkReaderAttributes);
+
+        // Act
+        await Page.EvaluateAsync("""reuTheme.set("dark")""");
+
+        // Assert
+        await Assert.That(await IsDarkReaderLockedAsync()).IsTrue();
     }
 
     [Test]
