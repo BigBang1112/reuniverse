@@ -72,6 +72,10 @@
         min-width: 0;
     }
 
+.components ::deep .removed-record {
+    opacity: 0.5;
+}
+
 .split-text {
     padding: 0.5rem;
 }

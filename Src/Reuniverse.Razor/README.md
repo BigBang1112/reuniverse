@@ -675,6 +675,44 @@ A drag-and-drop file upload area with click-to-upload functionality.
 
 `<ReuUploadButton>` and `<ReuUploadScreen>` take the same upload parameters.
 
+### `<ReuDataTable>` and `<ReuDataColumn>`
+
+A table with sortable columns and pages, styled after the tables of envimix: no frame, thin row dividers and an optional dimmed second line. It renders without interactivity, but sorting and paging need it. Wide tables scroll sideways.
+
+**`<ReuDataTable>`**
+
+- `Items` - The items, which the table sorts and pages itself.
+- `ItemsProvider` - Loads a page instead, given a `ReuDataTableRequest` (`Page`, `PageSize`, `Skip`, `SortBy`, `SortDirection`, `CancellationToken`), and returns a `ReuDataTableResult` with the items and the total count. Takes precedence over `Items`.
+- `PageSize` - The number of items on a page. Null shows everything.
+- `RowClass` - CSS classes for the row of an item.
+- `EmptyContent` - What to show without items. (default: `No items`)
+- `MinWidth` - The smallest width of the table as a CSS length, below which it scrolls.
+- `CountLabel` / `ShowCount` - The word after the item count below the pages (default: `items`), and whether to show the count on a single page too.
+- `CssClass` - Additional CSS classes. Additional attributes are passed to the container.
+
+`GoToPageAsync(page)` and `RefreshAsync()` change the page or reload it, and `CurrentPage` and `PageCount` tell where it is.
+
+**`<ReuDataColumn>`**
+
+- `Title` / `TitleContent` - The header. `HideTitle` keeps it for screen readers only.
+- `Value` - The value of the cell, also sorted by. `Format` formats it, such as `N0` or `yyyy-MM-dd`.
+- `Secondary` - A dimmed value on a line below.
+- `ChildContent` - A custom cell template (name the item with `Context="record"`).
+- `SortBy` / `Sortable` / `DefaultSort` - What to sort by if not `Value`, whether the header sorts (default: when there is something to sort by), and the initial sort.
+- `SortKey` - The key passed to `ItemsProvider` when sorting by this column. (default: `Title`)
+- `Fit` - Makes the column only as wide as its content. `AlignRight` aligns it to the right.
+
+```cshtml
+<ReuDataTable Items="records" PageSize="20" RowClass="@(r => r.Removed ? "removed" : null)">
+    <ReuDataColumn Title="#" Value="r => r.Rank" Fit="true" DefaultSort="ReuSortDirection.Ascending" />
+    <ReuDataColumn Title="Player" Value="r => r.Nickname" Secondary="r => r.Login" />
+    <ReuDataColumn Title="Time" Value="r => r.Time" Format="m\:ss\.fff" />
+    <ReuDataColumn Title="Download" HideTitle="true" Fit="true" Context="record">
+        <ReuButton Href="@record.ReplayUrl">Replay</ReuButton>
+    </ReuDataColumn>
+</ReuDataTable>
+```
+
 ### `<ReuExpansionPanels>` and `<ReuExpansionPanel>`
 
 An accordion-style container with collapsible panels.

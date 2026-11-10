@@ -214,6 +214,20 @@
         </ReuSplitPane>
     </div>
     <div>
+        <h2 class="element">&lt;ReuDataTable&gt;</h2>
+    </div>
+    <div style="min-width: 0">
+        <ReuDataTable Items="records" PageSize="5" MinWidth="28rem" RowClass="@(record => record.Removed ? "removed-record" : null)">
+            <ReuDataColumn Title="#" Value="record => record.Rank" Fit="true" DefaultSort="ReuSortDirection.Ascending" />
+            <ReuDataColumn Title="Player" Value="record => record.Nickname" Secondary="record => record.Login" />
+            <ReuDataColumn Title="Time" Value="record => record.Time" Format="m\:ss\.fff" Secondary="@(record => record.Removed ? "(removed)" : null)" />
+            <ReuDataColumn Title="Driven" Value="record => record.Driven" Format="yyyy-MM-dd" />
+            <ReuDataColumn Title="Download" HideTitle="true" Fit="true" Context="record">
+                <ReuButton Href="@($"#{record.Login}")">Replay</ReuButton>
+            </ReuDataColumn>
+        </ReuDataTable>
+    </div>
+    <div>
         <h2 class="element">&lt;ReuHexEditor&gt;</h2>
         <div class="undo-redo">
             <ReuButton Enable="hexHistory.CanUndo" OnClick="() => hexHistory.Undo()">Undo</ReuButton>
@@ -268,6 +282,20 @@
 @code {
     private readonly ReuObjectTreeHistory history = new();
     private readonly ReuObjectTreeHistory hexHistory = new();
+
+    private sealed record ShowcaseRecord(int Rank, string Nickname, string Login, TimeSpan Time, DateTime Driven, bool Removed = false);
+
+    private readonly ShowcaseRecord[] records =
+    [
+        new(1, "BigBang1112", "bigbang1112", TimeSpan.FromMilliseconds(43_120), new(2026, 10, 3)),
+        new(2, "Hylis", "hylis", TimeSpan.FromMilliseconds(43_480), new(2026, 9, 21)),
+        new(3, "riolu", "riolu_tm", TimeSpan.FromMilliseconds(43_910), new(2026, 10, 30)),
+        new(4, "Mime", "mime.tm", TimeSpan.FromMilliseconds(44_050), new(2026, 8, 12), Removed: true),
+        new(5, "Scrapie", "scrapie", TimeSpan.FromMilliseconds(44_200), new(2026, 7, 2)),
+        new(6, "Wosile", "wosile", TimeSpan.FromMilliseconds(44_730), new(2026, 11, 1)),
+        new(7, "Bren", "bren_tm", TimeSpan.FromMilliseconds(45_010), new(2026, 6, 18)),
+        new(8, "Gwen", "gwen", TimeSpan.FromMilliseconds(45_320), new(2026, 5, 9))
+    ];
 
     private readonly byte[] hexData = CreateHexData();
 
