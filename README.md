@@ -68,6 +68,8 @@ You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick`
 <button onclick="reuTheme.toggle()">Toggle theme</button>
 ```
 
+Or use the [`<ReuThemeToggle>`](#reuthemetoggle) component.
+
 ### Components
 
 To use the components:
@@ -95,14 +97,14 @@ A versatile button component that can render as a link or a button with various 
 - `Enable` - Whether the button is enabled.
 - `NavLink` - Whether to render as a Blazor `NavLink` (only when `Href` is set).
 - `Variant` - The variant style of the button (`Default`, `Blue`, `Yellow`, `Red`).
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus (uses `data-reu-tooltip`).
 - `CssClass` - Additional CSS classes to apply to the button.
 - Additional attributes are supported.
 
 Example:
 
 ```cshtml
-<ReuButton Href="https://example.com" Variant="ButtonVariant.Blue" Tooltip="Go to example.com">
+<ReuButton Href="https://example.com" Variant="ReuButtonVariant.Blue" Tooltip="Go to example.com">
     Click Me
 </ReuButton>
 ```
@@ -156,7 +158,7 @@ Example:
 ```cshtml
 <ReuFooter>
     <CopyrightContent>
-        © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoòka<br />
+        © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoňka<br />
         <small>
             Not affiliated with or endorsed by Nadeo or Ubisoft.
             All relevant trademarks belong to their respective owners.
@@ -197,8 +199,8 @@ A custom checkbox component with label and state management. It should also work
 - Allows HTML content (has `ChildContent`).
 - `IsChecked` - Whether the checkbox is checked.
 - `IsCheckedChanged` - Callback invoked when the checked state changes. **(requires interactivity)**
-- `Size` - The size of the checkbox in pixels. (default: 28)
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Size` - The size of the checkbox in pixels. (default: 30)
+- `Tooltip` - The tooltip text to display on hover or keyboard focus (uses `data-reu-tooltip`).
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -275,6 +277,41 @@ A main content wrapper to define the primary content area of a page. It is used 
 - `CssClass` - Additional CSS classes to apply to the main element.
 - Additional attributes are passed to the main element.
 
+### `<ReuMetadataTags>`
+
+Renders the description, Open Graph, Twitter and canonical tags. Place it inside `<HeadContent>`.
+
+- `Title` - The page title. **(required)**
+- `Description`, `SiteName`, `Type` (default: `website`), `ThemeColor`
+- `Url` / `CanonicalUrl` - Default to the current URL.
+- `ImageUrl` (absolute) or `ImagePath` (relative), `ImageWidth` / `ImageHeight` (default: 1200 × 630)
+- `IncludeTwitter`, `TwitterCard` (default: `summary_large_image`), `IncludeCanonical`
+
+```cshtml
+<HeadContent>
+    <ReuMetadataTags Title="My App" Description="My description." ImagePath="img/preview.png" />
+</HeadContent>
+```
+
+### `<ReuModal>`
+
+A dialog shown over the page. **(requires interactivity)**
+
+- `IsOpen` - Whether the modal is open (supports `@bind-IsOpen`).
+- `Title` / `TitleContent` - The header title as text or custom content.
+- `ChildContent` / `FooterContent` - The body and the optional footer.
+- `ShowCloseButton`, `CloseOnBackdropClick`, `CloseOnEscape` - Ways to close it. (default: `true`)
+- `OnClosed` - Callback invoked after the modal closes.
+- `MaxWidth` / `Height` - CSS sizes of the panel. (default: `600px` / `auto`)
+- `CssClass` - Additional CSS classes to apply to the panel.
+
+```cshtml
+<ReuModal @bind-IsOpen="isOpen" Title="Example">
+    <ChildContent>Modal body.</ChildContent>
+    <FooterContent><ReuButton OnClick="() => isOpen = false">Close</ReuButton></FooterContent>
+</ReuModal>
+```
+
 ### `<ReuNavMenu>` and `<ReuNavItem>`
 
 A top navigation bar with a brand name, burger menu for mobile, and nav items.
@@ -284,6 +321,7 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - Allows HTML content (has `ChildContent`). Place `<ReuNavItem>` elements inside.
 - `Brand` - The brand/site name shown on the left. **(required)**
 - `BurgerImageSrc` - Optional custom image source for the burger menu icon.
+- `IsAbsolute` - Whether to place the bar over the page content instead of above it.
 - `CssClass` - Additional CSS classes to apply to the nav element.
 - Additional attributes are passed to the nav element.
 
@@ -296,10 +334,11 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - `NavLinkMatch` - The `NavLinkMatch` rule used when `IsNavLink` is `true`.
 - `IconType` - A built-in `IconType` enum value for the icon.
 - `IconSrc` - A custom icon image source (used when `IconType` is not set).
-- `IconWidth` - Icon width in pixels. (default: 24)
-- `IconHeight` - Icon height in pixels. (default: 24)
+- `IconWidth` - Icon width in pixels. (default: 32)
+- `IconHeight` - Icon height in pixels. (default: 32)
 - `IconOnly` - Whether to show only the icon with no label text.
-- `Title` - Tooltip/title text for the nav item.
+- `Title` - Tooltip text for the nav item (uses `data-reu-tooltip`). Defaults to `Name`.
+- `ChildContent` - Nested `<ReuNavItem>` elements, shown as a submenu.
 - `CssClass` - Additional CSS classes to apply to the nav item element.
 - Additional attributes are passed to the nav item element.
 
@@ -321,9 +360,10 @@ A component to display object properties in a tree structure.
 - **Requires interactivity** to function properly.
 - `Value` - The object to display.
 - `DisplayName` - The display name for the root object.
-- `HideTypes` - If to hide type names in the tree.
+- `HideType` - If to hide type names in the tree.
 - `OnTypeClick` - Callback invoked when a type name is clicked.
 - `IsExpandedByDefault` - Whether the **root** object is expanded by default.
+- `History` - A `ReuObjectTreeHistory` to record edits for `Undo()` / `Redo()`. Nothing is recorded when not set.
 
 Example:
 
@@ -365,7 +405,7 @@ A custom radio button component with label and state management. It should also 
 - `IsChecked` - Whether the radio button is checked.
 - `IsCheckedChanged` - Callback invoked when the checked state changes. **(requires interactivity)**
 - `Size` - The size of the radio button in pixels. (default: 28)
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Name` - The name of the radio button group. **(required)**
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -377,11 +417,30 @@ Example:
 <ReuRadio Name="Group">Option 4</ReuRadio>
 ```
 
+### `<ReuThemeToggle>`
+
+A lightbulb icon button that switches between the light and dark theme. Needs `reuniverse.theme.js` (see [Theming](#theming)), works without interactivity.
+
+- `Size` - The size of the icon in pixels. (default: 20)
+- `Tooltip` - The tooltip text, also used as the accessible label (uses `data-reu-tooltip`). (default: `Switch theme`)
+- `CssClass` - Additional CSS classes to apply to the button.
+- Additional attributes are passed to the button element.
+
+```cshtml
+<ReuThemeToggle />
+```
+
 ### `<ReuTooltip>`
 
-A component to display a tooltip either globally for `Tooltip` parameters, or for specific content.
+A component to show a tooltip for its content on hover or keyboard focus. Needs `reuniverse.js`, works without interactivity.
 
-TBD
+- `Text` - The tooltip text.
+
+```cshtml
+<ReuTooltip Text="Saved 2 minutes ago">Saved</ReuTooltip>
+```
+
+`Tooltip` parameters and `<ReuTooltip>` render the `data-reu-tooltip` attribute, which can also be set on any element directly.
 
 ### `<ReuUploadArea>`
 
@@ -398,6 +457,8 @@ A drag-and-drop file upload area with click-to-upload functionality.
 - `LoaderSize` - The size of the loader in pixels. (default: 50)
 - `LoaderThickness` - The thickness of the loader border in pixels. (default: 8)
 - `CssClass` - Additional CSS classes to apply to the upload area element.
+- `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
+- `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -423,10 +484,12 @@ A button that opens a file picker and uploads the selected files.
 - `Accept` - A comma-separated list of file types or unique file type specifiers describing which file types to allow.
 - `Enable` - Whether the button is enabled.
 - `Variant` - The variant style of the button (`Default`, `Blue`, `Yellow`, `Red`).
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus (uses `data-reu-tooltip`).
 - `LoaderSize` - The size of the in-progress loader in pixels.
 - `LoaderThickness` - The thickness of the loader border in pixels.
 - `CssClass` - Additional CSS classes to apply to the button.
+- `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
+- `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
 - Additional attributes are supported.
 
 Example:
@@ -453,6 +516,8 @@ A full-screen overlay upload area that appears when `IsVisible` is `true`.
 - `Accept` - A comma-separated list of file types or unique file type specifiers describing which file types to allow.
 - `CssClass` - Additional CSS classes to apply to the upload screen.
 - `CssClassArea` - Additional CSS classes to apply to the inner upload area.
+- `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
+- `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
 
 Example:
 
@@ -510,6 +575,8 @@ A tabbed content container.
 - `TitleContent` - Render fragment for the tab header button.
 - `ChildContent` - Render fragment for the tab body.
 - `CssClass` - Additional CSS classes to apply to the tab header.
+- `ShowCloseButton` - Whether to show a close (✕) button in the tab header.
+- `OnClosed` - Callback invoked when the close button is clicked. Remove the tab here.
 
 Example:
 
@@ -537,6 +604,8 @@ A horizontal menu bar with nested dropdown support.
 - `Name` - The label text.
 - `Href` - Optional link URL. When set the item acts as a link.
 - `Items` - Optional nested sub-items (produces a dropdown).
+- `Target` - Optional link target, such as `_blank`.
+- `Action` - Optional `Func<Task>` invoked when the item is clicked.
 
 Example:
 
@@ -597,7 +666,8 @@ A virtualized, live log viewer for `Microsoft.Extensions.Logging` entries.
 - `Provider` - A `ReuLoggerProvider` to subscribe to for live entries.
 - `Entries` - A static list of `ReuLogEntry` items to display (used when `Provider` is not set). Reloaded only when a different collection instance is passed, so pass a new collection or use `Add()` instead of changing the existing one.
 - `ShowTimestamp` - Whether to show the timestamp column. (default: `true`)
-- `MaxEntries` - Maximum number of entries to keep; oldest are discarded. (default: 1000)
+- `MaxEntries` - Maximum number of entries to keep; oldest are discarded. Null keeps all. (default: `null`)
+- `ScrollToBottom` - Whether to scroll to the bottom when an entry is added. (default: `true`)
 - `ItemSize` - Row height in pixels for virtualization. (default: 26)
 - `OnEntryClick` - Callback invoked when a row with an exception is clicked.
 - `OnParameterClick` - Callback invoked when a structured log parameter token is clicked.

@@ -622,6 +622,21 @@ footer.reu-footer {
     filter: invert(0.6);
 }
 
+/* <ReuThemeToggle>, works without interactivity as it calls reuniverse.theme.js directly */
+.reu-theme-toggle {
+    display: inline-flex;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+    .reu-theme-toggle .reu-theme-icon {
+        display: block;
+    }
+
+    .reu-theme-toggle:is(:hover, :focus-visible) .reu-theme-icon {
+        opacity: 1;
+    }
+
 .invalid {
     outline: 1px solid var(--color-red);
 }
