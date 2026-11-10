@@ -214,6 +214,16 @@
         </ReuSplitPane>
     </div>
     <div>
+        <h2 class="element">&lt;ReuHexEditor&gt;</h2>
+        <div class="undo-redo">
+            <ReuButton Enable="hexHistory.CanUndo" OnClick="() => hexHistory.Undo()">Undo</ReuButton>
+            <ReuButton Enable="hexHistory.CanRedo" OnClick="() => hexHistory.Redo()">Redo</ReuButton>
+        </div>
+    </div>
+    <div>
+        <ReuHexEditor Data="hexData" Highlights="hexHighlights" History="hexHistory" style="height: 260px"></ReuHexEditor>
+    </div>
+    <div>
         <h2 class="element">&lt;ReuModal&gt;</h2>
     </div>
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
@@ -257,6 +267,26 @@
 
 @code {
     private readonly ReuObjectTreeHistory history = new();
+    private readonly ReuObjectTreeHistory hexHistory = new();
+
+    private readonly byte[] hexData = CreateHexData();
+
+    private readonly ReuHexHighlight[] hexHighlights =
+    [
+        new(0, 3, Tooltip: "Magic"),
+        new(3, 2, "color-mix(in srgb, var(--color-blue) 40%, transparent)", "Version"),
+        new(5, 4, "color-mix(in srgb, var(--color-button-red) 40%, transparent)", "Class ID"),
+        new(9, 12, "color-mix(in srgb, var(--color-discord) 40%, transparent)", "Name")
+    ];
+
+    private static byte[] CreateHexData()
+    {
+        var data = new byte[4096];
+        new Random(1112).NextBytes(data);
+        "GBX  0Hello world!"u8.CopyTo(data);
+        data.AsSpan(21, 11).Clear();
+        return data;
+    }
 
     private bool showClosableTab = true;
 
@@ -437,6 +467,7 @@
     {
         // edits happen inside the tree, so the page would not update the buttons otherwise
         history.Changed += StateHasChanged;
+        hexHistory.Changed += StateHasChanged;
 
         LogSamples();
     }

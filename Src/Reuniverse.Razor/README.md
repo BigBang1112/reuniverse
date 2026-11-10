@@ -246,6 +246,35 @@ Example:
 }
 ```
 
+### `<ReuHexEditor>`
+
+A virtualized hex editor with offset, hex and text columns, which edits a `byte[]` in place (overwrite only). **(requires interactivity)**
+
+- `Data` - The bytes to show and edit. **(required)**
+- `ReadOnly` - Allows only viewing, selecting and copying.
+- `BytesPerRow` - The number of bytes on each row, from 1 to 64. (default: 16)
+- `ItemSize` - The fixed row height in pixels for virtualization. (default: 20)
+- `Highlights` - `ReuHexHighlight(Offset, Length, Color, Tooltip)` ranges shown with a background color and tooltip, such as chunks or fields.
+- `History` - A `ReuObjectTreeHistory` to record edits, also undone and redone with Ctrl+Z and Ctrl+Y. It can be shared with a `<ReuObjectTree>`.
+- `ShowStatus` - Shows the offset, value and field of the byte at the cursor. (default: `true`)
+- `Label` - The accessible label. (default: `Hex editor`)
+- `OnEdit` - Callback invoked with a `ReuHexEdit` after a byte was changed by typing.
+- `SelectionChanged` - Callback invoked with the new `ReuHexSelection`.
+- `CssClass` - Additional CSS classes to apply to the editor.
+- Additional attributes are passed to the editor element.
+
+Click, Shift+click or drag to select, and use the arrow keys, Page Up/Down, Home/End (with Ctrl for the whole data) to move, with Shift to extend the selection. Type hex digits in the hex column or characters in the text column to overwrite bytes. Ctrl+A selects all and Ctrl+C copies the selection as hex or text. Changed bytes are marked until they get their original value back. Hovering a byte also marks it in the other column and its column in the header. `SelectAsync(offset, length)` selects bytes and scrolls to them, and `Selection` gives the selected range.
+
+```cshtml
+<ReuHexEditor Data="data" Highlights="highlights" History="history" style="height: 400px" />
+
+@code {
+    private byte[] data = File.ReadAllBytes("map.Map.Gbx");
+    private ReuObjectTreeHistory history = new();
+    private ReuHexHighlight[] highlights = [new(0, 3, Tooltip: "Magic"), new(3, 2, "#1E72CC66", "Version")];
+}
+```
+
 ### `<ReuList>` and `<ReuListItem>`
 
 A horizontal (or vertical) list container and its items.
