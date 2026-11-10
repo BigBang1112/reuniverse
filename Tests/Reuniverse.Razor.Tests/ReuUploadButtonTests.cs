@@ -167,4 +167,124 @@ public class ReuUploadButtonTests : ReuUploadTestBase
         // Assert
         await Assert.That(TooLarge[0].Size).IsEqualTo(11);
     }
+
+    [Test]
+    public async Task Render_ByDefault_LeavesFolderAndPasteOff()
+    {
+        // Act
+        var cut = Render<ReuUploadButton>();
+
+        // Assert
+        var input = cut.Find("input");
+        await Assert.That(input.HasAttribute("webkitdirectory")).IsFalse();
+        await Assert.That(input.HasAttribute("data-reu-paste")).IsFalse();
+    }
+
+    [Test]
+    public async Task Render_WithDirectory_PicksFolder()
+    {
+        // Act
+        var cut = Render<ReuUploadButton>(parameters => parameters.Add(x => x.Directory, true));
+
+        // Assert
+        await Assert.That(cut.Find("input").HasAttribute("webkitdirectory")).IsTrue();
+    }
+
+    [Test]
+    public async Task Render_WithPaste_MarksInputForPaste()
+    {
+        // Act
+        var cut = Render<ReuUploadButton>(parameters => parameters.Add(x => x.Paste, true));
+
+        // Assert
+        await Assert.That(cut.Find("input").HasAttribute("data-reu-paste")).IsTrue();
+    }
+
+    [Test]
+    public async Task UploadAsync_WithRelativePath_PassesItOn()
+    {
+        // Arrange
+        UploadEventArgs? uploaded = null;
+        var cut = Render<ReuUploadButton>(parameters => parameters
+            .Add(x => x.OnUpload, EventCallback.Factory.Create<UploadEventArgs>(this, x => uploaded = x)));
+
+        // Act
+        await cut.InvokeAsync(() => cut.Instance.UploadAsync("A01.Map.Gbx", [1], 0, "", "Maps/A01.Map.Gbx"));
+
+        // Assert
+        await Assert.That(uploaded!.FileName).IsEqualTo("A01.Map.Gbx");
+        await Assert.That(uploaded.RelativePath).IsEqualTo("Maps/A01.Map.Gbx");
+    }
+
+    [Test]
+    public async Task UploadAsync_WithoutRelativePath_LeavesItNull()
+    {
+        // Arrange
+        UploadEventArgs? uploaded = null;
+        var cut = Render<ReuUploadButton>(parameters => parameters
+            .Add(x => x.OnUpload, EventCallback.Factory.Create<UploadEventArgs>(this, x => uploaded = x)));
+
+        // Act
+        await cut.InvokeAsync(() => UploadFileAsync(cut.Instance.UploadAsync, size: 1));
+
+        // Assert
+        await Assert.That(uploaded!.RelativePath).IsNull();
+    }
+
+    [Test]
+    public async Task OpenStreamAsync_WithRelativePath_PassesItOn()
+    {
+        // Arrange
+        var cut = Render<ReuUploadButton>(parameters => parameters
+            .Add(x => x.Streamed, true)
+            .Add(x => x.OnStream, OnStream));
+
+        // Act
+        await cut.InvokeAsync(() => cut.Instance.OpenStreamAsync(new FakeJSObjectReference(), "A01.Map.Gbx", 1, 0, "", "Maps/A01.Map.Gbx"));
+
+        // Assert
+        await Assert.That(Streamed.Single().RelativePath).IsEqualTo("Maps/A01.Map.Gbx");
+    }
+
+    [Test]
+    public async Task UploadAsync_TooLargeWithRelativePath_ReportsIt()
+    {
+        // Arrange
+        var cut = Render<ReuUploadButton>(parameters => parameters
+            .Add(x => x.MaxFileSize, 1L)
+            .Add(x => x.OnFileTooLarge, OnFileTooLarge));
+
+        // Act
+        await cut.InvokeAsync(() => cut.Instance.UploadAsync("A01.Map.Gbx", [1, 2], 0, "", "Maps/A01.Map.Gbx"));
+
+        // Assert
+        await Assert.That(TooLarge.Single().RelativePath).IsEqualTo("Maps/A01.Map.Gbx");
+    }
+
+    [Test]
+    public async Task OnFileExceedCountAsync_WithRelativePath_ReportsIt()
+    {
+        // Arrange
+        var cut = Render<ReuUploadButton>(parameters => parameters.Add(x => x.OnFileExceedCount, OnFileExceedCount));
+
+        // Act
+        await cut.InvokeAsync(() => cut.Instance.OnFileExceedCountAsync("A01.Map.Gbx", 1, 0, "", "Maps/A01.Map.Gbx"));
+
+        // Assert
+        await Assert.That(ExceededCount.Single().RelativePath).IsEqualTo("Maps/A01.Map.Gbx");
+    }
+
+    [Test]
+    public async Task DisposeAsync_WhenRendered_RemovesPasteHandler()
+    {
+        // Arrange
+        ButtonModule.SetupVoid("removeHandlers", _ => true).SetVoidResult();
+        Render<ReuUploadButton>();
+
+        // Act
+        await DisposeComponentsAsync();
+
+        // Assert
+        await Assert.That(ButtonModule.Invocations["removeHandlers"].Count).IsEqualTo(1);
+    }
 }

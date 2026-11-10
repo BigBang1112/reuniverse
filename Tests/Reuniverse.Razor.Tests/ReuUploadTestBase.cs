@@ -8,12 +8,14 @@ public abstract class ReuUploadTestBase : BunitContext
     protected ReuUploadTestBase()
     {
         JSInterop.Mode = JSRuntimeMode.Loose;
-        JSInterop.SetupModule("./_content/Reuniverse.Razor/ReuUploadArea.razor.js");
-        JSInterop.SetupModule("./_content/Reuniverse.Razor/ReuUploadButton.razor.js");
+        AreaModule = JSInterop.SetupModule("./_content/Reuniverse.Razor/ReuUploadArea.razor.js");
+        ButtonModule = JSInterop.SetupModule("./_content/Reuniverse.Razor/ReuUploadButton.razor.js");
         ScreenModule = JSInterop.SetupModule("./_content/Reuniverse.Razor/ReuUploadScreen.razor.js");
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
     }
 
+    protected BunitJSModuleInterop AreaModule { get; }
+    protected BunitJSModuleInterop ButtonModule { get; }
     protected BunitJSModuleInterop ScreenModule { get; }
 
     protected List<string> Uploaded { get; } = [];
@@ -26,15 +28,15 @@ public abstract class ReuUploadTestBase : BunitContext
     protected EventCallback<FileInfoEventArgs> OnFileExceedCount => EventCallback.Factory.Create<FileInfoEventArgs>(this, ExceededCount.Add);
     protected EventCallback<StreamEventArgs> OnStream => EventCallback.Factory.Create<StreamEventArgs>(this, Streamed.Add);
 
-    protected static Task UploadFileAsync(Func<string, byte[], long, string, Task> upload, int size)
+    protected static Task UploadFileAsync(Func<string, byte[], long, string, string?, Task> upload, int size)
     {
-        return upload("file.bin", new byte[size], 0, "application/octet-stream");
+        return upload("file.bin", new byte[size], 0, "application/octet-stream", null);
     }
 
-    protected static async Task<FakeJSObjectReference> OpenStreamAsync(Func<IJSObjectReference, string, long, long, string, Task> open, long size)
+    protected static async Task<FakeJSObjectReference> OpenStreamAsync(Func<IJSObjectReference, string, long, long, string, string?, Task> open, long size)
     {
         var file = new FakeJSObjectReference();
-        await open(file, "file.bin", size, 0, "application/octet-stream");
+        await open(file, "file.bin", size, 0, "application/octet-stream", null);
         return file;
     }
 

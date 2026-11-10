@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace Reuniverse.Razor.Tests;
 
 public class ReuUploadScreenTests : ReuUploadTestBase
@@ -117,5 +119,35 @@ public class ReuUploadScreenTests : ReuUploadTestBase
 
         // Assert
         await ShouldBeAcceptedAsync(accepted: false);
+    }
+
+    [Test]
+    public async Task Render_WithDirectoryAndPaste_PassesThemToArea()
+    {
+        // Act
+        var cut = Render<ReuUploadScreen>(parameters => parameters
+            .Add(x => x.Directory, true)
+            .Add(x => x.Paste, true));
+
+        // Assert
+        var area = cut.FindComponent<ReuUploadArea>().Instance;
+        await Assert.That(area.Directory).IsTrue();
+        await Assert.That(area.Paste).IsTrue();
+    }
+
+    [Test]
+    public async Task UploadAsync_WithRelativePath_ForwardsIt()
+    {
+        // Arrange
+        UploadEventArgs? uploaded = null;
+        var cut = Render<ReuUploadScreen>(parameters => parameters
+            .Add(x => x.OnUpload, EventCallback.Factory.Create<UploadEventArgs>(this, x => uploaded = x)));
+        var area = cut.FindComponent<ReuUploadArea>();
+
+        // Act
+        await cut.InvokeAsync(() => area.Instance.UploadAsync("A01.Map.Gbx", [1], 0, "", "Maps/A01.Map.Gbx"));
+
+        // Assert
+        await Assert.That(uploaded!.RelativePath).IsEqualTo("Maps/A01.Map.Gbx");
     }
 }

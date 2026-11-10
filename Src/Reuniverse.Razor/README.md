@@ -617,6 +617,8 @@ A drag-and-drop file upload area with click-to-upload functionality.
 - `LoaderSize` / `LoaderThickness` - Size and border thickness of the loader in pixels. (default: 50 / 8)
 - `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. Use it for large files. (default: `false`)
 - `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a seekable `ReuBrowserFileStream`. The handler owns the stream and should dispose it.
+- `Directory` - Picks a folder instead of files. Every file in it matching `Accept` is uploaded, with its path within the folder in `RelativePath`.
+- `Paste` - Uploads files pasted anywhere on the page (Ctrl+V), filtered by `Accept`. Enable it on only one upload component per page.
 - Additional attributes are passed to the **input** element.
 
 `<ReuUploadButton>` and `<ReuUploadScreen>` take the same upload parameters.

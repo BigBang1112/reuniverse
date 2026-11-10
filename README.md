@@ -459,6 +459,8 @@ A drag-and-drop file upload area with click-to-upload functionality.
 - `CssClass` - Additional CSS classes to apply to the upload area element.
 - `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
 - `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
+- `Directory` - Picks a folder instead of files. Every file in it matching `Accept` is uploaded, with its path within the folder in `RelativePath`.
+- `Paste` - Uploads files pasted anywhere on the page (Ctrl+V), filtered by `Accept`. Enable it on only one upload component per page.
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -490,6 +492,8 @@ A button that opens a file picker and uploads the selected files.
 - `CssClass` - Additional CSS classes to apply to the button.
 - `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
 - `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
+- `Directory` - Picks a folder instead of files. Every file in it matching `Accept` is uploaded, with its path within the folder in `RelativePath`.
+- `Paste` - Uploads files pasted anywhere on the page (Ctrl+V), filtered by `Accept`. Enable it on only one upload component per page.
 - Additional attributes are supported.
 
 Example:
@@ -518,6 +522,8 @@ A full-screen overlay upload area that appears when `IsVisible` is `true`.
 - `CssClassArea` - Additional CSS classes to apply to the inner upload area.
 - `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
 - `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
+- `Directory` - Picks a folder instead of files. Every file in it matching `Accept` is uploaded, with its path within the folder in `RelativePath`.
+- `Paste` - Uploads files pasted anywhere on the page (Ctrl+V), filtered by `Accept`. Enable it on only one upload component per page.
 
 Example:
 

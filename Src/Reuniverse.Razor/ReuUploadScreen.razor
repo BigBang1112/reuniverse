@@ -11,6 +11,8 @@
                    Accept="@Accept"
                    Streamed="Streamed"
                    OnStream="Stream"
+                   Directory="Directory"
+                   Paste="Paste"
                    CssClass="@CssClassArea">
         @ChildContent
     </ReuUploadArea>
@@ -93,6 +95,18 @@
     /// </summary>
     [Parameter]
     public EventCallback<StreamEventArgs> OnStream { get; set; }
+
+    /// <summary>
+    /// Whether dropped folders are uploaded instead of files, with each file's path within the folder in <c>RelativePath</c>.
+    /// </summary>
+    [Parameter]
+    public bool Directory { get; set; }
+
+    /// <summary>
+    /// Whether files pasted anywhere on the page (Ctrl+V) are uploaded, filtered by <see cref="Accept"/>. Pasting into a text field is left alone.
+    /// </summary>
+    [Parameter]
+    public bool Paste { get; set; }
 
     protected override void OnInitialized() =>
         objRef = DotNetObjectReference.Create(this);
