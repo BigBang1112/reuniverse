@@ -214,7 +214,12 @@
 
             // lets the columns register first, so that the first request already has their default sort
             await Task.Yield();
-            await LoadAsync();
+
+            // unless something else loaded in the meantime, such as a click on a page, which this would undo
+            if (loadPending)
+            {
+                await LoadAsync();
+            }
         }
     }
 

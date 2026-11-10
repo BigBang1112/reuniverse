@@ -893,4 +893,32 @@ public class ReuObjectTreeTests : ReuObjectTreeTestBase
         // Assert
         await Assert.That(cut.FindAll(".box.general, .box-value.clickable").All(x => x.TagName == "BUTTON" && x.GetAttribute("type") == "button")).IsTrue();
     }
+
+    private sealed class LabelModel
+    {
+        public string Name { get; set; } = "Example";
+        public int Count { get; set; } = 3;
+    }
+
+    [Test]
+    public async Task Render_ValueInputs_AreNamedAfterWhatTheyEdit()
+    {
+        // Act
+        var cut = RenderObjectTree(new LabelModel());
+
+        // Assert
+        var labels = cut.FindAll("input").Select(x => x.GetAttribute("aria-label")).ToArray();
+        await Assert.That(labels).Contains("Name");
+        await Assert.That(labels).Contains("Count");
+    }
+
+    [Test]
+    public async Task Render_ListItemInputs_AreNamedAfterTheirIndex()
+    {
+        // Act
+        var cut = RenderObjectTree(new List<int> { 7, 8 });
+
+        // Assert
+        await cut.FindAll("input").Select(x => x.GetAttribute("aria-label")).ShouldEqualInOrderAsync("Item 0", "Item 1");
+    }
 }

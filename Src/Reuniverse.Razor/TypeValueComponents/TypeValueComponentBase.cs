@@ -49,6 +49,14 @@ public abstract class TypeValueComponentBase<T> : ComponentBase, ITypeValueCompo
     public ReuObjectTreeHistory? History { get; set; }
 
     public PropertyInfo? Property => Member?.Property;
+
+    /// <summary>
+    /// What the edited value is called, for the accessible name of its input: the member name, the item index, or the dictionary key.
+    /// </summary>
+    public string Label => Member is not null ? Member.Property.Name
+        : Item is not null ? $"Item {Item.Index}"
+        : KeyValue is not null ? (IsKey ? "Key" : $"{KeyValue.Key}")
+        : "Value";
     public object? Parent => Member?.Parent ?? Item?.Parent;
 
     public virtual T? Value

@@ -42,7 +42,7 @@ else if (Attribute.IsDefined(Type, typeof(FlagsAttribute)))
     @if (!IsReadOnly)
     {
         @* keyed by the current value so the select resets to the placeholder after a flag is added *@
-        <select @key="bits" @onchange="AddFlag">
+        <select aria-label="@Label" @key="bits" @onchange="AddFlag">
             <option value="" selected>Add a flag...</option>
             @foreach (var enumValue in Enum.GetValues(Type))
             {
@@ -63,7 +63,7 @@ else
     var containsCurrentValue = enumValues.Cast<object>().Any(v => v.Equals(value));
 
     @* bound on the select, as selected attributes do not update an option the user has already changed *@
-    <select value="@ToBits(value)" disabled="@IsReadOnly" @onchange="OnChange">
+    <select aria-label="@Label" value="@ToBits(value)" disabled="@IsReadOnly" @onchange="OnChange">
 
         @if (!containsCurrentValue)
         {

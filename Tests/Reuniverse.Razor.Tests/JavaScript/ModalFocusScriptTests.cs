@@ -237,14 +237,15 @@ public class ModalFocusScriptTests : BrowserTestBase
     {
         // Arrange
         await LoadButtonsAsync();
+        await ShowAsync("""<section class="reu-update-prompt"><button id="update">Update</button></section>""");
         await ShowAsync(Dialog);
-        await Page.Locator("#other").FocusAsync();
+        await Page.Locator("#update").FocusAsync();
 
         // Act
         await RemoveAsync("#dialog");
 
         // Assert
-        await Assert.That(await FocusedIdAsync()).IsEqualTo("other");
+        await Assert.That(await FocusedIdAsync()).IsEqualTo("update");
     }
 
     [Test]
@@ -293,5 +294,164 @@ public class ModalFocusScriptTests : BrowserTestBase
 
         // Assert
         await Assert.That(await FocusedIdAsync()).IsEqualTo("first");
+    }
+
+    private Task<bool> IsInertAsync(string selector) => Page.EvaluateAsync<bool>("selector => document.querySelector(selector).inert", selector);
+
+    [Test]
+    public async Task Show_WithDialog_MakesRestOfPageInert()
+    {
+        // Arrange
+        await LoadButtonsAsync();
+
+        // Act
+        await ShowAsync(Dialog);
+
+        // Assert
+        await Assert.That(await IsInertAsync("#opener")).IsTrue();
+        await Assert.That(await IsInertAsync("#other")).IsTrue();
+        await Assert.That(await IsInertAsync("#dialog")).IsFalse();
+    }
+
+    [Test]
+    public async Task Show_DeepInPage_KeepsElementsItIsInActive()
+    {
+        // Arrange
+        await GoToAsync("""<main id="main"><aside id="aside">Aside</aside><div id="host"></div></main><footer id="footer">Footer</footer>""", Script);
+
+        // Act
+        await ShowAsync($"""<div id="backdrop">{Dialog}</div>""", "#host");
+
+        // Assert
+        await Assert.That(await IsInertAsync("#main")).IsFalse();
+        await Assert.That(await IsInertAsync("#host")).IsFalse();
+        await Assert.That(await IsInertAsync("#backdrop")).IsFalse();
+        await Assert.That(await IsInertAsync("#aside")).IsTrue();
+        await Assert.That(await IsInertAsync("#footer")).IsTrue();
+    }
+
+    [Test]
+    public async Task Focus_BehindOpenDialog_StaysInDialog()
+    {
+        // Arrange
+        await LoadButtonsAsync();
+        await ShowAsync(Dialog);
+
+        // Act
+        await Page.EvaluateAsync("() => document.getElementById('other').focus()");
+
+        // Assert
+        await Assert.That(await FocusedIdAsync()).IsEqualTo("dialog");
+    }
+
+    [Test]
+    public async Task Show_WithPanelsOfThisScript_KeepsThemUsable()
+    {
+        // Arrange
+        await GoToAsync("""
+            <button id="opener">Open</button>
+            <div id="blazor-error-ui">Error</div>
+            <section class="reu-error-panel" id="errors">Errors</section>
+            <section class="reu-update-prompt" id="update">Update</section>
+            """, Script);
+
+        // Act
+        await ShowAsync(Dialog);
+
+        // Assert
+        await Assert.That(await IsInertAsync("#opener")).IsTrue();
+        await Assert.That(await IsInertAsync("#blazor-error-ui")).IsFalse();
+        await Assert.That(await IsInertAsync("#errors")).IsFalse();
+        await Assert.That(await IsInertAsync("#update")).IsFalse();
+    }
+
+    [Test]
+    public async Task Remove_Dialog_MakesPageActiveAgain()
+    {
+        // Arrange
+        await LoadButtonsAsync();
+        await ShowAsync(Dialog);
+
+        // Act
+        await RemoveAsync("#dialog");
+
+        // Assert
+        await Assert.That(await IsInertAsync("#opener")).IsFalse();
+        await Assert.That(await IsInertAsync("#other")).IsFalse();
+    }
+
+    [Test]
+    public async Task Remove_Dialog_KeepsWhatWasInertBefore()
+    {
+        // Arrange
+        await GoToAsync("""<button id="opener">Open</button><div id="already" inert>Already inert</div>""", Script);
+        await ShowAsync(Dialog);
+
+        // Act
+        await RemoveAsync("#dialog");
+
+        // Assert
+        await Assert.That(await IsInertAsync("#already")).IsTrue();
+        await Assert.That(await IsInertAsync("#opener")).IsFalse();
+    }
+
+    [Test]
+    public async Task Show_NestedDialog_MakesOuterDialogContentInert()
+    {
+        // Arrange
+        await LoadButtonsAsync();
+        await ShowAsync(Dialog);
+
+        // Act
+        await ShowAsync("""<div id="inner" role="dialog" aria-modal="true" tabindex="-1"><button>Only</button></div>""", "#dialog");
+
+        // Assert
+        await Assert.That(await IsInertAsync("#first")).IsTrue();
+        await Assert.That(await IsInertAsync("#inner")).IsFalse();
+    }
+
+    [Test]
+    public async Task Remove_NestedDialog_MakesOnlyOuterDialogActiveAgain()
+    {
+        // Arrange
+        await LoadButtonsAsync();
+        await ShowAsync(Dialog);
+        await ShowAsync("""<div id="inner" role="dialog" aria-modal="true" tabindex="-1"><button>Only</button></div>""", "#dialog");
+
+        // Act
+        await RemoveAsync("#inner");
+
+        // Assert
+        await Assert.That(await IsInertAsync("#first")).IsFalse();
+        await Assert.That(await IsInertAsync("#other")).IsTrue();
+    }
+
+    [Test]
+    public async Task Remove_BothDialogsAtOnce_MakesPageActiveAgain()
+    {
+        // Arrange
+        await LoadButtonsAsync();
+        await ShowAsync(Dialog);
+        await ShowAsync("""<div id="inner" role="dialog" aria-modal="true" tabindex="-1"><button>Only</button></div>""", "#dialog");
+
+        // Act
+        await RemoveAsync("#dialog");
+
+        // Assert
+        await Assert.That(await IsInertAsync("#opener")).IsFalse();
+        await Assert.That(await IsInertAsync("#other")).IsFalse();
+    }
+
+    [Test]
+    public async Task Show_WithoutAriaModal_LeavesPageActive()
+    {
+        // Arrange
+        await LoadButtonsAsync();
+
+        // Act
+        await ShowAsync("""<div id="plain" role="dialog"><button>Only</button></div>""");
+
+        // Assert
+        await Assert.That(await IsInertAsync("#other")).IsFalse();
     }
 }

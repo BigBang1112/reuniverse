@@ -1,11 +1,15 @@
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<ReuButton CssClass="@($"reu-upload-button {CssClass}")" Enable="Enable" Variant="Variant" Tooltip="@Tooltip" Active="dragged">
+@* a label rather than a button, as a button cannot hold the input, and the label's text names it *@
+<label class="reu-button reu-upload-button @(dragged ? "active" : null) @(Enable ? null : "disabled") @VariantClass @CssClass"
+       data-reu-tooltip="@Tooltip">
     @if (RendererInfo.IsInteractive)
     {
         @ChildContent
         <input type="file"
+               disabled="@(!Enable)"
+               aria-label="@(ChildContent is null ? (Directory ? "Choose a folder" : "Choose files") : null)"
                @ref="inputFileUpload"
                @ondragenter="DragEnter"
                @ondragleave="DragEnd"
@@ -21,7 +25,7 @@
     {
         <ReuLoader Size="LoaderSize" Thickness="LoaderThickness"></ReuLoader>
     }
-</ReuButton>
+</label>
 
 @code {
     private ElementReference inputFileUpload;
@@ -29,6 +33,14 @@
     private DotNetObjectReference<ReuUploadButton>? objRef;
 
     private bool dragged;
+
+    private string? VariantClass => Variant switch
+    {
+        ReuButtonVariant.Blue => "reu-button-blue",
+        ReuButtonVariant.Yellow => "reu-button-yellow",
+        ReuButtonVariant.Red => "reu-button-red",
+        _ => null
+    };
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }

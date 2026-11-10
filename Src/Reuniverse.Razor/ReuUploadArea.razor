@@ -2,11 +2,13 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
-<div class="upload-area @(dragged ? "drag" : "") @CssClass">
+@* a label, so that its text names the input that covers it *@
+<label class="upload-area @(dragged ? "drag" : "") @CssClass">
     @if (RendererInfo.IsInteractive)
     {
         @ChildContent
         <input class="file"
+               aria-label="@(ChildContent is null ? (Directory ? "Choose a folder" : "Choose files") : null)"
                @ref="inputFileUpload"
                @ondragenter="DragEnter"
                @ondragleave="DragEnd"
@@ -21,7 +23,7 @@
     {
         <ReuLoader Size="LoaderSize" Thickness="LoaderThickness"></ReuLoader>
     }
-</div>
+</label>
 
 @code {
     private ElementReference inputFileUpload;

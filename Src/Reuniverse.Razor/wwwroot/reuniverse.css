@@ -391,6 +391,16 @@ main.reu-main {
         opacity: 0;
     }
 
+    .reu-upload-button.disabled input {
+        cursor: not-allowed;
+    }
+
+    /* the input takes the focus, but it cannot be seen */
+    .reu-upload-button:has(input:focus-visible) {
+        outline: 2px solid var(--color-link);
+        outline-offset: 2px;
+    }
+
 .reu-center {
     display: flex;
     flex-direction: column;
@@ -625,6 +635,8 @@ footer.reu-footer {
 /* <ReuThemeToggle>, works without interactivity as it calls reuniverse.theme.js directly */
 .reu-theme-toggle {
     display: inline-flex;
+    /* makes it at least 24px across, which is easier to hit, while the bulb stays as it was */
+    padding: 2px;
     cursor: pointer;
     border-radius: 4px;
 }

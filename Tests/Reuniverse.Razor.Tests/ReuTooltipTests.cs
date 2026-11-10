@@ -133,7 +133,7 @@ public class ReuTooltipTests : ReuObjectTreeTestBase
         var cut = Render<ReuUploadButton>(parameters => parameters.Add(x => x.Tooltip, "Hint"));
 
         // Assert
-        await Assert.That(cut.Find("button").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
+        await Assert.That(cut.Find(".reu-upload-button").GetAttribute(TooltipAttribute)).IsEqualTo("Hint");
     }
 
     [Test]

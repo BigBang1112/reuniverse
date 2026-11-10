@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <PackageReference Include="bunit" Version="2.13.3" />
+        <PackageReference Include="Deque.AxeCore.Playwright" Version="4.14.0" />
         <PackageReference Include="Microsoft.Playwright" Version="1.64.1" />
         <PackageReference Include="TUnit" Version="1.78.0" />
     </ItemGroup>
@@ -23,6 +24,10 @@
     <ItemGroup>
         <None Include="..\..\Src\Reuniverse.Razor\wwwroot\*.js;..\..\Src\Reuniverse.Razor\wwwroot\*.css;..\..\Src\Reuniverse.Razor\*.razor.js"
               Link="Scripts\%(Filename)%(Extension)"
+              CopyToOutputDirectory="PreserveNewest" />
+        <!-- the styles of the components themselves, which the library builds before this project copies them -->
+        <None Include="..\..\Src\Reuniverse.Razor\obj\$(Configuration)\$(TargetFramework)\scopedcss\bundle\Reuniverse.Razor.styles.css"
+              Link="Scripts\Reuniverse.Razor.styles.css"
               CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 

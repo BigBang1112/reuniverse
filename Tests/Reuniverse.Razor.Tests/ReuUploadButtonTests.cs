@@ -44,7 +44,7 @@ public class ReuUploadButtonTests : ReuUploadTestBase
         cut.Find("input").DragEnter();
 
         // Assert
-        await Assert.That(cut.Find("button").ClassList.Contains("active")).IsTrue();
+        await Assert.That(cut.Find(".reu-upload-button").ClassList.Contains("active")).IsTrue();
     }
 
     [Test]
@@ -58,7 +58,7 @@ public class ReuUploadButtonTests : ReuUploadTestBase
         cut.Find("input").DragLeave();
 
         // Assert
-        await Assert.That(cut.Find("button").ClassList.Contains("active")).IsFalse();
+        await Assert.That(cut.Find(".reu-upload-button").ClassList.Contains("active")).IsFalse();
     }
 
     [Test]
@@ -286,5 +286,48 @@ public class ReuUploadButtonTests : ReuUploadTestBase
 
         // Assert
         await Assert.That(ButtonModule.Invocations["removeHandlers"].Count).IsEqualTo(1);
+    }
+
+    [Test]
+    public async Task Render_WithContent_LabelsInputWithIt()
+    {
+        // Act
+        var cut = Render<ReuUploadButton>(parameters => parameters.AddChildContent("Open files"));
+
+        // Assert
+        // a label rather than a button, which could not hold the input
+        var label = cut.Find("label.reu-upload-button");
+        await Assert.That(label.QuerySelector("input[type=file]")).IsNotNull();
+        await Assert.That(label.TextContent.Trim()).IsEqualTo("Open files");
+        await Assert.That(cut.FindAll("button").Count).IsEqualTo(0);
+        await Assert.That(cut.Find("input").HasAttribute("aria-label")).IsFalse();
+    }
+
+    [Test]
+    [Arguments(false, "Choose files")]
+    [Arguments(true, "Choose a folder")]
+    public async Task Render_WithoutContent_NamesInput(bool directory, string expected)
+    {
+        // Act
+        var cut = Render<ReuUploadButton>(parameters => parameters.Add(x => x.Directory, directory));
+
+        // Assert
+        await Assert.That(cut.Find("input").GetAttribute("aria-label")).IsEqualTo(expected);
+    }
+
+    [Test]
+    public async Task Render_WithVariantAndDisabled_StylesLabelAndDisablesInput()
+    {
+        // Act
+        var cut = Render<ReuUploadButton>(parameters => parameters
+            .Add(x => x.Variant, ReuButtonVariant.Blue)
+            .Add(x => x.Enable, false));
+
+        // Assert
+        var label = cut.Find(".reu-upload-button");
+        await Assert.That(label.ClassList.Contains("reu-button")).IsTrue();
+        await Assert.That(label.ClassList.Contains("reu-button-blue")).IsTrue();
+        await Assert.That(label.ClassList.Contains("disabled")).IsTrue();
+        await Assert.That(cut.Find("input").HasAttribute("disabled")).IsTrue();
     }
 }

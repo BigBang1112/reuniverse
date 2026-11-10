@@ -14,6 +14,9 @@ public class ReuDataTableTests : BunitContext
         new("charlie", 3, TimeSpan.FromSeconds(13.9))
     ];
 
+    // the first load waits a moment for the columns, which takes longer while the whole suite runs
+    private static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(10);
+
     public ReuDataTableTests()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
@@ -407,7 +410,7 @@ public class ReuDataTableTests : BunitContext
             column => column.Add(x => x.Title, "Rank").Add(x => x.SortKey, "rank").Add(x => x.DefaultSort, ReuSortDirection.Descending));
 
         // Assert
-        cut.WaitForState(() => cut.FindAll("tbody tr:not(.empty)").Count == 2);
+        cut.WaitForState(() => cut.FindAll("tbody tr:not(.empty)").Count == 2, WaitTimeout);
         await Assert.That(requests.Count).IsEqualTo(1);
         await Assert.That(requests[0]).IsEqualTo(requests[0] with { Page = 1, PageSize = 2, SortBy = "rank", SortDirection = ReuSortDirection.Descending });
         await Assert.That(requests[0].Skip).IsEqualTo(0);
@@ -429,7 +432,7 @@ public class ReuDataTableTests : BunitContext
                     return ValueTask.FromResult(new ReuDataTableResult<Run>(Runs, 30));
                 }),
             PlayerColumn);
-        cut.WaitForElement(".pagination");
+        cut.WaitForElement(".pagination", WaitTimeout);
 
         // Act
         PageButton(cut, "3").Click();
@@ -451,7 +454,7 @@ public class ReuDataTableTests : BunitContext
                 return ValueTask.FromResult(new ReuDataTableResult<Run>(Runs, 3));
             }),
             column => column.Add(x => x.Title, "Player"));
-        cut.WaitForElement("thead button");
+        cut.WaitForState(() => requests.Count == 1 && cut.FindAll(".loading").Count == 0, WaitTimeout);
 
         // Act
         Header(cut, 0).QuerySelector("button")!.Click();
@@ -477,7 +480,7 @@ public class ReuDataTableTests : BunitContext
                     return new ValueTask<ReuDataTableResult<Run>>(result.Task);
                 }),
             PlayerColumn);
-        cut.WaitForState(() => pending.Count == 1);
+        cut.WaitForState(() => pending.Count == 1, WaitTimeout);
         await cut.InvokeAsync(() => pending[0].Result.SetResult(new ReuDataTableResult<Run>([Runs[0]], 3)));
 
         // Act
@@ -514,5 +517,28 @@ public class ReuDataTableTests : BunitContext
         var container = cut.Find(".reu-data-table");
         await Assert.That(container.ClassList.Contains("records")).IsTrue();
         await Assert.That(container.Id).IsEqualTo("table");
+    }
+
+    [Test]
+    public async Task ClickPage_BeforeFirstLoadRan_KeepsThatPage()
+    {
+        // Arrange
+        var requests = new List<ReuDataTableRequest>();
+        var cut = RenderTableWith(null,
+            parameters => parameters
+                .Add(x => x.PageSize, 10)
+                .Add(x => x.ItemsProvider, request =>
+                {
+                    requests.Add(request);
+                    return ValueTask.FromResult(new ReuDataTableResult<Run>(Runs, 30));
+                }),
+            PlayerColumn);
+
+        // Act
+        await cut.InvokeAsync(() => cut.Instance.GoToPageAsync(2));
+        await cut.InvokeAsync(() => Task.Delay(50));
+
+        // Assert
+        await Assert.That(requests[^1].Page).IsEqualTo(2);
     }
 }

@@ -848,7 +848,10 @@
 // focus when it appears, keeps Tab and Shift+Tab within it, and hands the focus back to where it
 // was once it is gone, so the keyboard never ends up behind the backdrop or back at the start of
 // the page. The dialog itself is focused unless something in it has autofocus, so that a screen
-// reader starts with its title. If this script never loads, the focus stays where it was.
+// reader starts with its title. While it is open, the rest of the page is inert, like behind a
+// native modal <dialog>, so that nothing behind it can be focused, clicked, found or read out.
+// The error panel and the update prompt stay usable. If this script never loads, the focus stays
+// where it was and the page behind stays reachable.
 (function () {
     "use strict";
 
@@ -869,6 +872,39 @@
     // each open dialog and what had the focus before it appeared
     const openers = new Map();
 
+    // each open dialog and the elements it made inert, so that closing it only undoes its own
+    const inerted = new Map();
+
+    // what stays usable behind a dialog: the panels of this script, which can appear at any time,
+    // and elements that are never shown anyway
+    const keepActiveSelector = "#blazor-error-ui, .reu-error-panel, .reu-update-prompt, .reu-tooltip, script, style, link, template";
+
+    // Makes everything but the dialog and the elements it is in inert, going up from the dialog
+    // and taking the siblings at every level. Elements that are inert already are left out,
+    // so that they stay inert once the dialog is gone.
+    function isolate(dialog) {
+        const made = [];
+
+        for (let node = dialog; node.parentElement && node !== document.body; node = node.parentElement) {
+            for (const sibling of node.parentElement.children) {
+                if (sibling !== node && !sibling.inert && !sibling.matches(keepActiveSelector)) {
+                    sibling.inert = true;
+                    made.push(sibling);
+                }
+            }
+        }
+
+        inerted.set(dialog, made);
+    }
+
+    function release(dialog) {
+        inerted.get(dialog)?.forEach(function (element) {
+            element.inert = false;
+        });
+
+        inerted.delete(dialog);
+    }
+
     function topmost() {
         const dialogs = document.querySelectorAll(dialogSelector);
         return dialogs.length > 0 ? dialogs[dialogs.length - 1] : null;
@@ -882,6 +918,7 @@
 
     function open(dialog) {
         openers.set(dialog, document.activeElement);
+        isolate(dialog);
 
         if (dialog.contains(document.activeElement)) {
             return;
@@ -896,6 +933,9 @@
     function close(dialog) {
         const opener = openers.get(dialog);
         openers.delete(dialog);
+
+        // first, as an inert opener cannot take the focus back
+        release(dialog);
 
         // only when the focus went away with the dialog, as it may have been moved on purpose
         const lost = !document.activeElement || document.activeElement === document.body;

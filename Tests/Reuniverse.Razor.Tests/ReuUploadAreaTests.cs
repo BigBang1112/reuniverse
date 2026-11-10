@@ -356,4 +356,26 @@ public class ReuUploadAreaTests : ReuUploadTestBase
         // Assert
         await Assert.That(AreaModule.Invocations["removeHandlers"].Count).IsEqualTo(1);
     }
+
+    [Test]
+    public async Task Render_WithContent_LabelsInputWithIt()
+    {
+        // Act
+        var cut = Render<ReuUploadArea>(parameters => parameters.AddChildContent("Drop files here"));
+
+        // Assert
+        var label = cut.Find("label.upload-area");
+        await Assert.That(label.QuerySelector("input[type=file]")).IsNotNull();
+        await Assert.That(cut.Find("input").HasAttribute("aria-label")).IsFalse();
+    }
+
+    [Test]
+    public async Task Render_WithoutContent_NamesInput()
+    {
+        // Act
+        var cut = Render<ReuUploadArea>();
+
+        // Assert
+        await Assert.That(cut.Find("input").GetAttribute("aria-label")).IsEqualTo("Choose files");
+    }
 }

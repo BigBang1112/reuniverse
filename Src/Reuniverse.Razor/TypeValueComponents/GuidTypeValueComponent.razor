@@ -2,7 +2,7 @@
 
 @if (Value.HasValue)
 {
-    <input @bind="Value" readonly="@IsReadOnly" style="width:36ch" />
+    <input aria-label="@Label" @bind="Value" readonly="@IsReadOnly" style="width:36ch" />
 }
 else
 {

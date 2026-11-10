@@ -326,6 +326,8 @@ Renders the description, Open Graph, Twitter and canonical tags. Place it inside
 
 A dialog shown over the page. **(requires interactivity)**
 
+With `reuniverse.js`, it takes the focus when it opens, keeps Tab within it, makes the rest of the page inert while open (like a native modal dialog), and gives the focus back when it closes.
+
 - `IsOpen` - Whether the modal is open (supports `@bind-IsOpen`).
 - `Title` / `TitleContent` - The header title as text or custom content.
 - `ChildContent` / `FooterContent` - The body and the optional footer.
