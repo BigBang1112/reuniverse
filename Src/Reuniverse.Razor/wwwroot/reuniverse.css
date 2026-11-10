@@ -637,6 +637,91 @@ footer.reu-footer {
         opacity: 1;
     }
 
+/* <ReuSplitPane>, resized by reuniverse.js through --reu-split-size */
+.reu-split-pane {
+    --reu-split-handle-size: 8px;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+}
+
+    .reu-split-pane.vertical {
+        flex-direction: column;
+    }
+
+    .reu-split-pane.bordered {
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+    }
+
+    .reu-split-pane > .reu-split-first {
+        flex: 0 0 var(--reu-split-size, 50%);
+        min-width: var(--reu-split-first-min, 0px);
+        max-width: calc(100% - var(--reu-split-second-min, 0px) - var(--reu-split-handle-size));
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .reu-split-pane > .reu-split-second {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .reu-split-pane.vertical > .reu-split-first {
+        min-width: 0;
+        max-width: none;
+        min-height: var(--reu-split-first-min, 0px);
+        max-height: calc(100% - var(--reu-split-second-min, 0px) - var(--reu-split-handle-size));
+    }
+
+    /* a thin line in the middle of a wider area that is easier to grab */
+    .reu-split-pane > .reu-split-handle {
+        flex: 0 0 var(--reu-split-handle-size);
+        position: relative;
+        cursor: col-resize;
+        touch-action: none;
+    }
+
+    .reu-split-pane.vertical > .reu-split-handle {
+        cursor: row-resize;
+    }
+
+        .reu-split-pane > .reu-split-handle::after {
+            content: "";
+            position: absolute;
+            inset: 0 calc(50% - 1px);
+            background-color: var(--color-border);
+            transition: background-color 0.1s ease, inset 0.1s ease;
+        }
+
+        .reu-split-pane.vertical > .reu-split-handle::after {
+            inset: calc(50% - 1px) 0;
+        }
+
+        .reu-split-pane > .reu-split-handle:is(:hover, :focus-visible, .dragging)::after {
+            inset: 0 calc(50% - 2px);
+            background-color: var(--color-link);
+        }
+
+        .reu-split-pane.vertical > .reu-split-handle:is(:hover, :focus-visible, .dragging)::after {
+            inset: calc(50% - 2px) 0;
+        }
+
+        .reu-split-pane > .reu-split-handle:focus-visible {
+            outline: none;
+        }
+
+    /* keeps the text from being selected and iframes from taking the pointer while dragging */
+    .reu-split-pane.resizing {
+        user-select: none;
+    }
+
+        .reu-split-pane.resizing iframe {
+            pointer-events: none;
+        }
+
 .invalid {
     outline: 1px solid var(--color-red);
 }

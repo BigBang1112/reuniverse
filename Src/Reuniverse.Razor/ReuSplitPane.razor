@@ -1,0 +1,96 @@
+@* the attributes come first, so that the style below, which keeps theirs, wins *@
+<div @attributes="AdditionalAttributes"
+     class="reu-split-pane @(Vertical ? "vertical" : null) @(Border ? "bordered" : null) @CssClass"
+     style="@Style"
+     data-reu-split-size="@Size"
+     data-reu-split-key="@StorageKey">
+    <div class="reu-split-first" id="@firstId">
+        @FirstContent
+    </div>
+    @* reuniverse.js resizes the panes by dragging this or with the arrow keys, Home and End, and resets them on double-click *@
+    <div class="reu-split-handle"
+         role="separator"
+         tabindex="0"
+         aria-orientation="@(Vertical ? "horizontal" : "vertical")"
+         aria-controls="@firstId"
+         aria-label="@HandleLabel"
+         aria-valuemin="0"
+         aria-valuemax="100"></div>
+    <div class="reu-split-second">
+        @SecondContent
+    </div>
+</div>
+
+@code {
+    private readonly string firstId = ReuId.Next("reu-split-first");
+
+    /// <summary>
+    /// The content of the first pane, on the left, or at the top when <see cref="Vertical"/>.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? FirstContent { get; set; }
+
+    /// <summary>
+    /// The content of the second pane, on the right, or at the bottom when <see cref="Vertical"/>.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? SecondContent { get; set; }
+
+    /// <summary>
+    /// Whether to stack the panes top and bottom instead of side by side. The split pane then needs a height.
+    /// </summary>
+    [Parameter]
+    public bool Vertical { get; set; }
+
+    /// <summary>
+    /// Whether to draw a border around the split pane. Defaults to <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool Border { get; set; } = true;
+
+    /// <summary>
+    /// The initial size of the first pane, as any CSS length. Double-clicking the handle goes back to it. Defaults to <c>50%</c>.
+    /// </summary>
+    [Parameter]
+    public string Size { get; set; } = "50%";
+
+    /// <summary>
+    /// The smallest size of the first pane, as any CSS length.
+    /// </summary>
+    [Parameter]
+    public string? FirstMinSize { get; set; }
+
+    /// <summary>
+    /// The smallest size of the second pane, as any CSS length.
+    /// </summary>
+    [Parameter]
+    public string? SecondMinSize { get; set; }
+
+    /// <summary>
+    /// When set, the size the user resized the panes to is kept in the browser under this key and restored the next time.
+    /// </summary>
+    [Parameter]
+    public string? StorageKey { get; set; }
+
+    /// <summary>
+    /// The accessible label of the handle. Defaults to <c>Resize panes</c>.
+    /// </summary>
+    [Parameter]
+    public string HandleLabel { get; set; } = "Resize panes";
+
+    /// <summary>
+    /// Additional CSS classes to apply to the split pane.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    // reuniverse.js changes --reu-split-size while resizing, which stays until the style changes
+    private string Style => string.Concat(
+        $"--reu-split-size: {Size};",
+        FirstMinSize is null ? null : $" --reu-split-first-min: {FirstMinSize};",
+        SecondMinSize is null ? null : $" --reu-split-second-min: {SecondMinSize};",
+        AdditionalAttributes?.TryGetValue("style", out var style) == true ? $" {style}" : null);
+}

@@ -200,6 +200,20 @@
         <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true" History="history"></ReuObjectTree>
     </div>
     <div>
+        <h2 class="element">&lt;ReuSplitPane&gt;</h2>
+    </div>
+    <div>
+        <ReuSplitPane Border="false" Size="35%" FirstMinSize="80px" SecondMinSize="120px" StorageKey="showcase" style="height: 180px">
+            <FirstContent><div class="split-text">Files</div></FirstContent>
+            <SecondContent>
+                <ReuSplitPane Vertical="true" Border="false" Size="60%" FirstMinSize="40px" SecondMinSize="40px" style="height: 100%">
+                    <FirstContent><div class="split-text">Details</div></FirstContent>
+                    <SecondContent><div class="split-text">Logs</div></SecondContent>
+                </ReuSplitPane>
+            </SecondContent>
+        </ReuSplitPane>
+    </div>
+    <div>
         <h2 class="element">&lt;ReuModal&gt;</h2>
     </div>
     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">

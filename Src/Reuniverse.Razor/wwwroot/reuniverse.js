@@ -985,3 +985,242 @@
         }
     });
 })();
+
+// Reuniverse split pane.
+//
+// A ReuSplitPane is resized by dragging its handle, or with the arrow keys, Home and End while the
+// handle has the focus, and double-clicking the handle goes back to the initial size. The size of the
+// first pane is kept in --reu-split-size as a percentage, so it scales with the split pane, and the CSS
+// limits it to the minimum sizes. With data-reu-split-key, the size is also kept in localStorage and
+// restored for split panes rendered later too. A "reu-split-resize" event with the new size in
+// detail.size is raised on the split pane once a resize is done. All of this is client-side, so it
+// works under every render mode. If this script never loads, the panes keep their initial size.
+(function () {
+    "use strict";
+
+    const paneSelector = ".reu-split-pane";
+    const handleSelector = ".reu-split-pane > .reu-split-handle";
+    const storagePrefix = "reu-split:";
+    const keyStep = 10;
+    const largeKeyStep = 50;
+
+    function isVertical(pane) {
+        return pane.classList.contains("vertical");
+    }
+
+    function first(pane) {
+        return pane.querySelector(":scope > .reu-split-first");
+    }
+
+    function handleOf(pane) {
+        return pane.querySelector(":scope > .reu-split-handle");
+    }
+
+    // the size that a percentage in flex-basis is relative to
+    function available(pane) {
+        const style = getComputedStyle(pane);
+
+        return isVertical(pane)
+            ? pane.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+            : pane.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    }
+
+    function firstSize(pane) {
+        const rect = first(pane).getBoundingClientRect();
+        return isVertical(pane) ? rect.height : rect.width;
+    }
+
+    function storageKey(pane) {
+        const key = pane.getAttribute("data-reu-split-key");
+        return key ? storagePrefix + key : null;
+    }
+
+    function load(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+
+    function save(pane) {
+        const key = storageKey(pane);
+
+        if (key) {
+            try { localStorage.setItem(key, pane.style.getPropertyValue("--reu-split-size").trim()); } catch (e) { }
+        }
+    }
+
+    function forget(pane) {
+        const key = storageKey(pane);
+
+        if (key) {
+            try { localStorage.removeItem(key); } catch (e) { }
+        }
+    }
+
+    function percentage(value) {
+        return Math.round(value * 100) / 100;
+    }
+
+    function updateValue(pane) {
+        const total = available(pane);
+
+        if (total > 0) {
+            handleOf(pane)?.setAttribute("aria-valuenow", String(Math.round(firstSize(pane) / total * 100)));
+        }
+    }
+
+    // Sets the first pane to the size in pixels, as a percentage of what is available. The CSS keeps it
+    // within the minimum sizes, so the size it ends up with is measured and kept instead.
+    function resize(pane, size) {
+        const total = available(pane);
+
+        if (total <= 0) {
+            return;
+        }
+
+        pane.style.setProperty("--reu-split-size", percentage(Math.max(0, size) / total * 100) + "%");
+        pane.style.setProperty("--reu-split-size", percentage(firstSize(pane) / total * 100) + "%");
+        updateValue(pane);
+    }
+
+    function finish(pane) {
+        save(pane);
+        updateValue(pane);
+        pane.dispatchEvent(new CustomEvent("reu-split-resize", {
+            bubbles: true,
+            detail: { size: pane.style.getPropertyValue("--reu-split-size").trim() }
+        }));
+    }
+
+    function enhance(pane) {
+        const key = storageKey(pane);
+        const saved = key ? load(key) : null;
+
+        if (saved) {
+            pane.style.setProperty("--reu-split-size", saved);
+        }
+
+        updateValue(pane);
+    }
+
+    function enhanceAll(root) {
+        if (root.matches(paneSelector)) {
+            enhance(root);
+        }
+
+        root.querySelectorAll(paneSelector).forEach(enhance);
+    }
+
+    let drag = null;
+
+    document.addEventListener("pointerdown", function (event) {
+        if (event.button !== 0 || !(event.target instanceof Element) || !event.target.matches(handleSelector)) {
+            return;
+        }
+
+        const handle = event.target;
+        const pane = handle.parentElement;
+        const vertical = isVertical(pane);
+
+        event.preventDefault();
+        handle.focus();
+        handle.setPointerCapture(event.pointerId);
+        handle.classList.add("dragging");
+        pane.classList.add("resizing");
+
+        drag = {
+            pane: pane,
+            handle: handle,
+            pointerId: event.pointerId,
+            vertical: vertical,
+            start: vertical ? event.clientY : event.clientX,
+            startSize: firstSize(pane)
+        };
+    });
+
+    document.addEventListener("pointermove", function (event) {
+        if (!drag || event.pointerId !== drag.pointerId) {
+            return;
+        }
+
+        const position = drag.vertical ? event.clientY : event.clientX;
+        resize(drag.pane, drag.startSize + position - drag.start);
+    });
+
+    function endDrag(event) {
+        if (!drag || event.pointerId !== drag.pointerId) {
+            return;
+        }
+
+        const ended = drag;
+        drag = null;
+
+        ended.handle.classList.remove("dragging");
+        ended.pane.classList.remove("resizing");
+
+        if (ended.handle.hasPointerCapture(event.pointerId)) {
+            ended.handle.releasePointerCapture(event.pointerId);
+        }
+
+        finish(ended.pane);
+    }
+
+    document.addEventListener("pointerup", endDrag);
+    document.addEventListener("pointercancel", endDrag);
+
+    document.addEventListener("dblclick", function (event) {
+        if (!(event.target instanceof Element) || !event.target.matches(handleSelector)) {
+            return;
+        }
+
+        const pane = event.target.parentElement;
+        const initial = pane.getAttribute("data-reu-split-size") || "50%";
+
+        forget(pane);
+        pane.style.setProperty("--reu-split-size", initial);
+        updateValue(pane);
+        pane.dispatchEvent(new CustomEvent("reu-split-resize", { bubbles: true, detail: { size: initial } }));
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.defaultPrevented || !(event.target instanceof Element) || !event.target.matches(handleSelector)) {
+            return;
+        }
+
+        const pane = event.target.parentElement;
+        const vertical = isVertical(pane);
+        const step = event.shiftKey ? largeKeyStep : keyStep;
+        let size;
+
+        switch (event.key) {
+            case vertical ? "ArrowUp" : "ArrowLeft":
+                size = firstSize(pane) - step;
+                break;
+            case vertical ? "ArrowDown" : "ArrowRight":
+                size = firstSize(pane) + step;
+                break;
+            case "Home":
+                size = 0;
+                break;
+            case "End":
+                size = available(pane);
+                break;
+            default:
+                return;
+        }
+
+        event.preventDefault();
+        resize(pane, size);
+        finish(pane);
+    });
+
+    new MutationObserver(function (mutations) {
+        for (const mutation of mutations) {
+            mutation.addedNodes.forEach(function (node) {
+                if (node instanceof Element) {
+                    enhanceAll(node);
+                }
+            });
+        }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+
+    enhanceAll(document.documentElement);
+})();

@@ -72,6 +72,10 @@
         min-width: 0;
     }
 
+.split-text {
+    padding: 0.5rem;
+}
+
 .streamed-info {
     color: var(--color-text-secondary);
     overflow-wrap: anywhere;

@@ -566,6 +566,29 @@ Example:
 </ReuExpansionPanels>
 ```
 
+### `<ReuSplitPane>`
+
+Two panes side by side (or stacked) with a handle between them to resize them. Resizing needs `reuniverse.js` and works without interactivity: drag the handle, or focus it and use the arrow keys (Shift for bigger steps), Home and End. Double-click the handle to go back to `Size`.
+
+- `FirstContent` / `SecondContent` - The content of the two panes.
+- `Vertical` - Stacks the panes top and bottom. The split pane then needs a height.
+- `Border` - Whether to draw a border around the split pane. Turn it off for a split pane nested in another one. (default: `true`)
+- `Size` - The initial size of the first pane as a CSS length. (default: `50%`)
+- `FirstMinSize` / `SecondMinSize` - The smallest size of each pane as a CSS length.
+- `StorageKey` - Keeps the resized size in `localStorage` under this key and restores it.
+- `HandleLabel` - The accessible label of the handle. (default: `Resize panes`)
+- `CssClass` - Additional CSS classes to apply to the split pane.
+- Additional attributes are passed to the split pane element.
+
+A `reu-split-resize` DOM event with the new size in `detail.size` is raised on the split pane after each resize.
+
+```cshtml
+<ReuSplitPane Size="30%" FirstMinSize="150px" SecondMinSize="200px" StorageKey="explorer" style="height: 500px">
+    <FirstContent>File list</FirstContent>
+    <SecondContent>Details</SecondContent>
+</ReuSplitPane>
+```
+
 ### `<ReuTabs>` and `<ReuTab>`
 
 A tabbed content container.
