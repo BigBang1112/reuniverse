@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 
 namespace Reuniverse.Razor.Tests;
 
@@ -13,15 +12,13 @@ public class ReuUploadButtonTests : ReuUploadTestBase
             .Add(x => x.OnFileTooLarge, OnFileTooLarge));
     }
 
-    private IRenderedComponent<ReuUploadButton> RenderStreamedButton(long? maxFileSize = null, int? maxFileCount = null)
+    private IRenderedComponent<ReuUploadButton> RenderStreamedButton(long? maxFileSize = null)
     {
         return Render<ReuUploadButton>(parameters => parameters
             .Add(x => x.Streamed, true)
             .Add(x => x.MaxFileSize, maxFileSize)
-            .Add(x => x.MaxFileCount, maxFileCount)
             .Add(x => x.OnStream, OnStream)
-            .Add(x => x.OnFileTooLarge, OnFileTooLarge)
-            .Add(x => x.OnFileExceedCount, OnFileExceedCount));
+            .Add(x => x.OnFileTooLarge, OnFileTooLarge));
     }
 
     [Test]
@@ -65,44 +62,80 @@ public class ReuUploadButtonTests : ReuUploadTestBase
     }
 
     [Test]
-    public async Task SelectFiles_WhenStreamed_InvokesOnStream()
+    public async Task OpenStreamAsync_WithFile_InvokesOnStreamWithSeekableStream()
     {
         // Arrange
         var cut = RenderStreamedButton();
 
         // Act
-        cut.FindComponent<InputFile>().UploadFiles(CreateFile("first.txt"), CreateFile("second.txt"));
+        await OpenStreamAsync(cut.Instance.OpenStreamAsync, size: 600_000_000);
 
         // Assert
-        await Streamed.ShouldEqualInOrderAsync("first.txt", "second.txt");
+        var args = Streamed.Single();
+        await Assert.That(args.FileName).IsEqualTo("file.bin");
+        await Assert.That(args.Size).IsEqualTo(600_000_000);
+        await Assert.That(args.Stream).IsTypeOf<ReuBrowserFileStream>();
+        await Assert.That(args.Stream.CanSeek).IsTrue();
+        await Assert.That(args.Stream.Length).IsEqualTo(600_000_000);
     }
 
     [Test]
-    public async Task SelectFiles_WhenStreamedOverMaxFileSize_ReportsTooLarge()
+    public async Task OpenStreamAsync_WhenStreamDisposed_ReleasesFile()
     {
         // Arrange
-        var cut = RenderStreamedButton(maxFileSize: 3);
+        var cut = RenderStreamedButton();
+        var file = await OpenStreamAsync(cut.Instance.OpenStreamAsync, size: 10);
 
         // Act
-        cut.FindComponent<InputFile>().UploadFiles(CreateFile("large.txt", "too long"));
+        await Streamed.Single().DisposeAsync();
+
+        // Assert
+        await Assert.That(file.Disposed).IsTrue();
+    }
+
+    [Test]
+    public async Task OpenStreamAsync_OverMaxFileSize_ReportsTooLargeAndReleasesFile()
+    {
+        // Arrange
+        var cut = RenderStreamedButton(maxFileSize: 10);
+
+        // Act
+        var file = await OpenStreamAsync(cut.Instance.OpenStreamAsync, size: 11);
 
         // Assert
         await Assert.That(Streamed.Count).IsEqualTo(0);
-        await Assert.That(TooLarge.Count).IsEqualTo(1);
+        await Assert.That(TooLarge.Single().Size).IsEqualTo(11);
+        await Assert.That(file.Disposed).IsTrue();
     }
 
     [Test]
-    public async Task SelectFiles_WhenStreamedOverMaxFileCount_ReportsExtraFiles()
+    [Arguments(10L, 10L)]
+    [Arguments(0L, 1000L)]
+    public async Task OpenStreamAsync_WithinMaxFileSize_InvokesOnStream(long maxFileSize, long size)
     {
         // Arrange
-        var cut = RenderStreamedButton(maxFileCount: 1);
+        var cut = RenderStreamedButton(maxFileSize: maxFileSize);
 
         // Act
-        cut.FindComponent<InputFile>().UploadFiles(CreateFile("first.txt"), CreateFile("second.txt"));
+        await OpenStreamAsync(cut.Instance.OpenStreamAsync, size);
 
         // Assert
-        await Streamed.ShouldEqualInOrderAsync("first.txt");
-        await ExceededCount.Select(x => x.FileName).ShouldEqualInOrderAsync("second.txt");
+        await Assert.That(Streamed.Count).IsEqualTo(1);
+        await Assert.That(TooLarge.Count).IsEqualTo(0);
+    }
+
+    [Test]
+    public async Task OpenStreamAsync_WithNegativeSize_ReleasesFile()
+    {
+        // Arrange
+        var cut = RenderStreamedButton();
+
+        // Act
+        var file = await OpenStreamAsync(cut.Instance.OpenStreamAsync, size: -1);
+
+        // Assert
+        await Assert.That(Streamed.Count).IsEqualTo(0);
+        await Assert.That(file.Disposed).IsTrue();
     }
 
     [Test]

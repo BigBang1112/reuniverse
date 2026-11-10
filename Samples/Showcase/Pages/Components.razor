@@ -121,8 +121,13 @@
     <div>
         <h2 class="element">&lt;ReuUploadButton&gt;</h2>
     </div>
-    <div>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
         <ReuUploadButton>Open files...</ReuUploadButton>
+        <ReuUploadButton Streamed OnStream="ReadStreamedAsync" MaxFileCount="1">Open a file streamed...</ReuUploadButton>
+        @if (streamedInfo is not null)
+        {
+            <span class="streamed-info">@streamedInfo</span>
+        }
     </div>
     <div>
         <h2 class="element">&lt;ReuUploadArea&gt;</h2>
@@ -355,6 +360,26 @@
         },
         new() { Name = "Help", Href = "help" }
     };
+
+    // ── Streamed ReuUploadButton ───────────────────────────────────────────────
+
+    private string? streamedInfo;
+
+    // only the start and the end are read, so even a huge file is not loaded
+    private async Task ReadStreamedAsync(StreamEventArgs args)
+    {
+        await using var stream = args.Stream;
+        var length = (int)Math.Min(8, stream.Length);
+
+        var head = new byte[length];
+        await stream.ReadExactlyAsync(head);
+
+        stream.Seek(-length, SeekOrigin.End);
+        var tail = new byte[length];
+        await stream.ReadExactlyAsync(tail);
+
+        streamedInfo = $"{args.FileName}, {args.Size:N0} bytes, starts with {Convert.ToHexString(head)}, ends with {Convert.ToHexString(tail)}";
+    }
 
     // ── ReuFileBrowser sample data ─────────────────────────────────────────────
 

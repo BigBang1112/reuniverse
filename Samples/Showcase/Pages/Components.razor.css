@@ -72,6 +72,11 @@
         min-width: 0;
     }
 
+.streamed-info {
+    color: var(--color-text-secondary);
+    overflow-wrap: anywhere;
+}
+
 .upload-text {
     padding: 1.5rem 0;
     color: var(--color-text-secondary);

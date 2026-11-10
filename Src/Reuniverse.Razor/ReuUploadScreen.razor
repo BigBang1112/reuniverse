@@ -80,9 +80,17 @@
     [Parameter]
     public EventCallback<bool> IsVisibleChanged { get; set; }
 
+    /// <summary>
+    /// Whether files are opened as seekable streams through <see cref="OnStream"/> instead of being uploaded whole through <see cref="OnUpload"/>.
+    /// The streams read the file in ranges on demand, so large files are never loaded into memory.
+    /// </summary>
     [Parameter]
     public bool Streamed { get; set; }
 
+    /// <summary>
+    /// Callback invoked for each file when <see cref="Streamed"/> is true, with a seekable <see cref="ReuBrowserFileStream"/>.
+    /// The handler owns the stream and should dispose it, which releases the file on the client.
+    /// </summary>
     [Parameter]
     public EventCallback<StreamEventArgs> OnStream { get; set; }
 

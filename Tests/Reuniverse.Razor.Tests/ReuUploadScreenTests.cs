@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components.Forms;
-
 namespace Reuniverse.Razor.Tests;
 
 public class ReuUploadScreenTests : ReuUploadTestBase
@@ -73,20 +71,21 @@ public class ReuUploadScreenTests : ReuUploadTestBase
     }
 
     [Test]
-    public async Task SelectFiles_WhenStreamed_HidesScreenAndForwardsStream()
+    public async Task OpenStreamAsync_WhenStreamed_HidesScreenAndForwardsStream()
     {
         // Arrange
         var cut = Render<ReuUploadScreen>(parameters => parameters
             .Add(x => x.IsVisible, true)
             .Add(x => x.Streamed, true)
             .Add(x => x.OnStream, OnStream));
+        var area = cut.FindComponent<ReuUploadArea>();
 
         // Act
-        cut.FindComponent<InputFile>().UploadFiles(CreateFile("file.txt"));
+        await cut.InvokeAsync(() => OpenStreamAsync(area.Instance.OpenStreamAsync, size: 10));
 
         // Assert
         await Assert.That(cut.Find(".upload-screen").ClassList.Contains("hidden")).IsTrue();
-        await Streamed.ShouldEqualInOrderAsync("file.txt");
+        await Streamed.Select(x => x.FileName).ShouldEqualInOrderAsync("file.bin");
     }
 
     [Test]

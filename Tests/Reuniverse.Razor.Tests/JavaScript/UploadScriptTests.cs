@@ -18,6 +18,10 @@ public class UploadScriptTests : BrowserTestBase
 
                 window.calls = [];
                 window.limitQueries = 0;
+                window.streamedFiles = [];
+
+                // Blazor's global, which hands the object over as is here
+                window.DotNet = { createJSObjectReference: obj => obj };
 
                 const helper = {
                     invokeMethodAsync: async (name, ...args) => {
@@ -31,6 +35,12 @@ public class UploadScriptTests : BrowserTestBase
                             return {{maxFileSize}};
                         }
 
+                        if (name === "OpenStreamAsync") {
+                            window.streamedFiles.push(args[0]);
+                            window.calls.push(`${name} ${args[1]} ${args[2]}`);
+                            return;
+                        }
+
                         const size = args[1] instanceof Uint8Array ? args[1].length : args[1];
                         window.calls.push(`${name} ${args[0]} ${size}`);
                     }
@@ -41,13 +51,18 @@ public class UploadScriptTests : BrowserTestBase
             """);
     }
 
-    private async Task SelectAsync(params (string Name, int Size)[] files)
+    private Task SelectAsync(params (string Name, int Size)[] files)
+    {
+        return SelectAsync(files.Select(file => (file.Name, new byte[file.Size])).ToArray());
+    }
+
+    private async Task SelectAsync(params (string Name, byte[] Data)[] files)
     {
         var payloads = files.Select(file => new FilePayload
         {
             Name = file.Name,
             MimeType = "application/octet-stream",
-            Buffer = new byte[file.Size]
+            Buffer = file.Data
         });
 
         await Page.Locator("#input").SetInputFilesAsync(payloads);
@@ -124,31 +139,87 @@ public class UploadScriptTests : BrowserTestBase
     [Test]
     [Arguments(Area)]
     [Arguments(Button)]
-    public async Task Select_WhenStreamed_LeavesUploadToBlazor(string script)
+    public async Task Select_WhenStreamed_OpensStreamsInsteadOfUploading(string script)
     {
         // Arrange
         await OpenAsync(script, streamed: true);
 
         // Act
-        await SelectAsync(("first.bin", 3));
+        await SelectAsync(("first.bin", 3), ("second.bin", 5));
 
         // Assert
-        await Assert.That((await GetCallsAsync()).Length).IsEqualTo(0);
+        await (await GetCallsAsync()).ShouldEqualInOrderAsync("OpenStreamAsync first.bin 3", "OpenStreamAsync second.bin 5");
     }
 
     [Test]
     [Arguments(Area)]
     [Arguments(Button)]
-    public async Task Select_WhenStreamed_DoesNotAskForLimits(string script)
+    public async Task Select_WhenStreamedOverLimits_ReportsThem(string script)
+    {
+        // Arrange
+        await OpenAsync(script, maxFileCount: 2, maxFileSize: 4, streamed: true);
+
+        // Act
+        await SelectAsync(("small.bin", 4), ("large.bin", 5), ("extra.bin", 1));
+
+        // Assert
+        await (await GetCallsAsync()).ShouldEqualInOrderAsync(
+            "OpenStreamAsync small.bin 4",
+            "OnFileTooLargeAsync large.bin 5",
+            "OnFileExceedCountAsync extra.bin 1");
+    }
+
+    [Test]
+    [Arguments(Area)]
+    [Arguments(Button)]
+    public async Task Select_WhenStreamed_ReadsRequestedRange(string script)
     {
         // Arrange
         await OpenAsync(script, streamed: true);
+        await SelectAsync(("file.bin", new byte[] { 10, 11, 12, 13, 14 }));
 
         // Act
-        await SelectAsync(("first.bin", 3));
+        var result = await Page.EvaluateAsync<int[]>("async () => Array.from(await window.streamedFiles[0].read(1, 3))");
 
         // Assert
-        await Assert.That(await Page.EvaluateAsync<int>("window.limitQueries")).IsEqualTo(0);
+        await result.ShouldEqualInOrderAsync(11, 12, 13);
+    }
+
+    [Test]
+    [Arguments(Area)]
+    [Arguments(Button)]
+    public async Task Select_WhenStreamed_ReadPastEndReturnsRest(string script)
+    {
+        // Arrange
+        await OpenAsync(script, streamed: true);
+        await SelectAsync(("file.bin", new byte[] { 10, 11, 12, 13, 14 }));
+
+        // Act
+        var result = await Page.EvaluateAsync<int[]>("async () => Array.from(await window.streamedFiles[0].read(3, 10))");
+
+        // Assert
+        await result.ShouldEqualInOrderAsync(13, 14);
+    }
+
+    [Test]
+    [Arguments(Area)]
+    [Arguments(Button)]
+    public async Task Select_WhenStreamed_SlicesRangeAsBlob(string script)
+    {
+        // Arrange
+        await OpenAsync(script, streamed: true);
+        await SelectAsync(("file.bin", new byte[] { 10, 11, 12, 13, 14 }));
+
+        // Act
+        var result = await Page.EvaluateAsync<int[]>("""
+            async () => {
+                const blob = window.streamedFiles[0].slice(2, 2);
+                return blob instanceof Blob ? Array.from(new Uint8Array(await blob.arrayBuffer())) : [];
+            }
+            """);
+
+        // Assert
+        await result.ShouldEqualInOrderAsync(12, 13);
     }
 
     [Test]

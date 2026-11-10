@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.JSInterop;
 
 namespace Reuniverse.Razor.Tests;
 
@@ -17,20 +17,25 @@ public abstract class ReuUploadTestBase : BunitContext
     protected BunitJSModuleInterop ScreenModule { get; }
 
     protected List<string> Uploaded { get; } = [];
-    protected List<string> Streamed { get; } = [];
+    protected List<StreamEventArgs> Streamed { get; } = [];
     protected List<FileInfoEventArgs> TooLarge { get; } = [];
     protected List<FileInfoEventArgs> ExceededCount { get; } = [];
 
     protected EventCallback<UploadEventArgs> OnUpload => EventCallback.Factory.Create<UploadEventArgs>(this, x => Uploaded.Add(x.FileName));
     protected EventCallback<FileInfoEventArgs> OnFileTooLarge => EventCallback.Factory.Create<FileInfoEventArgs>(this, TooLarge.Add);
     protected EventCallback<FileInfoEventArgs> OnFileExceedCount => EventCallback.Factory.Create<FileInfoEventArgs>(this, ExceededCount.Add);
-    protected EventCallback<StreamEventArgs> OnStream => EventCallback.Factory.Create<StreamEventArgs>(this, x => Streamed.Add(x.FileName));
-
-    protected static InputFileContent CreateFile(string name, string content = "content") => InputFileContent.CreateFromText(content, name);
+    protected EventCallback<StreamEventArgs> OnStream => EventCallback.Factory.Create<StreamEventArgs>(this, Streamed.Add);
 
     protected static Task UploadFileAsync(Func<string, byte[], long, string, Task> upload, int size)
     {
         return upload("file.bin", new byte[size], 0, "application/octet-stream");
+    }
+
+    protected static async Task<FakeJSObjectReference> OpenStreamAsync(Func<IJSObjectReference, string, long, long, string, Task> open, long size)
+    {
+        var file = new FakeJSObjectReference();
+        await open(file, "file.bin", size, 0, "application/octet-stream");
+        return file;
     }
 
     protected async Task ShouldBeAcceptedAsync(bool accepted)

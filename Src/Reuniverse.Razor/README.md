@@ -563,7 +563,11 @@ A drag-and-drop file upload area with click-to-upload functionality.
 - `MaxFileSize` - Maximum file size in bytes. Null means no limit. **Make sure to set limits if in serverside interactivity!**
 - `Accept` - A comma-separated list of one or more file types, or unique file type specifiers, describing which file types to allow.
 - `CssClass` - Additional CSS classes to apply to the upload area element.
+- `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. Use it for large files. (default: `false`)
+- `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a seekable `ReuBrowserFileStream`. The handler owns the stream and should dispose it.
 - Additional attributes are passed to the **input** element.
+
+`<ReuUploadButton>` and `<ReuUploadScreen>` take the same upload parameters.
 
 ### `<ReuFileBrowser>`
 
