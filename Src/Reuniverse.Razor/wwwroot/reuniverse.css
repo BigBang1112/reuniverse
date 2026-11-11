@@ -40,7 +40,9 @@
     --color-surface-hover: #333;
     --color-surface-active: #444;
     --color-overlay-bg: #111D;
-    --color-footer-bg: #1A1A1A;
+    --color-surface-secondary: #1A1A1A;
+    /* Deprecated alias; use --color-surface-secondary instead. */
+    --color-footer-bg: var(--color-surface-secondary);
     /* Text */
     --color-text-primary: #FFF;
     --color-text-secondary: #AAA;
@@ -121,7 +123,9 @@
     --color-surface-hover: #E9E9EC;
     --color-surface-active: #DCDCE1;
     --color-overlay-bg: #FFFFFFEE;
-    --color-footer-bg: #EEE;
+    --color-surface-secondary: #EEE;
+    /* Deprecated alias; use --color-surface-secondary instead. */
+    --color-footer-bg: var(--color-surface-secondary);
     /* Text */
     --color-text-primary: #1A1A1A;
     --color-text-secondary: #444;
@@ -579,7 +583,7 @@ progress {
     }
 
 footer.reu-footer {
-    background: var(--color-footer-bg);
+    background: var(--color-surface-secondary);
     transition: background-color 0.2s ease;
 }
 
