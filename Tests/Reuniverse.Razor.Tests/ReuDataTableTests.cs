@@ -435,7 +435,7 @@ public class ReuDataTableTests : BunitContext
         cut.WaitForElement(".pagination", WaitTimeout);
 
         // Act
-        PageButton(cut, "3").Click();
+        await cut.InvokeAsync(() => PageButton(cut, "3").Click());
 
         // Assert
         await Assert.That(requests[^1].Page).IsEqualTo(3);
@@ -457,7 +457,7 @@ public class ReuDataTableTests : BunitContext
         cut.WaitForState(() => requests.Count == 1 && cut.FindAll(".loading").Count == 0, WaitTimeout);
 
         // Act
-        Header(cut, 0).QuerySelector("button")!.Click();
+        await cut.InvokeAsync(() => Header(cut, 0).QuerySelector("button")!.Click());
 
         // Assert
         await Assert.That(requests[^1].SortBy).IsEqualTo("Player");
