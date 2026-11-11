@@ -3,7 +3,7 @@
     <PropertyGroup>
         <PackageId>Reuniverse.Templates</PackageId>
         <PackageType>Template</PackageType>
-        <VersionPrefix>0.2.4</VersionPrefix>
+        <VersionPrefix>0.2.5</VersionPrefix>
         <Authors>BigBang1112</Authors>
         <Title>Reuniverse Templates</Title>
         <Description>Various templates for opinionated development by BigBang1112.</Description>
@@ -11,6 +11,10 @@
         <PackageProjectUrl>https://github.com/BigBang1112/reuniverse</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageReleaseNotes>
+- Updated Reuniverse.Razor to 0.12.0
+- Reuniverse templates now use `ReuThemeToggle` in the layout
+- Blazor Web App of the Photino hybrid Reuniverse template now uses `ReuReconnectModal`
+- Fixed hardcoded colors in themed templates
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
