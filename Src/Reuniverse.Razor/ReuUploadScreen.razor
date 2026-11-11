@@ -11,6 +11,8 @@
                    Accept="@Accept"
                    Streamed="Streamed"
                    OnStream="Stream"
+                   Directory="Directory"
+                   Paste="Paste"
                    CssClass="@CssClassArea">
         @ChildContent
     </ReuUploadArea>
@@ -80,11 +82,31 @@
     [Parameter]
     public EventCallback<bool> IsVisibleChanged { get; set; }
 
+    /// <summary>
+    /// Whether files are opened as seekable streams through <see cref="OnStream"/> instead of being uploaded whole through <see cref="OnUpload"/>.
+    /// The streams read the file in ranges on demand, so large files are never loaded into memory.
+    /// </summary>
     [Parameter]
     public bool Streamed { get; set; }
 
+    /// <summary>
+    /// Callback invoked for each file when <see cref="Streamed"/> is true, with a seekable <see cref="ReuBrowserFileStream"/>.
+    /// The handler owns the stream and should dispose it, which releases the file on the client.
+    /// </summary>
     [Parameter]
     public EventCallback<StreamEventArgs> OnStream { get; set; }
+
+    /// <summary>
+    /// Whether dropped folders are uploaded instead of files, with each file's path within the folder in <c>RelativePath</c>.
+    /// </summary>
+    [Parameter]
+    public bool Directory { get; set; }
+
+    /// <summary>
+    /// Whether files pasted anywhere on the page (Ctrl+V) are uploaded, filtered by <see cref="Accept"/>. Pasting into a text field is left alone.
+    /// </summary>
+    [Parameter]
+    public bool Paste { get; set; }
 
     protected override void OnInitialized() =>
         objRef = DotNetObjectReference.Create(this);

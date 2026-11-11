@@ -6,7 +6,11 @@
             "type": "blazorwasm",
             "request": "launch",
             "cwd": "${workspaceFolder}/Samples/Showcase",
-            "browser": "edge"
+            "browser": "edge",
+            "presentation": {
+                "group": "Showcase",
+                "order": 1
+            }
         },
         {
             "name": "Showcase: Watch",
@@ -16,6 +20,10 @@
             "cwd": "${workspaceFolder}/Samples/Showcase",
             "env": {
                 "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Showcase",
+                "order": 2
             }
         },
         {
@@ -32,7 +40,269 @@
                 "action": "openIntegratedBrowser",
                 "pattern": "Now listening on:\\s+(https?://\\S+)",
                 "uriFormat": "%s"
+            },
+            "presentation": {
+                "group": "Showcase",
+                "order": 3
             }
+        },
+        {
+            "name": "Blazor Photino Hybrid Web App: Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: Blazor Photino Hybrid Web App",
+            "program": "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWebApp/MyBlazorPhotinoHybrid.BlazorWebApp/bin/Debug/net10.0/MyBlazorPhotinoHybrid.BlazorWebApp.dll",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWebApp/MyBlazorPhotinoHybrid.BlazorWebApp",
+            "launchSettingsProfile": "http",
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "Now listening on:\\s+(?:\\u001b\\[[0-9;]*m)*(https?://[^\\s\\u001b]+)"
+            },
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid Web App: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWebApp/MyBlazorPhotinoHybrid.BlazorWebApp",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid",
+                "order": 2
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid WebAssembly: Debug (Edge)",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWasm",
+            "browser": "edge",
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid WebAssembly: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWasm",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid",
+                "order": 2
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid Photino: Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: Blazor Photino Hybrid Photino",
+            "program": "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.Photino/bin/Debug/net9.0/MyBlazorPhotinoHybrid.Photino.dll",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.Photino",
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid Reuniverse Web App: Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: Blazor Photino Hybrid Reuniverse Web App",
+            "program": "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/bin/Debug/net10.0/MyBlazorPhotinoHybridReuniverse.BlazorWebApp.dll",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/MyBlazorPhotinoHybridReuniverse.BlazorWebApp",
+            "launchSettingsProfile": "http",
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "Now listening on:\\s+(?:\\u001b\\[[0-9;]*m)*(https?://[^\\s\\u001b]+)"
+            },
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid Reuniverse",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid Reuniverse Web App: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/MyBlazorPhotinoHybridReuniverse.BlazorWebApp",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid Reuniverse",
+                "order": 2
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid Reuniverse WebAssembly: Debug (Edge)",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWasm",
+            "browser": "edge",
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid Reuniverse",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid Reuniverse WebAssembly: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWasm",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid Reuniverse",
+                "order": 2
+            }
+        },
+        {
+            "name": "Blazor Photino Hybrid Reuniverse Photino: Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: Blazor Photino Hybrid Reuniverse Photino",
+            "program": "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.Photino/bin/Debug/net9.0/MyBlazorPhotinoHybridReuniverse.Photino.dll",
+            "cwd": "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.Photino",
+            "presentation": {
+                "group": "Template: Blazor Photino Hybrid Reuniverse",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor WASM Pages: Debug (Edge)",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/Templates/BlazorWasmPages/MyBlazorWasmPages",
+            "browser": "edge",
+            "presentation": {
+                "group": "Template: Blazor WASM Pages",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor WASM Pages: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Templates/BlazorWasmPages/MyBlazorWasmPages",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Template: Blazor WASM Pages",
+                "order": 2
+            }
+        },
+        {
+            "name": "Blazor WASM Pages Reuniverse: Debug (Edge)",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/Templates/BlazorWasmPagesReuniverse/MyBlazorWasmPagesReuniverse",
+            "browser": "edge",
+            "presentation": {
+                "group": "Template: Blazor WASM Pages Reuniverse",
+                "order": 1
+            }
+        },
+        {
+            "name": "Blazor WASM Pages Reuniverse: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Templates/BlazorWasmPagesReuniverse/MyBlazorWasmPagesReuniverse",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Template: Blazor WASM Pages Reuniverse",
+                "order": 2
+            }
+        },
+        {
+            "name": "Discord Bot: Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: Discord Bot",
+            "program": "${workspaceFolder}/Templates/DiscordBot/MyDiscordBot/bin/Debug/net10.0/MyDiscordBot.dll",
+            "cwd": "${workspaceFolder}/Templates/DiscordBot/MyDiscordBot",
+            "console": "integratedTerminal",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development",
+                "Discord__Token": "${input:discordToken}"
+            },
+            "presentation": {
+                "group": "Template: Discord Bot",
+                "order": 1
+            }
+        },
+        {
+            "name": "Generic Host: Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: Generic Host",
+            "program": "${workspaceFolder}/Templates/GenericHost/MyGenericHost/bin/Debug/net10.0/MyGenericHost.dll",
+            "cwd": "${workspaceFolder}/Templates/GenericHost/MyGenericHost",
+            "console": "integratedTerminal",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development"
+            },
+            "presentation": {
+                "group": "Template: Generic Host",
+                "order": 1
+            }
+        },
+        {
+            "name": "Web API: Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "Build: Web API",
+            "program": "${workspaceFolder}/Templates/WebApi/MyWebApi/bin/Debug/net10.0/MyWebApi.dll",
+            "cwd": "${workspaceFolder}/Templates/WebApi/MyWebApi",
+            "launchSettingsProfile": "http",
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "Now listening on:\\s+(?:\\u001b\\[[0-9;]*m)*(https?://[^\\s\\u001b]+)"
+            },
+            "presentation": {
+                "group": "Template: Web API",
+                "order": 1
+            }
+        },
+        {
+            "name": "Web API: Watch",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "dotnet watch --launch-profile http",
+            "cwd": "${workspaceFolder}/Templates/WebApi/MyWebApi",
+            "env": {
+                "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "1"
+            },
+            "presentation": {
+                "group": "Template: Web API",
+                "order": 2
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "discordToken",
+            "type": "promptString",
+            "description": "The token of the Discord bot to run the template with",
+            "password": true
         }
     ]
 }

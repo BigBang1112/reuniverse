@@ -844,15 +844,18 @@
 
 // Reuniverse modal focus.
 //
-// A modal dialog (role="dialog" with aria-modal="true", such as an open ReuModal) takes the
+// A modal dialog (role="dialog" or "alertdialog" with aria-modal="true", such as an open ReuModal) takes the
 // focus when it appears, keeps Tab and Shift+Tab within it, and hands the focus back to where it
 // was once it is gone, so the keyboard never ends up behind the backdrop or back at the start of
 // the page. The dialog itself is focused unless something in it has autofocus, so that a screen
-// reader starts with its title. If this script never loads, the focus stays where it was.
+// reader starts with its title. While it is open, the rest of the page is inert, like behind a
+// native modal <dialog>, so that nothing behind it can be focused, clicked, found or read out.
+// The error panel and the update prompt stay usable. If this script never loads, the focus stays
+// where it was and the page behind stays reachable.
 (function () {
     "use strict";
 
-    const dialogSelector = '[role="dialog"][aria-modal="true"]';
+    const dialogSelector = ':is([role="dialog"], [role="alertdialog"])[aria-modal="true"]';
     const focusableSelector = [
         "a[href]",
         "area[href]",
@@ -869,6 +872,39 @@
     // each open dialog and what had the focus before it appeared
     const openers = new Map();
 
+    // each open dialog and the elements it made inert, so that closing it only undoes its own
+    const inerted = new Map();
+
+    // what stays usable behind a dialog: the panels of this script, which can appear at any time,
+    // and elements that are never shown anyway
+    const keepActiveSelector = "#blazor-error-ui, .reu-error-panel, .reu-update-prompt, .reu-tooltip, script, style, link, template";
+
+    // Makes everything but the dialog and the elements it is in inert, going up from the dialog
+    // and taking the siblings at every level. Elements that are inert already are left out,
+    // so that they stay inert once the dialog is gone.
+    function isolate(dialog) {
+        const made = [];
+
+        for (let node = dialog; node.parentElement && node !== document.body; node = node.parentElement) {
+            for (const sibling of node.parentElement.children) {
+                if (sibling !== node && !sibling.inert && !sibling.matches(keepActiveSelector)) {
+                    sibling.inert = true;
+                    made.push(sibling);
+                }
+            }
+        }
+
+        inerted.set(dialog, made);
+    }
+
+    function release(dialog) {
+        inerted.get(dialog)?.forEach(function (element) {
+            element.inert = false;
+        });
+
+        inerted.delete(dialog);
+    }
+
     function topmost() {
         const dialogs = document.querySelectorAll(dialogSelector);
         return dialogs.length > 0 ? dialogs[dialogs.length - 1] : null;
@@ -882,6 +918,7 @@
 
     function open(dialog) {
         openers.set(dialog, document.activeElement);
+        isolate(dialog);
 
         if (dialog.contains(document.activeElement)) {
             return;
@@ -896,6 +933,9 @@
     function close(dialog) {
         const opener = openers.get(dialog);
         openers.delete(dialog);
+
+        // first, as an inert opener cannot take the focus back
+        release(dialog);
 
         // only when the focus went away with the dialog, as it may have been moved on purpose
         const lost = !document.activeElement || document.activeElement === document.body;
@@ -984,4 +1024,476 @@
             event.preventDefault();
         }
     });
+})();
+
+// Reuniverse split pane.
+//
+// A ReuSplitPane is resized by dragging its handle, or with the arrow keys, Home and End while the
+// handle has the focus, and double-clicking the handle goes back to the initial size. The size of the
+// first pane is kept in --reu-split-size as a percentage, so it scales with the split pane, and the CSS
+// limits it to the minimum sizes. With data-reu-split-key, the size is also kept in localStorage and
+// restored for split panes rendered later too. A "reu-split-resize" event with the new size in
+// detail.size is raised on the split pane once a resize is done. All of this is client-side, so it
+// works under every render mode. If this script never loads, the panes keep their initial size.
+(function () {
+    "use strict";
+
+    const paneSelector = ".reu-split-pane";
+    const handleSelector = ".reu-split-pane > .reu-split-handle";
+    const storagePrefix = "reu-split:";
+    const keyStep = 10;
+    const largeKeyStep = 50;
+
+    function isVertical(pane) {
+        return pane.classList.contains("vertical");
+    }
+
+    function first(pane) {
+        return pane.querySelector(":scope > .reu-split-first");
+    }
+
+    function handleOf(pane) {
+        return pane.querySelector(":scope > .reu-split-handle");
+    }
+
+    // the size that a percentage in flex-basis is relative to
+    function available(pane) {
+        const style = getComputedStyle(pane);
+
+        return isVertical(pane)
+            ? pane.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+            : pane.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    }
+
+    function firstSize(pane) {
+        const rect = first(pane).getBoundingClientRect();
+        return isVertical(pane) ? rect.height : rect.width;
+    }
+
+    function storageKey(pane) {
+        const key = pane.getAttribute("data-reu-split-key");
+        return key ? storagePrefix + key : null;
+    }
+
+    function load(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+
+    function save(pane) {
+        const key = storageKey(pane);
+
+        if (key) {
+            try { localStorage.setItem(key, pane.style.getPropertyValue("--reu-split-size").trim()); } catch (e) { }
+        }
+    }
+
+    function forget(pane) {
+        const key = storageKey(pane);
+
+        if (key) {
+            try { localStorage.removeItem(key); } catch (e) { }
+        }
+    }
+
+    function percentage(value) {
+        return Math.round(value * 100) / 100;
+    }
+
+    function updateValue(pane) {
+        const total = available(pane);
+
+        if (total > 0) {
+            handleOf(pane)?.setAttribute("aria-valuenow", String(Math.round(firstSize(pane) / total * 100)));
+        }
+    }
+
+    // Sets the first pane to the size in pixels, as a percentage of what is available. The CSS keeps it
+    // within the minimum sizes, so the size it ends up with is measured and kept instead.
+    function resize(pane, size) {
+        const total = available(pane);
+
+        if (total <= 0) {
+            return;
+        }
+
+        pane.style.setProperty("--reu-split-size", percentage(Math.max(0, size) / total * 100) + "%");
+        pane.style.setProperty("--reu-split-size", percentage(firstSize(pane) / total * 100) + "%");
+        updateValue(pane);
+    }
+
+    function finish(pane) {
+        save(pane);
+        updateValue(pane);
+        pane.dispatchEvent(new CustomEvent("reu-split-resize", {
+            bubbles: true,
+            detail: { size: pane.style.getPropertyValue("--reu-split-size").trim() }
+        }));
+    }
+
+    function enhance(pane) {
+        const key = storageKey(pane);
+        const saved = key ? load(key) : null;
+
+        if (saved) {
+            pane.style.setProperty("--reu-split-size", saved);
+        }
+
+        updateValue(pane);
+    }
+
+    function enhanceAll(root) {
+        if (root.matches(paneSelector)) {
+            enhance(root);
+        }
+
+        root.querySelectorAll(paneSelector).forEach(enhance);
+    }
+
+    let drag = null;
+
+    document.addEventListener("pointerdown", function (event) {
+        if (event.button !== 0 || !(event.target instanceof Element) || !event.target.matches(handleSelector)) {
+            return;
+        }
+
+        const handle = event.target;
+        const pane = handle.parentElement;
+        const vertical = isVertical(pane);
+
+        event.preventDefault();
+        handle.focus();
+        handle.setPointerCapture(event.pointerId);
+        handle.classList.add("dragging");
+        pane.classList.add("resizing");
+
+        drag = {
+            pane: pane,
+            handle: handle,
+            pointerId: event.pointerId,
+            vertical: vertical,
+            start: vertical ? event.clientY : event.clientX,
+            startSize: firstSize(pane)
+        };
+    });
+
+    document.addEventListener("pointermove", function (event) {
+        if (!drag || event.pointerId !== drag.pointerId) {
+            return;
+        }
+
+        const position = drag.vertical ? event.clientY : event.clientX;
+        resize(drag.pane, drag.startSize + position - drag.start);
+    });
+
+    function endDrag(event) {
+        if (!drag || event.pointerId !== drag.pointerId) {
+            return;
+        }
+
+        const ended = drag;
+        drag = null;
+
+        ended.handle.classList.remove("dragging");
+        ended.pane.classList.remove("resizing");
+
+        if (ended.handle.hasPointerCapture(event.pointerId)) {
+            ended.handle.releasePointerCapture(event.pointerId);
+        }
+
+        finish(ended.pane);
+    }
+
+    document.addEventListener("pointerup", endDrag);
+    document.addEventListener("pointercancel", endDrag);
+
+    document.addEventListener("dblclick", function (event) {
+        if (!(event.target instanceof Element) || !event.target.matches(handleSelector)) {
+            return;
+        }
+
+        const pane = event.target.parentElement;
+        const initial = pane.getAttribute("data-reu-split-size") || "50%";
+
+        forget(pane);
+        pane.style.setProperty("--reu-split-size", initial);
+        updateValue(pane);
+        pane.dispatchEvent(new CustomEvent("reu-split-resize", { bubbles: true, detail: { size: initial } }));
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.defaultPrevented || !(event.target instanceof Element) || !event.target.matches(handleSelector)) {
+            return;
+        }
+
+        const pane = event.target.parentElement;
+        const vertical = isVertical(pane);
+        const step = event.shiftKey ? largeKeyStep : keyStep;
+        let size;
+
+        switch (event.key) {
+            case vertical ? "ArrowUp" : "ArrowLeft":
+                size = firstSize(pane) - step;
+                break;
+            case vertical ? "ArrowDown" : "ArrowRight":
+                size = firstSize(pane) + step;
+                break;
+            case "Home":
+                size = 0;
+                break;
+            case "End":
+                size = available(pane);
+                break;
+            default:
+                return;
+        }
+
+        event.preventDefault();
+        resize(pane, size);
+        finish(pane);
+    });
+
+    new MutationObserver(function (mutations) {
+        for (const mutation of mutations) {
+            mutation.addedNodes.forEach(function (node) {
+                if (node instanceof Element) {
+                    enhanceAll(node);
+                }
+            });
+        }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+
+    enhanceAll(document.documentElement);
+})();
+
+// Reuniverse reconnect.
+//
+// Blazor tells the dialog of a ReuReconnectModal about the connection to the server with an event, which does not
+// bubble, so this listens for it on the way down. A short drop only shows a small notice, with the clicks held back,
+// and the dialog that blocks the page only comes up once it takes longer than the delay. Blazor tries again many
+// times within the first moment when the server cannot be reached at all, so failed attempts alone do not bring it up.
+// Once connected again, the notice says so for a moment. While the browser is offline, the dialog says so, and it
+// retries as soon as the browser is back online or the page is shown again; a paused session resumes when the page
+// is shown again too. When the server no longer has the session, the dialog says so before the page reloads.
+(function () {
+    "use strict";
+
+    const eventName = "components-reconnect-state-changed";
+    const connectedNoticeTime = 2000;
+    const rejectedReloadTime = 1500;
+
+    let dialog = null;
+    let delayTimer = 0;
+    let noticeTimer = 0;
+    let shown = false;
+    let state = "hide";
+    let countdownAttempt = 0;
+
+    function part(name) {
+        return dialog.parentElement.querySelector(".reu-reconnect-" + name);
+    }
+
+    function notice(text, connected) {
+        clearTimeout(noticeTimer);
+        const toast = part("toast");
+        toast.textContent = text;
+        toast.classList.toggle("connected", connected);
+        toast.classList.add("visible");
+    }
+
+    function hideNotice() {
+        clearTimeout(noticeTimer);
+        part("toast").classList.remove("visible");
+    }
+
+    function openDialog() {
+        clearTimeout(delayTimer);
+        part("shield").classList.remove("visible");
+        hideNotice();
+
+        if (!dialog.open) {
+            dialog.showModal();
+        }
+
+        // the button to press next, now that the state shows it, or else the dialog itself
+        const main = Array.from(dialog.querySelectorAll("[data-reu-reconnect-main]")).find(function (button) {
+            return button.getClientRects().length > 0;
+        });
+
+        if (main) {
+            main.focus();
+        } else if (!dialog.contains(document.activeElement)) {
+            dialog.setAttribute("tabindex", "-1");
+            dialog.focus();
+        }
+    }
+
+    function updateOffline() {
+        dialog?.classList.toggle("offline", !navigator.onLine);
+    }
+
+    function reload() {
+        location.reload();
+    }
+
+    async function retry() {
+        try {
+            // true when connected again, false when the server was reached but no longer has the circuit
+            if (await Blazor.reconnect()) {
+                return;
+            }
+
+            if (typeof Blazor.resumeCircuit !== "function" || !(await Blazor.resumeCircuit())) {
+                reload();
+            }
+        } catch {
+            // the server could not be reached, which leaves the dialog as it is
+        }
+    }
+
+    async function resume() {
+        try {
+            if (!(await Blazor.resumeCircuit())) {
+                reload();
+            }
+        } catch {
+            dialog.classList.replace("components-reconnect-paused", "components-reconnect-resume-failed");
+            state = "resume-failed";
+        }
+    }
+
+    function retryWhenBack() {
+        if (document.visibilityState !== "visible" || !navigator.onLine) {
+            return;
+        }
+
+        if (state === "failed") {
+            retry();
+        } else if (state === "paused") {
+            resume();
+        }
+    }
+
+    function change(detail) {
+        state = detail.state;
+        updateOffline();
+
+        switch (state) {
+            case "show": {
+                shown = true;
+                countdownAttempt = 0;
+
+                // such as when retrying after it failed, which keeps the dialog up
+                if (dialog.open) {
+                    break;
+                }
+
+                const delay = parseInt(dialog.getAttribute("data-reu-reconnect-delay") ?? "0", 10) || 0;
+
+                if (delay <= 0) {
+                    openDialog();
+                    break;
+                }
+
+                part("shield").classList.add("visible");
+                notice(navigator.onLine ? "Reconnecting…" : "Offline, waiting to reconnect…", false);
+                clearTimeout(delayTimer);
+                delayTimer = setTimeout(openDialog, delay);
+                break;
+            }
+            case "retrying":
+                // Blazor tells the seconds left every second, so the countdown only starts again with the next attempt
+                if (detail.secondsToNextAttempt > 0 && detail.currentAttempt !== countdownAttempt) {
+                    countdownAttempt = detail.currentAttempt;
+
+                    const progress = part("progress");
+                    progress.style.setProperty("--reu-reconnect-wait", detail.secondsToNextAttempt + "s");
+
+                    const bar = progress.firstElementChild;
+                    bar.style.animation = "none";
+                    void bar.offsetWidth;
+                    bar.style.animation = "";
+                }
+                break;
+            case "failed":
+            case "paused":
+            case "resume-failed":
+                shown = true;
+                openDialog();
+                break;
+            case "rejected":
+                shown = true;
+                openDialog();
+
+                if (dialog.getAttribute("data-reu-reconnect-reload") !== "false") {
+                    setTimeout(reload, rejectedReloadTime);
+                }
+                break;
+            case "hide":
+                clearTimeout(delayTimer);
+                part("shield").classList.remove("visible");
+
+                if (dialog.open) {
+                    dialog.close();
+                }
+
+                if (shown) {
+                    notice("Connected again", true);
+                    noticeTimer = setTimeout(hideNotice, connectedNoticeTime);
+                }
+
+                shown = false;
+                break;
+        }
+    }
+
+    document.addEventListener(eventName, function (event) {
+        if (!(event.target instanceof HTMLDialogElement) || !event.target.classList.contains("reu-reconnect")) {
+            return;
+        }
+
+        dialog = event.target;
+        change(event.detail || {});
+    }, true);
+
+    // the dialog only goes away once connected again
+    document.addEventListener("cancel", function (event) {
+        if (event.target instanceof Element && event.target.matches("dialog.reu-reconnect")) {
+            event.preventDefault();
+        }
+    }, true);
+
+    document.addEventListener("click", async function (event) {
+        const button = event.target instanceof Element ? event.target.closest(".reu-reconnect [data-reu-reconnect]") : null;
+
+        if (!button || button.getAttribute("aria-busy") === "true") {
+            return;
+        }
+
+        dialog = button.closest("dialog");
+        button.setAttribute("aria-busy", "true");
+
+        try {
+            switch (button.getAttribute("data-reu-reconnect")) {
+                case "retry":
+                    await retry();
+                    break;
+                case "resume":
+                    await resume();
+                    break;
+                case "reload":
+                    reload();
+                    break;
+            }
+        } finally {
+            button.removeAttribute("aria-busy");
+        }
+    });
+
+    window.addEventListener("online", function () {
+        updateOffline();
+        retryWhenBack();
+    });
+
+    window.addEventListener("offline", updateOffline);
+    document.addEventListener("visibilitychange", retryWhenBack);
 })();

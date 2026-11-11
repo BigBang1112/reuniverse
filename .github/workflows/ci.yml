@@ -2,8 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main ]
+  pull_request:
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -17,3 +22,4 @@ jobs:
         10.0.x
         9.0.x
       workloads: wasm-tools
+      timeout-minutes: 20

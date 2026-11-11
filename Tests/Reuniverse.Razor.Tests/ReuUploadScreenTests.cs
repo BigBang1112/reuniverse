@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components;
 
 namespace Reuniverse.Razor.Tests;
 
@@ -73,20 +73,21 @@ public class ReuUploadScreenTests : ReuUploadTestBase
     }
 
     [Test]
-    public async Task SelectFiles_WhenStreamed_HidesScreenAndForwardsStream()
+    public async Task OpenStreamAsync_WhenStreamed_HidesScreenAndForwardsStream()
     {
         // Arrange
         var cut = Render<ReuUploadScreen>(parameters => parameters
             .Add(x => x.IsVisible, true)
             .Add(x => x.Streamed, true)
             .Add(x => x.OnStream, OnStream));
+        var area = cut.FindComponent<ReuUploadArea>();
 
         // Act
-        cut.FindComponent<InputFile>().UploadFiles(CreateFile("file.txt"));
+        await cut.InvokeAsync(() => OpenStreamAsync(area.Instance.OpenStreamAsync, size: 10));
 
         // Assert
         await Assert.That(cut.Find(".upload-screen").ClassList.Contains("hidden")).IsTrue();
-        await Streamed.ShouldEqualInOrderAsync("file.txt");
+        await Streamed.Select(x => x.FileName).ShouldEqualInOrderAsync("file.bin");
     }
 
     [Test]
@@ -118,5 +119,35 @@ public class ReuUploadScreenTests : ReuUploadTestBase
 
         // Assert
         await ShouldBeAcceptedAsync(accepted: false);
+    }
+
+    [Test]
+    public async Task Render_WithDirectoryAndPaste_PassesThemToArea()
+    {
+        // Act
+        var cut = Render<ReuUploadScreen>(parameters => parameters
+            .Add(x => x.Directory, true)
+            .Add(x => x.Paste, true));
+
+        // Assert
+        var area = cut.FindComponent<ReuUploadArea>().Instance;
+        await Assert.That(area.Directory).IsTrue();
+        await Assert.That(area.Paste).IsTrue();
+    }
+
+    [Test]
+    public async Task UploadAsync_WithRelativePath_ForwardsIt()
+    {
+        // Arrange
+        UploadEventArgs? uploaded = null;
+        var cut = Render<ReuUploadScreen>(parameters => parameters
+            .Add(x => x.OnUpload, EventCallback.Factory.Create<UploadEventArgs>(this, x => uploaded = x)));
+        var area = cut.FindComponent<ReuUploadArea>();
+
+        // Act
+        await cut.InvokeAsync(() => area.Instance.UploadAsync("A01.Map.Gbx", [1], 0, "", "Maps/A01.Map.Gbx"));
+
+        // Assert
+        await Assert.That(uploaded!.RelativePath).IsEqualTo("Maps/A01.Map.Gbx");
     }
 }

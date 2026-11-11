@@ -5,12 +5,92 @@
             "label": "Build",
             "type": "process",
             "command": "dotnet",
-            "args": ["build", "${workspaceFolder}/Reuniverse.slnx"],
+            "args": [
+                "build",
+                "${workspaceFolder}/Reuniverse.slnx"
+            ],
             "problemMatcher": "$msCompile",
             "group": {
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Build: Blazor Photino Hybrid Web App",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.BlazorWebApp/MyBlazorPhotinoHybrid.BlazorWebApp/MyBlazorPhotinoHybrid.BlazorWebApp.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "Build: Blazor Photino Hybrid Photino",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/Templates/BlazorPhotinoHybrid/MyBlazorPhotinoHybrid.Photino/MyBlazorPhotinoHybrid.Photino.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "Build: Blazor Photino Hybrid Reuniverse Web App",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/MyBlazorPhotinoHybridReuniverse.BlazorWebApp/MyBlazorPhotinoHybridReuniverse.BlazorWebApp.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "Build: Blazor Photino Hybrid Reuniverse Photino",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/Templates/BlazorPhotinoHybridReuniverse/MyBlazorPhotinoHybridReuniverse.Photino/MyBlazorPhotinoHybridReuniverse.Photino.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "Build: Discord Bot",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/Templates/DiscordBot/MyDiscordBot/MyDiscordBot.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "Build: Generic Host",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/Templates/GenericHost/MyGenericHost/MyGenericHost.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "Build: Web API",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/Templates/WebApi/MyWebApi/MyWebApi.csproj"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
         }
     ]
 }

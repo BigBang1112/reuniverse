@@ -1,0 +1,267 @@
+/* Blazor puts components-reconnect-show (with -retrying once an attempt failed), -failed, -paused, -resume-failed, -rejected or -hide
+   on the dialog, and reuniverse.js puts offline on it while the browser is offline. Every part only shows in the states it is for. */
+
+.reu-reconnect {
+    box-sizing: border-box;
+    width: min(26rem, calc(100vw - 2rem));
+    max-width: none;
+    margin: auto;
+    padding: 0;
+    color: var(--color-text-primary);
+    background: var(--color-modal-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-modal);
+}
+
+    .reu-reconnect[open] {
+        animation: reu-reconnect-in 0.2s ease;
+    }
+
+    /* it takes the focus when there is no button yet, for a screen reader to start with the title */
+    .reu-reconnect:focus {
+        outline: none;
+    }
+
+    .reu-reconnect::backdrop {
+        background: var(--color-modal-bg);
+        backdrop-filter: blur(3px);
+        animation: reu-reconnect-fade 0.2s ease;
+    }
+
+.reu-reconnect-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem 1.5rem 1.25rem;
+    text-align: center;
+}
+
+.reu-reconnect-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.reu-reconnect-text {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: 1.45;
+}
+
+    .reu-reconnect-text > span {
+        display: none;
+    }
+
+/* the states */
+.when-connecting, .when-retrying, .when-offline, .when-failed, .when-paused, .when-resume-failed, .when-rejected, .when-rejected-manual {
+    display: none;
+}
+
+.reu-reconnect.components-reconnect-show .reu-reconnect-title .when-connecting,
+.reu-reconnect.components-reconnect-failed .reu-reconnect-title .when-failed,
+.reu-reconnect.components-reconnect-paused .reu-reconnect-title .when-paused,
+.reu-reconnect.components-reconnect-resume-failed .reu-reconnect-title .when-resume-failed,
+.reu-reconnect.components-reconnect-rejected .reu-reconnect-title .when-rejected {
+    display: block;
+}
+
+.reu-reconnect.components-reconnect-show:not(.offline) .reu-reconnect-text .when-online,
+.reu-reconnect.components-reconnect-retrying .reu-reconnect-text .when-retrying,
+.reu-reconnect.offline:is(.components-reconnect-show, .components-reconnect-failed) .reu-reconnect-text .when-offline,
+.reu-reconnect.components-reconnect-failed .reu-reconnect-text .when-failed,
+.reu-reconnect.components-reconnect-paused .reu-reconnect-text .when-paused,
+.reu-reconnect.components-reconnect-resume-failed .reu-reconnect-text .when-resume-failed,
+.reu-reconnect.components-reconnect-rejected .reu-reconnect-text .when-rejected {
+    display: block;
+}
+
+.reu-reconnect.components-reconnect-failed .reu-reconnect-actions .when-failed,
+.reu-reconnect.components-reconnect-paused .reu-reconnect-actions .when-paused,
+.reu-reconnect.components-reconnect-resume-failed .reu-reconnect-actions .when-resume-failed,
+.reu-reconnect.components-reconnect-rejected[data-reu-reconnect-reload="false"] .reu-reconnect-actions .when-rejected-manual {
+    display: inline-flex;
+}
+
+/* the icon */
+.reu-reconnect-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+}
+
+    .reu-reconnect-icon > span {
+        display: none;
+        grid-area: 1 / 1;
+    }
+
+.reu-reconnect:is(.components-reconnect-show, .components-reconnect-rejected) .reu-reconnect-spinner,
+.reu-reconnect:is(.components-reconnect-failed, .components-reconnect-resume-failed) .reu-reconnect-alert,
+.reu-reconnect.components-reconnect-paused .reu-reconnect-pause {
+    display: block;
+}
+
+.reu-reconnect-spinner {
+    width: 38px;
+    height: 38px;
+    box-sizing: border-box;
+    border: 4px solid var(--color-overlay-medium);
+    border-top-color: var(--color-link);
+    border-radius: 50%;
+    animation: reu-reconnect-spin 0.9s linear infinite;
+}
+
+.reu-reconnect-alert {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50%;
+    color: #FFF;
+    background: var(--color-button-red);
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+/* two bars, as in the pause sign */
+.reu-reconnect-pause {
+    width: 22px;
+    height: 26px;
+    background: linear-gradient(to right, var(--color-link) 0 35%, transparent 35% 65%, var(--color-link) 65% 100%);
+    border-radius: 2px;
+}
+
+/* empties until the next attempt; reuniverse.js restarts it with each one */
+.reu-reconnect-progress {
+    display: none;
+    width: 100%;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: var(--color-overlay-weak);
+}
+
+    .reu-reconnect.components-reconnect-retrying .reu-reconnect-progress {
+        display: block;
+    }
+
+    .reu-reconnect-progress > span {
+        display: block;
+        height: 100%;
+        background: var(--color-link);
+        transform-origin: left;
+        animation: reu-reconnect-countdown var(--reu-reconnect-wait, 0s) linear forwards;
+    }
+
+.reu-reconnect-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+    .reu-reconnect-actions .reu-button {
+        min-width: 6rem;
+        padding: 0.45rem 1rem;
+    }
+
+        .reu-reconnect-actions .reu-button[aria-busy="true"] {
+            opacity: 0.7;
+            cursor: progress;
+        }
+
+/* While the dialog waits to come up, the clicks are held back, as they could not reach the server anyway */
+.reu-reconnect-shield {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    cursor: progress;
+}
+
+    .reu-reconnect-shield.visible {
+        display: block;
+    }
+
+.reu-reconnect-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.25rem;
+    z-index: 2147483647;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    max-width: calc(100vw - 2rem);
+    padding: 0.55rem 1rem;
+    color: var(--color-text-primary);
+    background: var(--color-modal-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    box-shadow: var(--shadow-modal);
+    font-size: 0.9rem;
+    opacity: 0;
+    transform: translate(-50%, 0.75rem);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+    .reu-reconnect-toast.visible {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    .reu-reconnect-toast::before {
+        content: "";
+        flex: none;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--color-yellow);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-yellow) 30%, transparent);
+    }
+
+    .reu-reconnect-toast.connected::before {
+        background: var(--color-green);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-green) 30%, transparent);
+    }
+
+@keyframes reu-reconnect-spin {
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+@keyframes reu-reconnect-countdown {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes reu-reconnect-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+}
+
+@keyframes reu-reconnect-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reu-reconnect[open], .reu-reconnect::backdrop, .reu-reconnect-toast {
+        animation: none;
+        transition: none;
+    }
+
+    .reu-reconnect-spinner {
+        animation-duration: 2.5s;
+    }
+}

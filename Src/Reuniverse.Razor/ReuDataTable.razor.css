@@ -1,0 +1,141 @@
+/* styled after the tables of envimix.bigbang1112.cz: no frame, thin rows, and a dimmed second line */
+.reu-data-table {
+    min-width: 0;
+}
+
+.table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+}
+
+.loading .table-scroll {
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+    text-align: left;
+}
+
+th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+tbody tr {
+    transition: background-color 0.1s ease;
+}
+
+    tbody tr:not(.empty):hover {
+        background-color: var(--color-overlay-weak);
+    }
+
+td small {
+    display: block;
+    margin-top: 0.15rem;
+    opacity: 0.7;
+}
+
+.fit {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.right {
+    text-align: right;
+}
+
+    .right .sort {
+        flex-direction: row-reverse;
+    }
+
+.empty td {
+    padding-block: 1rem;
+    color: var(--color-text-secondary);
+    text-align: center;
+}
+
+/* the whole header is the button, looking like the header text */
+.sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: inherit;
+    cursor: pointer;
+}
+
+.sort-icon {
+    font-size: 0.7em;
+    opacity: 0.8;
+}
+
+th:not([aria-sort]) .sort-icon {
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+
+th:not([aria-sort]) .sort:is(:hover, :focus-visible) .sort-icon {
+    opacity: 0.5;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1rem;
+}
+
+    .pagination ::deep .reu-button {
+        min-width: 2.25rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .pagination ::deep .reu-button:disabled:not(.active) {
+        opacity: 0.65;
+    }
+
+    /* the current page cannot be clicked, but should not look disabled like the rest */
+    .pagination ::deep .reu-button.active {
+        color: var(--color-text-primary);
+        background-color: var(--color-button-bg-active);
+        cursor: default;
+    }
+
+    .pagination small {
+        margin-inline-start: 0.35rem;
+        opacity: 0.7;
+    }
+
+.gap {
+    padding-inline: 0.2rem;
+    opacity: 0.7;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 600px) {
+    th,
+    td {
+        padding-inline: 0.4rem;
+    }
+}

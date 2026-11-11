@@ -40,7 +40,9 @@
     --color-surface-hover: #333;
     --color-surface-active: #444;
     --color-overlay-bg: #111D;
-    --color-footer-bg: #1A1A1A;
+    --color-surface-secondary: #1A1A1A;
+    /* Deprecated alias; use --color-surface-secondary instead. */
+    --color-footer-bg: var(--color-surface-secondary);
     /* Text */
     --color-text-primary: #FFF;
     --color-text-secondary: #AAA;
@@ -121,7 +123,9 @@
     --color-surface-hover: #E9E9EC;
     --color-surface-active: #DCDCE1;
     --color-overlay-bg: #FFFFFFEE;
-    --color-footer-bg: #EEE;
+    --color-surface-secondary: #EEE;
+    /* Deprecated alias; use --color-surface-secondary instead. */
+    --color-footer-bg: var(--color-surface-secondary);
     /* Text */
     --color-text-primary: #1A1A1A;
     --color-text-secondary: #444;
@@ -391,6 +395,16 @@ main.reu-main {
         opacity: 0;
     }
 
+    .reu-upload-button.disabled input {
+        cursor: not-allowed;
+    }
+
+    /* the input takes the focus, but it cannot be seen */
+    .reu-upload-button:has(input:focus-visible) {
+        outline: 2px solid var(--color-link);
+        outline-offset: 2px;
+    }
+
 .reu-center {
     display: flex;
     flex-direction: column;
@@ -569,7 +583,7 @@ progress {
     }
 
 footer.reu-footer {
-    background: var(--color-footer-bg);
+    background: var(--color-surface-secondary);
     transition: background-color 0.2s ease;
 }
 
@@ -621,6 +635,108 @@ footer.reu-footer {
     background-image: url('icons/light_fill.svg');
     filter: invert(0.6);
 }
+
+/* <ReuThemeToggle>, works without interactivity as it calls reuniverse.theme.js directly */
+.reu-theme-toggle {
+    display: inline-flex;
+    /* makes it at least 24px across, which is easier to hit, while the bulb stays as it was */
+    padding: 2px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+    .reu-theme-toggle .reu-theme-icon {
+        display: block;
+    }
+
+    .reu-theme-toggle:is(:hover, :focus-visible) .reu-theme-icon {
+        opacity: 1;
+    }
+
+/* <ReuSplitPane>, resized by reuniverse.js through --reu-split-size */
+.reu-split-pane {
+    --reu-split-handle-size: 8px;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+}
+
+    .reu-split-pane.vertical {
+        flex-direction: column;
+    }
+
+    .reu-split-pane.bordered {
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+    }
+
+    .reu-split-pane > .reu-split-first {
+        flex: 0 0 var(--reu-split-size, 50%);
+        min-width: var(--reu-split-first-min, 0px);
+        max-width: calc(100% - var(--reu-split-second-min, 0px) - var(--reu-split-handle-size));
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .reu-split-pane > .reu-split-second {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    .reu-split-pane.vertical > .reu-split-first {
+        min-width: 0;
+        max-width: none;
+        min-height: var(--reu-split-first-min, 0px);
+        max-height: calc(100% - var(--reu-split-second-min, 0px) - var(--reu-split-handle-size));
+    }
+
+    /* a thin line in the middle of a wider area that is easier to grab */
+    .reu-split-pane > .reu-split-handle {
+        flex: 0 0 var(--reu-split-handle-size);
+        position: relative;
+        cursor: col-resize;
+        touch-action: none;
+    }
+
+    .reu-split-pane.vertical > .reu-split-handle {
+        cursor: row-resize;
+    }
+
+        .reu-split-pane > .reu-split-handle::after {
+            content: "";
+            position: absolute;
+            inset: 0 calc(50% - 1px);
+            background-color: var(--color-border);
+            transition: background-color 0.1s ease, inset 0.1s ease;
+        }
+
+        .reu-split-pane.vertical > .reu-split-handle::after {
+            inset: calc(50% - 1px) 0;
+        }
+
+        .reu-split-pane > .reu-split-handle:is(:hover, :focus-visible, .dragging)::after {
+            inset: 0 calc(50% - 2px);
+            background-color: var(--color-link);
+        }
+
+        .reu-split-pane.vertical > .reu-split-handle:is(:hover, :focus-visible, .dragging)::after {
+            inset: calc(50% - 2px) 0;
+        }
+
+        .reu-split-pane > .reu-split-handle:focus-visible {
+            outline: none;
+        }
+
+    /* keeps the text from being selected and iframes from taking the pointer while dragging */
+    .reu-split-pane.resizing {
+        user-select: none;
+    }
+
+        .reu-split-pane.resizing iframe {
+            pointer-events: none;
+        }
 
 .invalid {
     outline: 1px solid var(--color-red);
@@ -857,7 +973,8 @@ footer.reu-footer {
         padding: 0.4rem 1rem;
     }
 
-#components-reconnect-modal {
+/* for a reconnect modal of the app's own, as ReuReconnectModal has its own styles */
+#components-reconnect-modal:not(.reu-reconnect) {
     display: none;
     background-color: var(--color-modal-bg);
     text-align: center;
@@ -874,9 +991,7 @@ footer.reu-footer {
     padding: 2rem;
 }
 
-    #components-reconnect-modal.components-reconnect-show,
-    #components-reconnect-modal.components-reconnect-failed,
-    #components-reconnect-modal.components-reconnect-rejected {
+    #components-reconnect-modal:not(.reu-reconnect):is(.components-reconnect-show, .components-reconnect-failed, .components-reconnect-rejected) {
         display: flex;
     }
 

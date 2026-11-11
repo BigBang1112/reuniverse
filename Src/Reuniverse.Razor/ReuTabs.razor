@@ -12,19 +12,18 @@
                             aria-controls="@tab.PanelId"
                             aria-selected="@(tab.Selected ? "true" : "false")"
                             tabindex="@(tab.Selected ? "0" : "-1")"
+                            aria-keyshortcuts="@(tab.ShowCloseButton ? "Delete" : null)"
                             @ref="tab.HeaderElement"
                             @onkeydown="e => HandleKeyDownAsync(e, tab)">@tab.TitleContent</button>
                     @if (tab.ShowCloseButton)
                     {
-                        @* only the selected tab's button is in the tab order, as arrow keys move between the tabs *@
+                        @* a tab list may only hold tabs, so this is only for the mouse, and Delete on the tab closes it from the keyboard *@
                         <button type="button"
                                 class="tab-close-btn"
-                                id="@tab.CloseButtonId"
-                                @onclick="e => CloseAsync(e, tab)"
+                                @onclick="() => CloseAsync(tab, fromKeyboard: false)"
                                 @onclick:stopPropagation="true"
-                                tabindex="@(tab.Selected ? null : "-1")"
-                                aria-label="Close tab"
-                                aria-labelledby="@($"{tab.CloseButtonId} {tab.HeaderId}")"
+                                tabindex="-1"
+                                aria-hidden="true"
                                 data-reu-tooltip="Close">✕</button>
                     }
                 </div>
@@ -50,7 +49,7 @@
 
     public ReuTab? SelectedTab { get; private set; }
 
-    // the tab whose close button was pressed from the keyboard, as the focus goes away with the button
+    // the tab closed with Delete, as the focus goes away with it
     private ReuTab? closingFromKeyboard;
     private bool focusSelectedTab;
 
@@ -109,10 +108,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task CloseAsync(MouseEventArgs e, ReuTab tab)
+    private async Task CloseAsync(ReuTab tab, bool fromKeyboard)
     {
-        // a click from Enter or Space counts no presses of the mouse button
-        closingFromKeyboard = e.Detail == 0 ? tab : null;
+        closingFromKeyboard = fromKeyboard ? tab : null;
         await tab.OnClosed.InvokeAsync();
     }
 
@@ -123,6 +121,12 @@
 
         if (index < 0)
         {
+            return;
+        }
+
+        if (e.Key == "Delete" && tab.ShowCloseButton)
+        {
+            await CloseAsync(tab, fromKeyboard: true);
             return;
         }
 

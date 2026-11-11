@@ -1,49 +1,46 @@
-@using Microsoft.AspNetCore.Components.Forms
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
-<ReuButton CssClass="@($"reu-upload-button {CssClass}")" Enable="Enable" Variant="Variant" Tooltip="@Tooltip" Active="dragged">
+@* a label rather than a button, as a button cannot hold the input, and the label's text names it *@
+<label class="reu-button reu-upload-button @(dragged ? "active" : null) @(Enable ? null : "disabled") @VariantClass @CssClass"
+       data-reu-tooltip="@Tooltip">
     @if (RendererInfo.IsInteractive)
     {
         @ChildContent
-        
-        @if (Streamed)
-        {
-            <InputFile OnChange="ChangeAsync"
-                       @ref="inputFileStreamed"
-                       @ondragenter="DragEnter"
-                       @ondragleave="DragEnd"
-                       @ondragend="DragEnd"
-                       @ondrop="DragEnd" class="file" accept="@Accept"
-                       multiple="@(MaxFileCount is null or > 1)"
-                       @attributes="AdditionalAttributes" />
-        }
-        else
-        {
-            <input type="file"
-                   @ref="inputFileUpload"
-                   @ondragenter="DragEnter"
-                   @ondragleave="DragEnd"
-                   @ondragend="DragEnd"
-                   @ondrop="DragEnd"
-                   accept="@Accept"
-                   multiple="@(MaxFileCount is null or > 1)"
-                   @attributes="AdditionalAttributes" />
-        }
+        <input type="file"
+               disabled="@(!Enable)"
+               aria-label="@(ChildContent is null ? (Directory ? "Choose a folder" : "Choose files") : null)"
+               @ref="inputFileUpload"
+               @ondragenter="DragEnter"
+               @ondragleave="DragEnd"
+               @ondragend="DragEnd"
+               @ondrop="DragEnd"
+               accept="@Accept"
+               multiple="@(MaxFileCount is null or > 1)"
+               webkitdirectory="@Directory"
+               data-reu-paste="@Paste"
+               @attributes="AdditionalAttributes" />
     }
     else
     {
         <ReuLoader Size="LoaderSize" Thickness="LoaderThickness"></ReuLoader>
     }
-</ReuButton>
+</label>
 
 @code {
-    private InputFile? inputFileStreamed;
     private ElementReference inputFileUpload;
     private IJSObjectReference? module;
     private DotNetObjectReference<ReuUploadButton>? objRef;
 
     private bool dragged;
+
+    private string? VariantClass => Variant switch
+    {
+        ReuButtonVariant.Blue => "reu-button-blue",
+        ReuButtonVariant.Yellow => "reu-button-yellow",
+        ReuButtonVariant.Red => "reu-button-red",
+        _ => null
+    };
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -71,6 +68,20 @@
     /// </summary>
     [Parameter]
     public string? CssClass { get; set; }
+
+    /// <summary>
+    /// Whether to pick a folder instead of files. Every file in the folder and its subfolders that matches <see cref="Accept"/> is uploaded,
+    /// with its path within the folder in <c>RelativePath</c>. Dropping a folder also works.
+    /// </summary>
+    [Parameter]
+    public bool Directory { get; set; }
+
+    /// <summary>
+    /// Whether files pasted anywhere on the page (Ctrl+V) are uploaded, filtered by <see cref="Accept"/>. Pasting into a text field is left alone.
+    /// Turn it on for only one upload component on a page, as each of them would take the pasted files.
+    /// </summary>
+    [Parameter]
+    public bool Paste { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public IDictionary<string, object>? AdditionalAttributes { get; set; }
@@ -128,9 +139,17 @@
     [Parameter]
     public int LoaderThickness { get; set; } = 8;
 
+    /// <summary>
+    /// Whether files are opened as seekable streams through <see cref="OnStream"/> instead of being uploaded whole through <see cref="OnUpload"/>.
+    /// The streams read the file in ranges on demand, so large files are never loaded into memory.
+    /// </summary>
     [Parameter]
     public bool Streamed { get; set; }
 
+    /// <summary>
+    /// Callback invoked for each file when <see cref="Streamed"/> is true, with a seekable <see cref="ReuBrowserFileStream"/>.
+    /// The handler owns the stream and should dispose it, which releases the file on the client.
+    /// </summary>
     [Parameter]
     public EventCallback<StreamEventArgs> OnStream { get; set; }
 
@@ -142,23 +161,48 @@
         if (firstRender)
         {
             module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadButton.razor.js");
-            await module.InvokeVoidAsync("addHandlers", inputFileStreamed?.Element ?? inputFileUpload, objRef, Streamed);
+            await module.InvokeVoidAsync("addHandlers", inputFileUpload, objRef, Streamed);
         }
     }
 
     [JSInvokable]
-    public async Task UploadAsync(string fileName, byte[] data, long lastModified, string type)
+    public async Task UploadAsync(string fileName, byte[] data, long lastModified, string type, string? relativePath)
     {
         var modified = DateTimeOffset.FromUnixTimeMilliseconds(lastModified);
 
         // the JS check can be bypassed, as a client can invoke this method directly in serverside interactivity
         if (MaxFileSize > 0 && data.Length > MaxFileSize)
         {
-            await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, data.Length, modified, type));
+            await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, data.Length, modified, type) { RelativePath = relativePath });
             return;
         }
 
-        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, modified, type));
+        await OnUpload.InvokeAsync(new UploadEventArgs(fileName, data, modified, type) { RelativePath = relativePath });
+    }
+
+    [JSInvokable]
+    public async Task OpenStreamAsync(IJSObjectReference file, string fileName, long size, long lastModified, string type, string? relativePath)
+    {
+        var modified = DateTimeOffset.FromUnixTimeMilliseconds(lastModified);
+
+        // the JS check can be bypassed, as a client can invoke this method directly in serverside interactivity
+        // the stream never reads past the reported size, so checking the size is enough
+        if (MaxFileSize > 0 && size > MaxFileSize)
+        {
+            await file.DisposeAsync();
+            await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, size, modified, type) { RelativePath = relativePath });
+            return;
+        }
+
+        if (size < 0 || !OnStream.HasDelegate)
+        {
+            await file.DisposeAsync();
+            return;
+        }
+
+        // the handler owns the stream and disposes it, which releases the file on the client
+
+        await OnStream.InvokeAsync(new StreamEventArgs(fileName, size, ReuBrowserFileStream.Create(file, size), modified) { RelativePath = relativePath });
     }
 
     [JSInvokable]
@@ -168,15 +212,15 @@
     public Task<long> GetMaxFileSizeAsync() => Task.FromResult(MaxFileSize ?? 0);
 
     [JSInvokable]
-    public async Task OnFileTooLargeAsync(string fileName, long size, long lastModified, string type)
+    public async Task OnFileTooLargeAsync(string fileName, long size, long lastModified, string type, string? relativePath)
     {
-        await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
+        await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type) { RelativePath = relativePath });
     }
 
     [JSInvokable]
-    public async Task OnFileExceedCountAsync(string fileName, long size, long lastModified, string type)
+    public async Task OnFileExceedCountAsync(string fileName, long size, long lastModified, string type, string? relativePath)
     {
-        await OnFileExceedCount.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type));
+        await OnFileExceedCount.InvokeAsync(new FileInfoEventArgs(fileName, size, DateTimeOffset.FromUnixTimeMilliseconds(lastModified), type) { RelativePath = relativePath });
     }
 
     private void DragEnter(DragEventArgs e)
@@ -189,38 +233,13 @@
         dragged = false;
     }
 
-    private async Task ChangeAsync(InputFileChangeEventArgs e)
-    {
-        // GetMultipleFiles(max) throws when more files are supplied, so limits are checked per file like in the JS upload
-        var files = e.GetMultipleFiles(e.FileCount);
-
-        for (var i = 0; i < files.Count; i++)
-        {
-            var file = files[i];
-
-            if (MaxFileCount > 0 && i >= MaxFileCount)
-            {
-                await OnFileExceedCount.InvokeAsync(new FileInfoEventArgs(file.Name, file.Size, file.LastModified, file.ContentType));
-                continue;
-            }
-
-            if (MaxFileSize > 0 && file.Size > MaxFileSize)
-            {
-                await OnFileTooLarge.InvokeAsync(new FileInfoEventArgs(file.Name, file.Size, file.LastModified, file.ContentType));
-                continue;
-            }
-
-            var stream = file.OpenReadStream(long.MaxValue);
-            await OnStream.InvokeAsync(new StreamEventArgs(file.Name, file.Size, stream, file.LastModified));
-        }
-    }
-
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
         if (module is not null)
         {
             try
             {
+                await module.InvokeVoidAsync("removeHandlers", inputFileUpload);
                 await module.DisposeAsync();
             }
             catch (JSDisconnectedException)

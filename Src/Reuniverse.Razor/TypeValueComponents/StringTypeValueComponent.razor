@@ -9,7 +9,7 @@
 }
 else
 {
-    <input @bind="Value" 
+    <input aria-label="@Label" @bind="Value" 
            readonly="@IsReadOnly" 
            placeholder="@Placeholder" 
            @oninput="e => tempValue = e.Value?.ToString()" 

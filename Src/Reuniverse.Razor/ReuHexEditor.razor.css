@@ -1,0 +1,162 @@
+.reu-hex-editor {
+    display: flex;
+    flex-direction: column;
+    height: 24rem;
+    color: var(--color-text-primary);
+    background: var(--color-surface-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+    font-family: var(--font-mono), monospace;
+    font-variant-ligatures: none;
+    font-size: 85%;
+}
+
+/* dragging selects bytes, so the browser's own text selection would only get in the way.
+   The rows are one grid column as wide as the widest of them, so the header spans the rows when scrolled sideways. */
+.hex-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    outline: none;
+    user-select: none;
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr);
+    align-content: start;
+}
+
+    .hex-scroll:focus-visible {
+        box-shadow: inset 0 0 0 2px var(--color-link);
+    }
+
+/* the bytes take the full height of their row, leaving no space between the rows that a drag could fall into */
+.hex-row {
+    display: flex;
+    align-items: stretch;
+    gap: 2ch;
+    box-sizing: border-box;
+    height: var(--reu-hex-row, 20px);
+    padding: 0 1ch;
+    white-space: nowrap;
+}
+
+/* taller than the rows; scrolling to a row measures it, so it can be any height */
+.hex-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: auto;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+    color: var(--color-text-secondary);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.offset {
+    display: flex;
+    align-items: center;
+    width: 8ch;
+    color: var(--color-text-secondary);
+}
+
+/* no gaps between the bytes, so that highlighted and selected ranges stay in one piece */
+.hex {
+    display: grid;
+    grid-template-columns: repeat(var(--reu-hex-columns, 16), 3ch);
+}
+
+.text {
+    display: grid;
+    grid-template-columns: repeat(var(--reu-hex-columns, 16), 1ch);
+}
+
+.hex-header .text {
+    display: flex;
+    align-items: center;
+    min-width: calc(var(--reu-hex-columns, 16) * 1ch);
+}
+
+.b {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    cursor: default;
+}
+
+.zero {
+    color: var(--color-text-muted);
+}
+
+.highlight {
+    background-color: var(--reu-hex-highlight, color-mix(in srgb, var(--color-yellow) 40%, transparent));
+}
+
+.modified {
+    color: var(--color-button-red-hover);
+    font-weight: 500;
+}
+
+.selected {
+    background-color: color-mix(in srgb, var(--color-link) 35%, transparent);
+}
+
+/* layered over any highlight or selection, and marked by the script in the other column too */
+.hex-row:not(.hex-header) .b:is(:hover, [data-reu-hover]) {
+    background-image: linear-gradient(var(--color-overlay-medium), var(--color-overlay-medium));
+    box-shadow: inset 0 0 0 1px var(--color-overlay-strong);
+}
+
+/* the column of the hovered byte */
+.hex-header .b[data-reu-hover] {
+    color: var(--color-text-primary);
+}
+
+.cursor {
+    color: #FFF;
+    background-color: color-mix(in srgb, var(--color-link) 85%, transparent);
+}
+
+.hex-scroll:not(:focus) .cursor {
+    background-color: color-mix(in srgb, var(--color-link) 50%, transparent);
+}
+
+/* the same byte in the other column */
+.cursor-other {
+    outline: 1px solid var(--color-link);
+    outline-offset: -1px;
+}
+
+/* the digit that typing changes next */
+.nibble.active {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.empty {
+    padding: 12px;
+    color: var(--color-text-secondary);
+    text-align: center;
+}
+
+.hex-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 2ch;
+    padding: 0.3rem 1ch;
+    color: var(--color-text-secondary);
+    border-top: 1px solid var(--color-border);
+}
+
+    .hex-status code {
+        color: var(--color-text-primary);
+    }
+
+    .hex-status .field {
+        color: var(--color-text-primary);
+    }
+
+    .hex-status .size {
+        margin-left: auto;
+    }

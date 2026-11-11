@@ -1,0 +1,70 @@
+@using System.Globalization
+
+@*
+    Blazor finds this dialog by its id when the connection to the server is lost, puts a class on it for each state
+    and tells it about each change with an event. reuniverse.js takes it from there: a short notice first, the dialog
+    only once it takes longer, and the buttons. It is static markup, so that it works with the connection gone, and
+    data-permanent keeps it through enhanced navigation, as Blazor holds on to the element it found first.
+*@
+<div class="reu-reconnect-root" data-permanent id="reu-reconnect-root">
+    <dialog id="components-reconnect-modal"
+            class="reu-reconnect"
+            data-nosnippet
+            aria-labelledby="reu-reconnect-title"
+            aria-describedby="reu-reconnect-text"
+            data-reu-reconnect-delay="@Delay.ToString(CultureInfo.InvariantCulture)"
+            data-reu-reconnect-reload="@(ReloadOnRejected ? "true" : "false")">
+        <div class="reu-reconnect-panel">
+            <div class="reu-reconnect-icon" aria-hidden="true">
+                <span class="reu-reconnect-spinner"></span>
+                <span class="reu-reconnect-alert">!</span>
+                <span class="reu-reconnect-pause"></span>
+            </div>
+            <h2 class="reu-reconnect-title" id="reu-reconnect-title">
+                <span class="when-connecting">Connection lost</span>
+                <span class="when-failed">Couldn't reconnect</span>
+                <span class="when-paused">Session paused</span>
+                <span class="when-resume-failed">Couldn't resume</span>
+                <span class="when-rejected">Session ended</span>
+            </h2>
+            <p class="reu-reconnect-text" id="reu-reconnect-text">
+                <span class="when-connecting when-online">Reconnecting to the server…</span>
+                <span class="when-offline">You're offline. It reconnects as soon as you're back online.</span>
+                <span class="when-retrying">
+                    Attempt <span id="components-reconnect-current-attempt"></span> of <span id="components-reconnect-max-retries"></span>,
+                    the next in <span id="components-seconds-to-next-attempt"></span> s.
+                </span>
+                <span class="when-failed">The server can't be reached. The page stays as it is, but nothing reaches the server until it reconnects.</span>
+                <span class="when-paused">The server paused this session to save resources. Resume to continue where you left off.</span>
+                <span class="when-resume-failed">The session couldn't be resumed. Try again, or reload the page.</span>
+                <span class="when-rejected">The server no longer has this session, so the page reloads.</span>
+            </p>
+            <div class="reu-reconnect-progress" aria-hidden="true"><span></span></div>
+            <div class="reu-reconnect-actions">
+                <button type="button" class="reu-button when-failed" data-reu-reconnect="reload">Reload</button>
+                <button type="button" class="reu-button reu-button-blue when-failed" data-reu-reconnect="retry" data-reu-reconnect-main>Retry</button>
+                <button type="button" class="reu-button when-resume-failed when-rejected-manual" data-reu-reconnect="reload">Reload</button>
+                <button type="button" class="reu-button reu-button-blue when-paused when-resume-failed" data-reu-reconnect="resume" data-reu-reconnect-main>Resume</button>
+            </div>
+        </div>
+    </dialog>
+    <div class="reu-reconnect-shield" aria-hidden="true"></div>
+    <div class="reu-reconnect-toast" role="status" aria-live="polite"></div>
+</div>
+
+@code {
+    /// <summary>
+    /// How long a lost connection only shows a small notice, in milliseconds, before the dialog that blocks the page comes up.
+    /// Short drops then go by without the page freezing. Clicks are held back meanwhile, as they could not reach the server anyway.
+    /// 0 shows the dialog right away. Defaults to 1500.
+    /// </summary>
+    [Parameter]
+    public int Delay { get; set; } = 1500;
+
+    /// <summary>
+    /// Whether to reload the page on its own when the server no longer has the session, after saying so.
+    /// Otherwise the dialog offers a Reload button. Defaults to <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool ReloadOnRejected { get; set; } = true;
+}

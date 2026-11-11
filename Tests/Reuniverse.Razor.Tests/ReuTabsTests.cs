@@ -460,34 +460,36 @@ public class ReuTabsTests : BunitContext
     }
 
     [Test]
-    public async Task Render_WithShowCloseButton_PutsOnlySelectedCloseButtonInTabOrder()
+    public async Task Render_WithShowCloseButton_KeepsCloseButtonsForMouseOnly()
     {
         // Act
         var cut = RenderConditionalTabs(["One", "Two"], closable: true);
 
         // Assert
-        await cut.FindAll(".tab-close-btn").Select(x => x.GetAttribute("tabindex")).ShouldEqualInOrderAsync(null, "-1");
+        // a tab list may only hold tabs, so the close buttons are out of the tab order and hidden from screen readers
+        await cut.FindAll(".tab-close-btn").Select(x => x.GetAttribute("tabindex")).ShouldEqualInOrderAsync("-1", "-1");
+        await cut.FindAll(".tab-close-btn").Select(x => x.GetAttribute("aria-hidden")).ShouldEqualInOrderAsync("true", "true");
     }
 
     [Test]
-    public async Task Render_WithShowCloseButton_NamesCloseButtonAfterTab()
+    public async Task Render_WithShowCloseButton_AnnouncesDeleteOnClosableTabs()
     {
         // Act
-        var cut = RenderConditionalTabs(["One"], closable: true);
+        var cut = Render<ReuTabs>(parameters => parameters
+            .AddChildContent<ReuTab>(tab => tab.Add(x => x.TitleContent, "Fixed"))
+            .AddChildContent<ReuTab>(tab => tab.Add(x => x.TitleContent, "Closable").Add(x => x.ShowCloseButton, true)));
 
         // Assert
-        var button = cut.Find(".tab-close-btn");
-        await Assert.That(button.GetAttribute("aria-label")).IsEqualTo("Close tab");
-        await Assert.That(button.GetAttribute("aria-labelledby")).IsEqualTo($"{button.Id} {cut.Find(".tab-title").Id}");
+        await cut.FindAll(".tab-title").Select(x => x.GetAttribute("aria-keyshortcuts")).ShouldEqualInOrderAsync(null, "Delete");
     }
 
     [Test]
-    public async Task CloseButton_FromKeyboardOnSelectedTab_FocusesNextSelectedTab()
+    public async Task KeyDown_DeleteOnSelectedTab_ClosesItAndFocusesNextSelectedTab()
     {
         // Arrange
         var cut = RenderConditionalTabs(["One", "Two", "Three"], closable: true);
         cut.FindAll(".tab")[1].Click();
-        cut.FindAll(".tab-close-btn")[1].Click(new MouseEventArgs { Detail = 0 });
+        cut.FindAll(".tab-title")[1].KeyDown(new KeyboardEventArgs { Key = "Delete" });
 
         // Act
         Rerender(cut);
@@ -495,6 +497,20 @@ public class ReuTabsTests : BunitContext
         // Assert
         await Assert.That(cut.Find(".tab.selected").TextContent).StartsWith("Three");
         await ShouldHaveFocusedHeaderAsync(cut.Instance.SelectedTab!);
+    }
+
+    [Test]
+    public async Task KeyDown_DeleteOnTabWithoutCloseButton_KeepsIt()
+    {
+        // Arrange
+        var cut = RenderConditionalTabs(["One", "Two"], closable: false);
+
+        // Act
+        cut.FindAll(".tab-title")[0].KeyDown(new KeyboardEventArgs { Key = "Delete" });
+        Rerender(cut);
+
+        // Assert
+        await Assert.That(cut.FindAll(".tab").Count).IsEqualTo(2);
     }
 
     [Test]

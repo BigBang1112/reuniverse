@@ -2,8 +2,12 @@ name: Deploy to Pages
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ dev ]
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   deploy:

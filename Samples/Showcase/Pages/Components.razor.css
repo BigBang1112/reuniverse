@@ -48,7 +48,8 @@
         font-family: var(--font-mono), monospace;
     }
 
-    .components ::deep label + label {
+    /* stacks checkboxes and radios, but not the upload buttons, which are labels too and sit in a row */
+    .components ::deep label:not(.reu-button) + label:not(.reu-button) {
         margin-top: 0.5rem;
     }
 
@@ -71,6 +72,19 @@
     .components ::deep .upload-area {
         min-width: 0;
     }
+
+.components ::deep .removed-record {
+    opacity: 0.5;
+}
+
+.split-text {
+    padding: 0.5rem;
+}
+
+.streamed-info {
+    color: var(--color-text-secondary);
+    overflow-wrap: anywhere;
+}
 
 .upload-text {
     padding: 1.5rem 0;

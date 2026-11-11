@@ -68,6 +68,8 @@ You can call `reuTheme.toggle()` directly from HTML, for example in an `onclick`
 <button onclick="reuTheme.toggle()">Toggle theme</button>
 ```
 
+Or use the [`<ReuThemeToggle>`](#reuthemetoggle) component.
+
 ### Components
 
 To use the components:
@@ -95,14 +97,14 @@ A versatile button component that can render as a link or a button with various 
 - `Enable` - Whether the button is enabled.
 - `NavLink` - Whether to render as a Blazor `NavLink` (only when `Href` is set).
 - `Variant` - The variant style of the button (`Default`, `Blue`, `Yellow`, `Red`).
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus (uses `data-reu-tooltip`).
 - `CssClass` - Additional CSS classes to apply to the button.
 - Additional attributes are supported.
 
 Example:
 
 ```cshtml
-<ReuButton Href="https://example.com" Variant="ButtonVariant.Blue" Tooltip="Go to example.com">
+<ReuButton Href="https://example.com" Variant="ReuButtonVariant.Blue" Tooltip="Go to example.com">
     Click Me
 </ReuButton>
 ```
@@ -156,7 +158,7 @@ Example:
 ```cshtml
 <ReuFooter>
     <CopyrightContent>
-        © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoòka<br />
+        © 2026 Petr '<a href="https://bigbang1112.cz">BigBang1112</a>' Pivoňka<br />
         <small>
             Not affiliated with or endorsed by Nadeo or Ubisoft.
             All relevant trademarks belong to their respective owners.
@@ -197,8 +199,8 @@ A custom checkbox component with label and state management. It should also work
 - Allows HTML content (has `ChildContent`).
 - `IsChecked` - Whether the checkbox is checked.
 - `IsCheckedChanged` - Callback invoked when the checked state changes. **(requires interactivity)**
-- `Size` - The size of the checkbox in pixels. (default: 28)
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Size` - The size of the checkbox in pixels. (default: 30)
+- `Tooltip` - The tooltip text to display on hover or keyboard focus (uses `data-reu-tooltip`).
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -214,6 +216,35 @@ Example:
     {
         isChecked = newValue;
     }
+}
+```
+
+### `<ReuHexEditor>`
+
+A virtualized hex editor with offset, hex and text columns, which edits a `byte[]` in place (overwrite only). **(requires interactivity)**
+
+- `Data` - The bytes to show and edit. **(required)**
+- `ReadOnly` - Allows only viewing, selecting and copying.
+- `BytesPerRow` - The number of bytes on each row, from 1 to 64. (default: 16)
+- `ItemSize` - The fixed row height in pixels for virtualization. (default: 20)
+- `Highlights` - `ReuHexHighlight(Offset, Length, Color, Tooltip)` ranges shown with a background color and tooltip, such as chunks or fields.
+- `History` - A `ReuObjectTreeHistory` to record edits, also undone and redone with Ctrl+Z and Ctrl+Y. It can be shared with a `<ReuObjectTree>`.
+- `ShowStatus` - Shows the offset, value and field of the byte at the cursor. (default: `true`)
+- `Label` - The accessible label. (default: `Hex editor`)
+- `OnEdit` - Callback invoked with a `ReuHexEdit` after a byte was changed by typing.
+- `SelectionChanged` - Callback invoked with the new `ReuHexSelection`.
+- `CssClass` - Additional CSS classes to apply to the editor.
+- Additional attributes are passed to the editor element.
+
+Click, Shift+click or drag to select, and use the arrow keys, Page Up/Down, Home/End (with Ctrl for the whole data) to move, with Shift to extend the selection. Type hex digits in the hex column or characters in the text column to overwrite bytes. Ctrl+A selects all and Ctrl+C copies the selection as hex or text. Changed bytes are marked until they get their original value back. Hovering a byte also marks it in the other column and its column in the header. `SelectAsync(offset, length)` selects bytes and scrolls to them, and `Selection` gives the selected range.
+
+```cshtml
+<ReuHexEditor Data="data" Highlights="highlights" History="history" style="height: 400px" />
+
+@code {
+    private byte[] data = File.ReadAllBytes("map.Map.Gbx");
+    private ReuObjectTreeHistory history = new();
+    private ReuHexHighlight[] highlights = [new(0, 3, Tooltip: "Magic"), new(3, 2, "#1E72CC66", "Version")];
 }
 ```
 
@@ -275,6 +306,94 @@ A main content wrapper to define the primary content area of a page. It is used 
 - `CssClass` - Additional CSS classes to apply to the main element.
 - Additional attributes are passed to the main element.
 
+### `<ReuMetadataTags>`
+
+Renders the description, Open Graph, Twitter and canonical tags. Place it inside `<HeadContent>`.
+
+- `Title` - The page title. **(required)**
+- `Description`, `SiteName`, `Type` (default: `website`), `ThemeColor`
+- `Url` / `CanonicalUrl` - Default to the current URL.
+- `ImageUrl` (absolute) or `ImagePath` (relative), `ImageWidth` / `ImageHeight` (default: 1200 × 630)
+- `IncludeTwitter`, `TwitterCard` (default: `summary_large_image`), `IncludeCanonical`
+
+```cshtml
+<HeadContent>
+    <ReuMetadataTags Title="My App" Description="My description." ImagePath="img/preview.png" />
+</HeadContent>
+```
+
+### `ReuDialogService` and `<ReuDialogHost>`
+
+Asks the user to confirm with a `<ReuModal>`, in place of the browser's `confirm`. **(requires interactivity)**
+
+Register the service and render the host once, such as in the layout:
+
+```csharp
+builder.Services.AddReuDialogs();
+```
+
+```cshtml
+<ReuDialogHost />
+```
+
+Then ask from any component:
+
+```cshtml
+@inject ReuDialogService Dialogs
+
+@code {
+    private async Task CloseTabAsync()
+    {
+        if (!history.CanUndo || await Dialogs.ConfirmAsync("Discard changes?", new ReuConfirmOptions { ConfirmText = "Discard", Destructive = true }))
+        {
+            showTab = false;
+        }
+    }
+}
+```
+
+- `ConfirmAsync(message, options, cancellationToken)` - Completes with `true` when confirmed. Cancel, Escape, the backdrop and ✕ decline. Questions asked meanwhile wait their turn, and cancelling the token takes the question back.
+- `ReuConfirmOptions` - `Title` (default: `Confirm`), `ConfirmText` (default: `OK`), `CancelText` (default: `Cancel`) and `Destructive`, which makes the confirm button red and focuses Cancel, so that Enter does not destroy anything.
+- `<ReuDialogHost Service="...">` - Shows the questions of a service of your own instead of the registered one. Asking without a host throws, and removing the last host declines what is still open.
+
+`<ReuObjectTree>` asks this way before removing an element or setting a member to null, with dialogs of its own. Pass `Dialogs` to share a service whose host is rendered elsewhere.
+
+### `<ReuReconnectModal>`
+
+What a Blazor Web App shows while the connection to the server is lost, in place of the `ReconnectModal` of the .NET 10 template. Put it in `App.razor`, next to `<Routes />`, with `reuniverse.js` referenced. It needs no interactivity, so it works with the connection gone, and it stays through enhanced navigation.
+
+```cshtml
+<Routes />
+<ReuReconnectModal />
+```
+
+- A short drop only shows a small "Reconnecting…" notice for `Delay` (default: 1500 ms), while holding the clicks back, as they could not reach the server anyway. Only when it takes longer, the dialog that blocks the page comes up, with the attempt, the seconds to the next one and a countdown. Once connected again, the notice says so for a moment.
+- While the browser is offline, the dialog says so. It tries again as soon as the browser is back online or the tab is shown again, without waiting for the Retry button.
+- A session that the server paused resumes when the tab is shown again, or with Resume.
+- When the server no longer has the session, the dialog says so and the page reloads. Set `ReloadOnRejected="false"` to offer a Reload button instead.
+- The dialog cannot be closed with Escape, and Retry or Resume takes the focus when the dialog shows them.
+
+### `<ReuModal>`
+
+A dialog shown over the page. **(requires interactivity)**
+
+With `reuniverse.js`, it takes the focus when it opens, keeps Tab within it, makes the rest of the page inert while open (like a native modal dialog), and gives the focus back when it closes.
+
+- `IsOpen` - Whether the modal is open (supports `@bind-IsOpen`).
+- `Title` / `TitleContent` - The header title as text or custom content.
+- `ChildContent` / `FooterContent` - The body and the optional footer.
+- `ShowCloseButton`, `CloseOnBackdropClick`, `CloseOnEscape` - Ways to close it. (default: `true`)
+- `OnClosed` - Callback invoked after the modal closes.
+- `MaxWidth` / `Height` - CSS sizes of the panel. (default: `600px` / `auto`)
+- `CssClass` - Additional CSS classes to apply to the panel.
+
+```cshtml
+<ReuModal @bind-IsOpen="isOpen" Title="Example">
+    <ChildContent>Modal body.</ChildContent>
+    <FooterContent><ReuButton OnClick="() => isOpen = false">Close</ReuButton></FooterContent>
+</ReuModal>
+```
+
 ### `<ReuNavMenu>` and `<ReuNavItem>`
 
 A top navigation bar with a brand name, burger menu for mobile, and nav items.
@@ -284,6 +403,7 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - Allows HTML content (has `ChildContent`). Place `<ReuNavItem>` elements inside.
 - `Brand` - The brand/site name shown on the left. **(required)**
 - `BurgerImageSrc` - Optional custom image source for the burger menu icon.
+- `IsAbsolute` - Whether to place the bar over the page content instead of above it.
 - `CssClass` - Additional CSS classes to apply to the nav element.
 - Additional attributes are passed to the nav element.
 
@@ -296,10 +416,11 @@ A top navigation bar with a brand name, burger menu for mobile, and nav items.
 - `NavLinkMatch` - The `NavLinkMatch` rule used when `IsNavLink` is `true`.
 - `IconType` - A built-in `IconType` enum value for the icon.
 - `IconSrc` - A custom icon image source (used when `IconType` is not set).
-- `IconWidth` - Icon width in pixels. (default: 24)
-- `IconHeight` - Icon height in pixels. (default: 24)
+- `IconWidth` - Icon width in pixels. (default: 32)
+- `IconHeight` - Icon height in pixels. (default: 32)
 - `IconOnly` - Whether to show only the icon with no label text.
-- `Title` - Tooltip/title text for the nav item.
+- `Title` - Tooltip text for the nav item (uses `data-reu-tooltip`). Defaults to `Name`.
+- `ChildContent` - Nested `<ReuNavItem>` elements, shown as a submenu.
 - `CssClass` - Additional CSS classes to apply to the nav item element.
 - Additional attributes are passed to the nav item element.
 
@@ -321,9 +442,10 @@ A component to display object properties in a tree structure.
 - **Requires interactivity** to function properly.
 - `Value` - The object to display.
 - `DisplayName` - The display name for the root object.
-- `HideTypes` - If to hide type names in the tree.
+- `HideType` - If to hide type names in the tree.
 - `OnTypeClick` - Callback invoked when a type name is clicked.
 - `IsExpandedByDefault` - Whether the **root** object is expanded by default.
+- `History` - A `ReuObjectTreeHistory` to record edits for `Undo()` / `Redo()`. Nothing is recorded when not set.
 
 Example:
 
@@ -365,7 +487,7 @@ A custom radio button component with label and state management. It should also 
 - `IsChecked` - Whether the radio button is checked.
 - `IsCheckedChanged` - Callback invoked when the checked state changes. **(requires interactivity)**
 - `Size` - The size of the radio button in pixels. (default: 28)
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Name` - The name of the radio button group. **(required)**
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -377,11 +499,30 @@ Example:
 <ReuRadio Name="Group">Option 4</ReuRadio>
 ```
 
+### `<ReuThemeToggle>`
+
+A lightbulb icon button that switches between the light and dark theme. Needs `reuniverse.theme.js` (see [Theming](#theming)), works without interactivity.
+
+- `Size` - The size of the icon in pixels. (default: 20)
+- `Tooltip` - The tooltip text, also used as the accessible label (uses `data-reu-tooltip`). (default: `Switch theme`)
+- `CssClass` - Additional CSS classes to apply to the button.
+- Additional attributes are passed to the button element.
+
+```cshtml
+<ReuThemeToggle />
+```
+
 ### `<ReuTooltip>`
 
-A component to display a tooltip either globally for `Tooltip` parameters, or for specific content.
+A component to show a tooltip for its content on hover or keyboard focus. Needs `reuniverse.js`, works without interactivity.
 
-TBD
+- `Text` - The tooltip text.
+
+```cshtml
+<ReuTooltip Text="Saved 2 minutes ago">Saved</ReuTooltip>
+```
+
+`Tooltip` parameters and `<ReuTooltip>` render the `data-reu-tooltip` attribute, which can also be set on any element directly.
 
 ### `<ReuUploadArea>`
 
@@ -398,6 +539,10 @@ A drag-and-drop file upload area with click-to-upload functionality.
 - `LoaderSize` - The size of the loader in pixels. (default: 50)
 - `LoaderThickness` - The thickness of the loader border in pixels. (default: 8)
 - `CssClass` - Additional CSS classes to apply to the upload area element.
+- `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
+- `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
+- `Directory` - Picks a folder instead of files. Every file in it matching `Accept` is uploaded, with its path within the folder in `RelativePath`.
+- `Paste` - Uploads files pasted anywhere on the page (Ctrl+V), filtered by `Accept`. Enable it on only one upload component per page.
 - Additional attributes are passed to the **input** element.
 
 Example:
@@ -423,10 +568,14 @@ A button that opens a file picker and uploads the selected files.
 - `Accept` - A comma-separated list of file types or unique file type specifiers describing which file types to allow.
 - `Enable` - Whether the button is enabled.
 - `Variant` - The variant style of the button (`Default`, `Blue`, `Yellow`, `Red`).
-- `Tooltip` - The tooltip text to display on hover. **(*currently* requires interactivity)**
+- `Tooltip` - The tooltip text to display on hover or keyboard focus (uses `data-reu-tooltip`).
 - `LoaderSize` - The size of the in-progress loader in pixels.
 - `LoaderThickness` - The thickness of the loader border in pixels.
 - `CssClass` - Additional CSS classes to apply to the button.
+- `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
+- `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
+- `Directory` - Picks a folder instead of files. Every file in it matching `Accept` is uploaded, with its path within the folder in `RelativePath`.
+- `Paste` - Uploads files pasted anywhere on the page (Ctrl+V), filtered by `Accept`. Enable it on only one upload component per page.
 - Additional attributes are supported.
 
 Example:
@@ -453,11 +602,53 @@ A full-screen overlay upload area that appears when `IsVisible` is `true`.
 - `Accept` - A comma-separated list of file types or unique file type specifiers describing which file types to allow.
 - `CssClass` - Additional CSS classes to apply to the upload screen.
 - `CssClassArea` - Additional CSS classes to apply to the inner upload area.
+- `Streamed` - Opens files as seekable streams through `OnStream` instead of uploading them whole through `OnUpload`. (default: `false`)
+- `OnStream` - Callback invoked for each file when `Streamed` is `true`, with a `ReuBrowserFileStream` the handler should dispose.
+- `Directory` - Picks a folder instead of files. Every file in it matching `Accept` is uploaded, with its path within the folder in `RelativePath`.
+- `Paste` - Uploads files pasted anywhere on the page (Ctrl+V), filtered by `Accept`. Enable it on only one upload component per page.
 
 Example:
 
 ```cshtml
 <ReuUploadScreen @bind-IsVisible="uploadVisible" OnUpload="HandleUpload" />
+```
+
+### `<ReuDataTable>` and `<ReuDataColumn>`
+
+A table with sortable columns and pages, styled after the tables of envimix: no frame, thin row dividers and an optional dimmed second line. It renders without interactivity, but sorting and paging need it. Wide tables scroll sideways.
+
+**`<ReuDataTable>`**
+
+- `Items` - The items, which the table sorts and pages itself.
+- `ItemsProvider` - Loads a page instead, given a `ReuDataTableRequest` (`Page`, `PageSize`, `Skip`, `SortBy`, `SortDirection`, `CancellationToken`), and returns a `ReuDataTableResult` with the items and the total count. Takes precedence over `Items`.
+- `PageSize` - The number of items on a page. Null shows everything.
+- `RowClass` - CSS classes for the row of an item.
+- `EmptyContent` - What to show without items. (default: `No items`)
+- `MinWidth` - The smallest width of the table as a CSS length, below which it scrolls.
+- `CountLabel` / `ShowCount` - The word after the item count below the pages (default: `items`), and whether to show the count on a single page too.
+- `CssClass` - Additional CSS classes. Additional attributes are passed to the container.
+
+`GoToPageAsync(page)` and `RefreshAsync()` change the page or reload it, and `CurrentPage` and `PageCount` tell where it is.
+
+**`<ReuDataColumn>`**
+
+- `Title` / `TitleContent` - The header. `HideTitle` keeps it for screen readers only.
+- `Value` - The value of the cell, also sorted by. `Format` formats it, such as `N0` or `yyyy-MM-dd`.
+- `Secondary` - A dimmed value on a line below.
+- `ChildContent` - A custom cell template (name the item with `Context="record"`).
+- `SortBy` / `Sortable` / `DefaultSort` - What to sort by if not `Value`, whether the header sorts (default: when there is something to sort by), and the initial sort.
+- `SortKey` - The key passed to `ItemsProvider` when sorting by this column. (default: `Title`)
+- `Fit` - Makes the column only as wide as its content. `AlignRight` aligns it to the right.
+
+```cshtml
+<ReuDataTable Items="records" PageSize="20" RowClass="@(r => r.Removed ? "removed" : null)">
+    <ReuDataColumn Title="#" Value="r => r.Rank" Fit="true" DefaultSort="ReuSortDirection.Ascending" />
+    <ReuDataColumn Title="Player" Value="r => r.Nickname" Secondary="r => r.Login" />
+    <ReuDataColumn Title="Time" Value="r => r.Time" Format="m\:ss\.fff" />
+    <ReuDataColumn Title="Download" HideTitle="true" Fit="true" Context="record">
+        <ReuButton Href="@record.ReplayUrl">Replay</ReuButton>
+    </ReuDataColumn>
+</ReuDataTable>
 ```
 
 ### `<ReuExpansionPanels>` and `<ReuExpansionPanel>`
@@ -495,6 +686,29 @@ Example:
 </ReuExpansionPanels>
 ```
 
+### `<ReuSplitPane>`
+
+Two panes side by side (or stacked) with a handle between them to resize them. Resizing needs `reuniverse.js` and works without interactivity: drag the handle, or focus it and use the arrow keys (Shift for bigger steps), Home and End. Double-click the handle to go back to `Size`.
+
+- `FirstContent` / `SecondContent` - The content of the two panes.
+- `Vertical` - Stacks the panes top and bottom. The split pane then needs a height.
+- `Border` - Whether to draw a border around the split pane. Turn it off for a split pane nested in another one. (default: `true`)
+- `Size` - The initial size of the first pane as a CSS length. (default: `50%`)
+- `FirstMinSize` / `SecondMinSize` - The smallest size of each pane as a CSS length.
+- `StorageKey` - Keeps the resized size in `localStorage` under this key and restores it.
+- `HandleLabel` - The accessible label of the handle. (default: `Resize panes`)
+- `CssClass` - Additional CSS classes to apply to the split pane.
+- Additional attributes are passed to the split pane element.
+
+A `reu-split-resize` DOM event with the new size in `detail.size` is raised on the split pane after each resize.
+
+```cshtml
+<ReuSplitPane Size="30%" FirstMinSize="150px" SecondMinSize="200px" StorageKey="explorer" style="height: 500px">
+    <FirstContent>File list</FirstContent>
+    <SecondContent>Details</SecondContent>
+</ReuSplitPane>
+```
+
 ### `<ReuTabs>` and `<ReuTab>`
 
 A tabbed content container.
@@ -510,6 +724,8 @@ A tabbed content container.
 - `TitleContent` - Render fragment for the tab header button.
 - `ChildContent` - Render fragment for the tab body.
 - `CssClass` - Additional CSS classes to apply to the tab header.
+- `ShowCloseButton` - Whether to show a close (✕) button in the tab header.
+- `OnClosed` - Callback invoked when the close button is clicked. Remove the tab here.
 
 Example:
 
@@ -537,6 +753,8 @@ A horizontal menu bar with nested dropdown support.
 - `Name` - The label text.
 - `Href` - Optional link URL. When set the item acts as a link.
 - `Items` - Optional nested sub-items (produces a dropdown).
+- `Target` - Optional link target, such as `_blank`.
+- `Action` - Optional `Func<Task>` invoked when the item is clicked.
 
 Example:
 
@@ -597,7 +815,8 @@ A virtualized, live log viewer for `Microsoft.Extensions.Logging` entries.
 - `Provider` - A `ReuLoggerProvider` to subscribe to for live entries.
 - `Entries` - A static list of `ReuLogEntry` items to display (used when `Provider` is not set). Reloaded only when a different collection instance is passed, so pass a new collection or use `Add()` instead of changing the existing one.
 - `ShowTimestamp` - Whether to show the timestamp column. (default: `true`)
-- `MaxEntries` - Maximum number of entries to keep; oldest are discarded. (default: 1000)
+- `MaxEntries` - Maximum number of entries to keep; oldest are discarded. Null keeps all. (default: `null`)
+- `ScrollToBottom` - Whether to scroll to the bottom when an entry is added. (default: `true`)
 - `ItemSize` - Row height in pixels for virtualization. (default: 26)
 - `OnEntryClick` - Callback invoked when a row with an exception is clicked.
 - `OnParameterClick` - Callback invoked when a structured log parameter token is clicked.
@@ -625,4 +844,19 @@ Example:
         logger.LogWarning("Disk space is low: {FreeGb} GB remaining", 1.2);
     }
 }
+```
+
+## Build
+
+You need:
+
+- [.NET SDK 10](https://dotnet.microsoft.com/download) and the .NET 9 runtime, as the library and the tests target both `net10.0` and `net9.0`.
+- [Node.js](https://nodejs.org/), as [esbuild](https://esbuild.github.io/) (run through `npx`) minifies the `.min` files, and in Release also the styles and scripts of the components. Pass `-p:ReuMinifyAssets=false` to build without it.
+- [Google Chrome](https://www.google.com/chrome/), as the JavaScript and accessibility tests run in it through Playwright.
+- The `wasm-tools` workload (`dotnet workload install wasm-tools`) to publish the Showcase.
+
+```sh
+dotnet build
+dotnet test --project Tests/Reuniverse.Razor.Tests
+dotnet pack Src/Reuniverse.Razor -c Release
 ```

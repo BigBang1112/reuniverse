@@ -1,5 +1,4 @@
 ﻿@inherits TypeComponentBase<ReuObjectTreeKeyValue>
-@inject IJSRuntime JS
 
 @if (!HideType)
 {
@@ -130,7 +129,7 @@ else
             return;
         }
 
-        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to remove key {Value.Key}?");
+        var confirmed = await ConfirmAsync($"Remove the key {Value.Key}?", "Remove");
 
         if (!confirmed)
         {

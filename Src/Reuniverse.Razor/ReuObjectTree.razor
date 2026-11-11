@@ -1,5 +1,7 @@
 ﻿@implements IDisposable
 
+@* the type components ask through this before removing anything *@
+<CascadingValue Value="ResolvedDialogs">
 <div>
     <div class="item @(ParentTree is null ? "root" : "") @(Faded ? "faded" : "")">
         @if (Value is null)
@@ -254,6 +256,11 @@
         <div class="exception">@childrenException.Message</div>
     }
 </div>
+</CascadingValue>
+@if (ParentTree is null && Dialogs is null)
+{
+    <ReuDialogHost Service="ResolvedDialogs" />
+}
 
 @code {
     private const int PageSize = 10;
@@ -342,6 +349,18 @@
     /// </summary>
     [Parameter]
     public ReuObjectTreeHistory? History { get; set; }
+
+    /// <summary>
+    /// Asks before edits that lose data, such as removing an element. By default the tree shows its own dialogs;
+    /// set it to share a <see cref="ReuDialogService"/> whose <see cref="ReuDialogHost"/> is rendered elsewhere, such as in the layout.
+    /// Only the root tree uses this.
+    /// </summary>
+    [Parameter]
+    public ReuDialogService? Dialogs { get; set; }
+
+    private ReuDialogService? ownDialogs;
+
+    private ReuDialogService ResolvedDialogs => Dialogs ?? ParentTree?.ResolvedDialogs ?? (ownDialogs ??= new ReuDialogService());
 
     private ReuObjectTreeHistory? subscribedHistory;
 

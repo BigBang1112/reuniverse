@@ -1,4 +1,5 @@
 ﻿@page "/components"
+@inject ReuDialogService Dialogs
 @layout MainLayout
 
 <PageTitle>Components - Reuniverse</PageTitle>
@@ -86,12 +87,12 @@
             </ReuTab>
             @if (showClosableTab)
             {
-                <ReuTab ShowCloseButton="true" OnClosed="() => showClosableTab = false">
+                <ReuTab ShowCloseButton="true" OnClosed="CloseNotesTabAsync">
                     <TitleContent>
-                        Tab 3
+                        Notes
                     </TitleContent>
                     <ChildContent>
-                        This tab can be closed.
+                        <input @bind="notes" @bind:event="oninput" placeholder="Type something, then close the tab" aria-label="Notes" />
                     </ChildContent>
                 </ReuTab>
             }
@@ -121,8 +122,13 @@
     <div>
         <h2 class="element">&lt;ReuUploadButton&gt;</h2>
     </div>
-    <div>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
         <ReuUploadButton>Open files...</ReuUploadButton>
+        <ReuUploadButton Streamed OnStream="ReadStreamedAsync" MaxFileCount="1">Open a file streamed...</ReuUploadButton>
+        @if (streamedInfo is not null)
+        {
+            <span class="streamed-info">@streamedInfo</span>
+        }
     </div>
     <div>
         <h2 class="element">&lt;ReuUploadArea&gt;</h2>
@@ -192,7 +198,56 @@
         </div>
     </div>
     <div style="overflow: auto">
-        <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true" History="history"></ReuObjectTree>
+        <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true" History="history" Dialogs="Dialogs"></ReuObjectTree>
+    </div>
+    <div>
+        <h2 class="element">&lt;ReuSplitPane&gt;</h2>
+    </div>
+    <div>
+        <ReuSplitPane Border="false" Size="35%" FirstMinSize="80px" SecondMinSize="120px" StorageKey="showcase" style="height: 180px">
+            <FirstContent><div class="split-text">Files</div></FirstContent>
+            <SecondContent>
+                <ReuSplitPane Vertical="true" Border="false" Size="60%" FirstMinSize="40px" SecondMinSize="40px" style="height: 100%">
+                    <FirstContent><div class="split-text">Details</div></FirstContent>
+                    <SecondContent><div class="split-text">Logs</div></SecondContent>
+                </ReuSplitPane>
+            </SecondContent>
+        </ReuSplitPane>
+    </div>
+    <div>
+        <h2 class="element">&lt;ReuDataTable&gt;</h2>
+    </div>
+    <div style="min-width: 0">
+        <ReuDataTable Items="records" PageSize="5" MinWidth="28rem" RowClass="@(record => record.Removed ? "removed-record" : null)">
+            <ReuDataColumn Title="#" Value="record => record.Rank" Fit="true" DefaultSort="ReuSortDirection.Ascending" />
+            <ReuDataColumn Title="Player" Value="record => record.Nickname" Secondary="record => record.Login" />
+            <ReuDataColumn Title="Time" Value="record => record.Time" Format="m\:ss\.fff" Secondary="@(record => record.Removed ? "(removed)" : null)" />
+            <ReuDataColumn Title="Driven" Value="record => record.Driven" Format="yyyy-MM-dd" />
+            <ReuDataColumn Title="Download" HideTitle="true" Fit="true" Context="record">
+                <ReuButton Href="@($"#{record.Login}")">Replay</ReuButton>
+            </ReuDataColumn>
+        </ReuDataTable>
+    </div>
+    <div>
+        <h2 class="element">&lt;ReuHexEditor&gt;</h2>
+        <div class="undo-redo">
+            <ReuButton Enable="hexHistory.CanUndo" OnClick="() => hexHistory.Undo()">Undo</ReuButton>
+            <ReuButton Enable="hexHistory.CanRedo" OnClick="() => hexHistory.Redo()">Redo</ReuButton>
+        </div>
+    </div>
+    <div>
+        <ReuHexEditor Data="hexData" Highlights="hexHighlights" History="hexHistory" style="height: 260px"></ReuHexEditor>
+    </div>
+    <div>
+        <h2 class="element">ReuDialogService</h2>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
+        <ReuButton OnClick="AskAsync">Ask</ReuButton>
+        <ReuButton Variant="ReuButtonVariant.Red" OnClick="AskDestructiveAsync">Ask to discard</ReuButton>
+        @if (lastAnswer is not null)
+        {
+            <span>Answered: <strong>@lastAnswer</strong></span>
+        }
     </div>
     <div>
         <h2 class="element">&lt;ReuModal&gt;</h2>
@@ -238,6 +293,64 @@
 
 @code {
     private readonly ReuObjectTreeHistory history = new();
+    private readonly ReuObjectTreeHistory hexHistory = new();
+
+    private string notes = "";
+    private string? lastAnswer;
+
+    private async Task CloseNotesTabAsync()
+    {
+        if (notes.Length == 0 || await Dialogs.ConfirmAsync("Discard your notes?", new ReuConfirmOptions { Title = "Unsaved notes", ConfirmText = "Discard", Destructive = true }))
+        {
+            notes = "";
+            showClosableTab = false;
+        }
+    }
+
+    private async Task AskAsync()
+    {
+        var confirmed = await Dialogs.ConfirmAsync("Continue with the import?", new ReuConfirmOptions { ConfirmText = "Continue" });
+        lastAnswer = confirmed ? "Continue" : "Cancel";
+    }
+
+    private async Task AskDestructiveAsync()
+    {
+        var confirmed = await Dialogs.ConfirmAsync("Discard changes?", new ReuConfirmOptions { ConfirmText = "Discard", Destructive = true });
+        lastAnswer = confirmed ? "Discard" : "Cancel";
+    }
+
+    private sealed record ShowcaseRecord(int Rank, string Nickname, string Login, TimeSpan Time, DateTime Driven, bool Removed = false);
+
+    private readonly ShowcaseRecord[] records =
+    [
+        new(1, "BigBang1112", "bigbang1112", TimeSpan.FromMilliseconds(43_120), new(2026, 10, 3)),
+        new(2, "Hylis", "hylis", TimeSpan.FromMilliseconds(43_480), new(2026, 9, 21)),
+        new(3, "riolu", "riolu_tm", TimeSpan.FromMilliseconds(43_910), new(2026, 10, 30)),
+        new(4, "Mime", "mime.tm", TimeSpan.FromMilliseconds(44_050), new(2026, 8, 12), Removed: true),
+        new(5, "Scrapie", "scrapie", TimeSpan.FromMilliseconds(44_200), new(2026, 7, 2)),
+        new(6, "Wosile", "wosile", TimeSpan.FromMilliseconds(44_730), new(2026, 11, 1)),
+        new(7, "Bren", "bren_tm", TimeSpan.FromMilliseconds(45_010), new(2026, 6, 18)),
+        new(8, "Gwen", "gwen", TimeSpan.FromMilliseconds(45_320), new(2026, 5, 9))
+    ];
+
+    private readonly byte[] hexData = CreateHexData();
+
+    private readonly ReuHexHighlight[] hexHighlights =
+    [
+        new(0, 3, Tooltip: "Magic"),
+        new(3, 2, "color-mix(in srgb, var(--color-blue) 40%, transparent)", "Version"),
+        new(5, 4, "color-mix(in srgb, var(--color-button-red) 40%, transparent)", "Class ID"),
+        new(9, 12, "color-mix(in srgb, var(--color-discord) 40%, transparent)", "Name")
+    ];
+
+    private static byte[] CreateHexData()
+    {
+        var data = new byte[4096];
+        new Random(1112).NextBytes(data);
+        "GBX  0Hello world!"u8.CopyTo(data);
+        data.AsSpan(21, 11).Clear();
+        return data;
+    }
 
     private bool showClosableTab = true;
 
@@ -356,6 +469,26 @@
         new() { Name = "Help", Href = "help" }
     };
 
+    // ── Streamed ReuUploadButton ───────────────────────────────────────────────
+
+    private string? streamedInfo;
+
+    // only the start and the end are read, so even a huge file is not loaded
+    private async Task ReadStreamedAsync(StreamEventArgs args)
+    {
+        await using var stream = args.Stream;
+        var length = (int)Math.Min(8, stream.Length);
+
+        var head = new byte[length];
+        await stream.ReadExactlyAsync(head);
+
+        stream.Seek(-length, SeekOrigin.End);
+        var tail = new byte[length];
+        await stream.ReadExactlyAsync(tail);
+
+        streamedInfo = $"{args.FileName}, {args.Size:N0} bytes, starts with {Convert.ToHexString(head)}, ends with {Convert.ToHexString(tail)}";
+    }
+
     // ── ReuFileBrowser sample data ─────────────────────────────────────────────
 
     private string? lastOpened;
@@ -398,6 +531,7 @@
     {
         // edits happen inside the tree, so the page would not update the buttons otherwise
         history.Changed += StateHasChanged;
+        hexHistory.Changed += StateHasChanged;
 
         LogSamples();
     }

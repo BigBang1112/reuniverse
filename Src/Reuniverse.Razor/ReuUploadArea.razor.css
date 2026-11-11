@@ -31,6 +31,12 @@
         background-color: var(--color-dropzone-bg-hover);
     }
 
+    /* the input takes the focus, but it cannot be seen */
+    .upload-area:has(input:focus-visible) {
+        outline: 2px solid var(--color-link);
+        outline-offset: 2px;
+    }
+
     .upload-area span {
         margin-top: 5px;
     }

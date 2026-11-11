@@ -8,18 +8,26 @@ on:
 jobs:
   deploy:
     name: Publish NuGet
-    uses: bigbang1112/workflows/.github/workflows/publish-nuget-immutable.yml@main
+    runs-on: ubuntu-latest
+
     permissions:
-      contents: write # the workflow creates the GitHub release with the package assets
+      contents: write # the action creates the GitHub release with the package assets
       packages: write
-    with:
-      dotnet-version: |
-        10.0.x
-        9.0.x
-      project-path: Src/*/*.csproj
-      test-path: Tests/*/*.csproj
-      pack-path: |
-        Src/Reuniverse.Razor/*.csproj
-        Templates/*.csproj
-    secrets:
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      id-token: write # NuGet.org trusted publishing
+    
+    concurrency:
+      group: publish-nuget-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - uses: bigbang1112/workflows/publish-nuget-immutable@main
+        with:
+          dotnet-version: |
+            10.0.x
+            9.0.x
+          project-path: Src/*/*.csproj
+          test-path: Tests/*/*.csproj
+          pack-path: |
+            Src/Reuniverse.Razor/*.csproj
+            Templates/*.csproj
+          nuget-user: ${{ vars.NUGET_USER }}

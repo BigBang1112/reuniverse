@@ -1,0 +1,639 @@
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using System.Globalization
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@* the attributes come first, so that the style below, which keeps theirs, wins *@
+<div @attributes="AdditionalAttributes" class="reu-hex-editor @CssClass" style="@Style">
+    <div class="hex-scroll"
+         @ref="scrollElement"
+         tabindex="0"
+         aria-label="@Label"
+         @onkeydown="HandleKeyDownAsync"
+         @onmouseup="() => selecting = false">
+        <div class="hex-row hex-header" aria-hidden="true">
+            <span class="offset">Offset</span>
+            <span class="hex">
+                @for (var i = 0; i < bytesPerRow; i++)
+                {
+                    <span class="b">@HexText[i]</span>
+                }
+            </span>
+            <span class="text">Text</span>
+        </div>
+        @if (Data is { Length: > 0 })
+        {
+            <Virtualize @ref="virtualize" TItem="int" ItemsProvider="ProvideRowsAsync" ItemSize="ItemSize" OverscanCount="8" Context="row">
+                @RenderRow(row)
+            </Virtualize>
+        }
+        else
+        {
+            <div class="empty">No data</div>
+        }
+    </div>
+    @if (ShowStatus && Data is { Length: > 0 })
+    {
+        var value = Data[cursor];
+        var highlight = FindHighlight(highlights, cursor);
+        <div class="hex-status">
+            <span>Offset <code>0x@(cursor.ToString("X8", CultureInfo.InvariantCulture))</code></span>
+            <span>Value <code>0x@(HexText[value])</code> <code>@value</code>@(IsPrintable(value) ? $" '{(char)value}'" : null)</span>
+            @if (Selection.Length > 1)
+            {
+                <span>Selected <code>@Selection.Length.ToString(CultureInfo.InvariantCulture)</code> bytes</span>
+            }
+            @if (highlight?.Tooltip is not null)
+            {
+                <span class="field">@highlight.Tooltip</span>
+            }
+            <span class="size">@(ReadOnly ? "Read-only · " : null)@ByteHelper.ToByteSize(Data.Length)</span>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly string[] HexText = Enumerable.Range(0, 256).Select(x => x.ToString("X2", CultureInfo.InvariantCulture)).ToArray();
+
+    // a page of rows for PageUp and PageDown, close enough without measuring the height
+    private const int PageRows = 16;
+
+    private ElementReference scrollElement;
+    private Virtualize<int>? virtualize;
+    private IJSObjectReference? module;
+
+    private byte[]? loadedData;
+    private int bytesPerRow = 16;
+    private List<ReuHexHighlight> highlights = [];
+    private ReuObjectTreeHistory? subscribedHistory;
+
+    // the values bytes had before they were first changed, to mark the bytes that differ from them
+    private readonly Dictionary<int, byte> originals = new();
+
+    private int anchor;
+    private int cursor;
+    private HexColumn column = HexColumn.Hex;
+    private bool highNibble = true;
+    private PendingEdit? pendingEdit;
+    private bool selecting;
+    private bool scrollPending;
+    private bool refreshPending;
+    private ReuHexSelection notifiedSelection;
+
+    private enum HexColumn { Hex, Text }
+
+    // the edit of the byte being typed, which the second digit completes instead of being a step of its own
+    private sealed class PendingEdit(int offset, byte oldValue, byte newValue)
+    {
+        public int Offset { get; } = offset;
+        public byte OldValue { get; } = oldValue;
+        public byte NewValue { get; set; } = newValue;
+    }
+
+    /// <summary>
+    /// The bytes to show. Edits change this array in place.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public byte[]? Data { get; set; }
+
+    /// <summary>
+    /// Whether the bytes can only be viewed, selected and copied.
+    /// </summary>
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    /// <summary>
+    /// The number of bytes on each row, from 1 to 64. Defaults to 16.
+    /// </summary>
+    [Parameter]
+    public int BytesPerRow { get; set; } = 16;
+
+    /// <summary>
+    /// The fixed height of every row in pixels, which keeps the virtualization stable. Defaults to 20.
+    /// </summary>
+    [Parameter]
+    public float ItemSize { get; set; } = 20;
+
+    /// <summary>
+    /// Ranges of bytes to show with a background color and a tooltip, such as chunks or known fields.
+    /// Where they overlap, the first one in the list is shown.
+    /// </summary>
+    [Parameter]
+    public IEnumerable<ReuHexHighlight>? Highlights { get; set; }
+
+    /// <summary>
+    /// Records the edits so they can be undone and redone, also with Ctrl+Z and Ctrl+Y while the editor has the focus.
+    /// By default nothing is recorded. The same instance can be shared with a <see cref="ReuObjectTree"/> or another editor.
+    /// </summary>
+    [Parameter]
+    public ReuObjectTreeHistory? History { get; set; }
+
+    /// <summary>
+    /// Whether to show the status bar with the offset and value of the byte at the cursor. Defaults to <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool ShowStatus { get; set; } = true;
+
+    /// <summary>
+    /// The accessible label of the editor. Defaults to <c>Hex editor</c>.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Hex editor";
+
+    /// <summary>
+    /// Callback invoked after a byte was changed by typing. Undoing and redoing through <see cref="History"/> do not invoke it.
+    /// </summary>
+    [Parameter]
+    public EventCallback<ReuHexEdit> OnEdit { get; set; }
+
+    /// <summary>
+    /// Callback invoked when the selected bytes change.
+    /// </summary>
+    [Parameter]
+    public EventCallback<ReuHexSelection> SelectionChanged { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes to apply to the editor.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// The selected bytes. The byte at the cursor is always selected while there is data.
+    /// </summary>
+    public ReuHexSelection Selection => Data is { Length: > 0 }
+        ? new(Math.Min(anchor, cursor), Math.Abs(cursor - anchor) + 1)
+        : default;
+
+    private string Style => string.Concat(
+        $"--reu-hex-columns: {bytesPerRow}; --reu-hex-row: {ItemSize.ToString(CultureInfo.InvariantCulture)}px;",
+        AdditionalAttributes?.TryGetValue("style", out var style) == true ? $" {style}" : null);
+
+    protected override void OnParametersSet()
+    {
+        var newBytesPerRow = Math.Clamp(BytesPerRow, 1, 64);
+
+        if (!ReferenceEquals(Data, loadedData))
+        {
+            originals.Clear();
+            anchor = cursor = 0;
+            highNibble = true;
+            pendingEdit = null;
+            refreshPending = true;
+            loadedData = Data;
+        }
+
+        if (newBytesPerRow != bytesPerRow)
+        {
+            bytesPerRow = newBytesPerRow;
+            refreshPending = true;
+        }
+
+        highlights = Highlights?.ToList() ?? [];
+
+        if (!ReferenceEquals(History, subscribedHistory))
+        {
+            if (subscribedHistory is not null)
+            {
+                subscribedHistory.Applied -= OnHistoryApplied;
+            }
+
+            subscribedHistory = History;
+
+            if (subscribedHistory is not null)
+            {
+                subscribedHistory.Applied += OnHistoryApplied;
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Reuniverse.Razor/ReuHexEditor.razor.js");
+            await module.InvokeVoidAsync("init", scrollElement);
+        }
+
+        if (refreshPending)
+        {
+            refreshPending = false;
+
+            if (virtualize is not null)
+            {
+                await virtualize.RefreshDataAsync();
+            }
+        }
+
+        if (scrollPending && module is not null)
+        {
+            scrollPending = false;
+            await module.InvokeVoidAsync("scrollToRow", scrollElement, cursor / bytesPerRow, ItemSize);
+        }
+    }
+
+    /// <summary>
+    /// Selects the bytes and scrolls them into view.
+    /// </summary>
+    /// <param name="offset">The offset of the first byte to select.</param>
+    /// <param name="length">The number of bytes to select.</param>
+    public async Task SelectAsync(int offset, int length = 1)
+    {
+        if (Data is not { Length: > 0 })
+        {
+            return;
+        }
+
+        anchor = Math.Clamp(offset, 0, Data.Length - 1);
+        cursor = Math.Clamp(offset + Math.Max(length, 1) - 1, 0, Data.Length - 1);
+        highNibble = true;
+        pendingEdit = null;
+        scrollPending = true;
+
+        await NotifySelectionAsync();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Moves the focus to the editor, so that it takes the keyboard.
+    /// </summary>
+    public ValueTask FocusAsync() => scrollElement.FocusAsync();
+
+    private ValueTask<ItemsProviderResult<int>> ProvideRowsAsync(ItemsProviderRequest request)
+    {
+        var total = RowCount;
+        var start = Math.Min(request.StartIndex, total);
+        var count = Math.Min(request.Count, total - start);
+
+        return ValueTask.FromResult(new ItemsProviderResult<int>(Enumerable.Range(start, count), total));
+    }
+
+    private int RowCount => Data is null ? 0 : (Data.Length + bytesPerRow - 1) / bytesPerRow;
+
+    private RenderFragment RenderRow(int row) => __builder =>
+    {
+        var data = Data;
+
+        if (data is null)
+        {
+            return;
+        }
+
+        var start = row * bytesPerRow;
+        var end = Math.Min(start + bytesPerRow, data.Length);
+        var rowHighlights = highlights.Count == 0 ? highlights : highlights.Where(x => x.Offset < end && x.Offset + x.Length > start).ToList();
+
+        <div class="hex-row">
+            <span class="offset">@start.ToString("X8", CultureInfo.InvariantCulture)</span>
+            <span class="hex">
+                @for (var offset = start; offset < end; offset++)
+                {
+                    var current = offset;
+                    var value = data[current];
+                    var highlight = FindHighlight(rowHighlights, current);
+                    <span class="@ByteClass(current, HexColumn.Hex, highlight)"
+                          style="@HighlightStyle(highlight)"
+                          data-reu-tooltip="@highlight?.Tooltip"
+                          @onmousedown="e => MouseDownAsync(e, current, HexColumn.Hex)"
+                          @onmouseover="OverHandler(current)">@if (current == cursor && column == HexColumn.Hex && !ReadOnly)
+                        {
+                            <span class="nibble @(highNibble ? "active" : null)">@HexText[value][0]</span><span class="nibble @(highNibble ? null : "active")">@HexText[value][1]</span>
+                        }
+                        else
+                        {
+                            @HexText[value]
+                        }</span>
+                }
+            </span>
+            <span class="text">
+                @for (var offset = start; offset < end; offset++)
+                {
+                    var current = offset;
+                    var value = data[current];
+                    var highlight = FindHighlight(rowHighlights, current);
+                    <span class="@ByteClass(current, HexColumn.Text, highlight)"
+                          style="@HighlightStyle(highlight)"
+                          data-reu-tooltip="@highlight?.Tooltip"
+                          @onmousedown="e => MouseDownAsync(e, current, HexColumn.Text)"
+                          @onmouseover="OverHandler(current)">@(IsPrintable(value) ? ((char)value).ToString() : ".")</span>
+                }
+            </span>
+        </div>
+    };
+
+    private static ReuHexHighlight? FindHighlight(List<ReuHexHighlight> candidates, int offset)
+    {
+        foreach (var highlight in candidates)
+        {
+            if (highlight.Contains(offset))
+            {
+                return highlight;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? HighlightStyle(ReuHexHighlight? highlight)
+    {
+        return highlight?.Color is null ? null : $"--reu-hex-highlight: {highlight.Color};";
+    }
+
+    private string ByteClass(int offset, HexColumn cellColumn, ReuHexHighlight? highlight)
+    {
+        var selection = Selection;
+        var value = Data![offset];
+
+        return string.Join(' ', new[]
+        {
+            "b",
+            value == 0 ? "zero" : null,
+            originals.TryGetValue(offset, out var original) && original != value ? "modified" : null,
+            highlight is null ? null : "highlight",
+            selection.Length > 1 && offset >= selection.Start && offset < selection.End ? "selected" : null,
+            offset == cursor ? (cellColumn == column ? "cursor" : "cursor-other") : null
+        }.Where(x => x is not null));
+    }
+
+    private static bool IsPrintable(byte value) => value is >= 0x20 and < 0x7F;
+
+    // only while selecting with the mouse, as every hover would otherwise reach .NET
+    private EventCallback<MouseEventArgs> OverHandler(int offset)
+    {
+        return selecting ? EventCallback.Factory.Create<MouseEventArgs>(this, e => MouseOverAsync(e, offset)) : default;
+    }
+
+    private async Task MouseDownAsync(MouseEventArgs e, int offset, HexColumn cellColumn)
+    {
+        if (e.Button != 0)
+        {
+            return;
+        }
+
+        column = cellColumn;
+        cursor = offset;
+
+        if (!e.ShiftKey)
+        {
+            anchor = offset;
+        }
+
+        highNibble = true;
+        pendingEdit = null;
+        selecting = true;
+
+        await NotifySelectionAsync();
+    }
+
+    private async Task MouseOverAsync(MouseEventArgs e, int offset)
+    {
+        if ((e.Buttons & 1) == 0)
+        {
+            selecting = false;
+            return;
+        }
+
+        cursor = offset;
+        await NotifySelectionAsync();
+    }
+
+    private async Task HandleKeyDownAsync(KeyboardEventArgs e)
+    {
+        if (Data is not { Length: > 0 } data)
+        {
+            return;
+        }
+
+        var ctrl = e.CtrlKey || e.MetaKey;
+        var rowStart = cursor - cursor % bytesPerRow;
+
+        switch (e.Key)
+        {
+            case "ArrowLeft":
+                await MoveAsync(cursor - 1, e.ShiftKey);
+                return;
+            case "ArrowRight":
+                await MoveAsync(cursor + 1, e.ShiftKey);
+                return;
+            case "ArrowUp":
+                await MoveAsync(cursor - bytesPerRow, e.ShiftKey);
+                return;
+            case "ArrowDown":
+                await MoveAsync(cursor + bytesPerRow, e.ShiftKey);
+                return;
+            case "PageUp":
+                await MoveAsync(cursor - bytesPerRow * PageRows, e.ShiftKey);
+                return;
+            case "PageDown":
+                await MoveAsync(cursor + bytesPerRow * PageRows, e.ShiftKey);
+                return;
+            case "Home":
+                await MoveAsync(ctrl ? 0 : rowStart, e.ShiftKey);
+                return;
+            case "End":
+                await MoveAsync(ctrl ? data.Length - 1 : rowStart + bytesPerRow - 1, e.ShiftKey);
+                return;
+        }
+
+        if (ctrl && !e.AltKey)
+        {
+            switch (e.Key.ToLowerInvariant())
+            {
+                case "a":
+                    anchor = 0;
+                    cursor = data.Length - 1;
+                    highNibble = true;
+                    pendingEdit = null;
+                    await NotifySelectionAsync();
+                    break;
+                case "c":
+                    await CopyAsync(data);
+                    break;
+                case "z" when History is not null:
+                    if (e.ShiftKey) History.Redo(); else History.Undo();
+                    break;
+                case "y" when History is not null:
+                    History.Redo();
+                    break;
+            }
+
+            return;
+        }
+
+        if (!e.AltKey && e.Key.Length == 1)
+        {
+            await TypeAsync(data, e.Key[0]);
+        }
+    }
+
+    private async Task MoveAsync(int target, bool extend)
+    {
+        cursor = Math.Clamp(target, 0, Data!.Length - 1);
+
+        if (!extend)
+        {
+            anchor = cursor;
+        }
+
+        highNibble = true;
+        pendingEdit = null;
+        scrollPending = true;
+
+        await NotifySelectionAsync();
+    }
+
+    private async Task TypeAsync(byte[] data, char key)
+    {
+        if (ReadOnly)
+        {
+            return;
+        }
+
+        var old = data[cursor];
+        byte value;
+
+        if (column == HexColumn.Hex)
+        {
+            if (!Uri.IsHexDigit(key))
+            {
+                return;
+            }
+
+            var digit = (byte)Uri.FromHex(key);
+            value = highNibble ? (byte)(digit << 4 | old & 0x0F) : (byte)(old & 0xF0 | digit);
+        }
+        else
+        {
+            if (key is < ' ' or > '~')
+            {
+                return;
+            }
+
+            value = (byte)key;
+        }
+
+        var offset = cursor;
+        originals.TryAdd(offset, old);
+        data[offset] = value;
+
+        // the second digit completes the edit of the first one, so that the byte is undone in one step
+        if (column == HexColumn.Hex && !highNibble && pendingEdit?.Offset == offset)
+        {
+            pendingEdit.NewValue = value;
+        }
+        else
+        {
+            pendingEdit = new PendingEdit(offset, old, value);
+            Record(data, pendingEdit);
+        }
+
+        var advance = column == HexColumn.Text || !highNibble;
+
+        if (column == HexColumn.Hex)
+        {
+            highNibble = !highNibble;
+        }
+
+        if (advance)
+        {
+            pendingEdit = null;
+
+            if (offset < data.Length - 1)
+            {
+                cursor = anchor = offset + 1;
+                scrollPending = true;
+            }
+            else
+            {
+                anchor = cursor;
+            }
+        }
+        else
+        {
+            anchor = cursor;
+        }
+
+        await OnEdit.InvokeAsync(new ReuHexEdit(offset, old, value));
+        await NotifySelectionAsync();
+    }
+
+    private void Record(byte[] data, PendingEdit edit)
+    {
+        History?.Record($"Edit byte at 0x{edit.Offset:X}",
+            undo: () =>
+            {
+                data[edit.Offset] = edit.OldValue;
+                return true;
+            },
+            redo: () =>
+            {
+                data[edit.Offset] = edit.NewValue;
+                return true;
+            });
+    }
+
+    private async Task CopyAsync(byte[] data)
+    {
+        if (module is null)
+        {
+            return;
+        }
+
+        var selection = Selection;
+        var bytes = data.AsSpan(selection.Start, selection.Length);
+
+        var text = column == HexColumn.Hex
+            ? string.Join(' ', bytes.ToArray().Select(x => HexText[x]))
+            : string.Concat(bytes.ToArray().Select(x => IsPrintable(x) ? (char)x : '.'));
+
+        try
+        {
+            await module.InvokeVoidAsync("copyText", text);
+        }
+        catch (JSException)
+        {
+            // the browser can refuse to write to the clipboard, which leaves nothing else to do
+        }
+    }
+
+    private async Task NotifySelectionAsync()
+    {
+        var selection = Selection;
+
+        if (selection != notifiedSelection)
+        {
+            notifiedSelection = selection;
+            await SelectionChanged.InvokeAsync(selection);
+        }
+    }
+
+    private void OnHistoryApplied()
+    {
+        pendingEdit = null;
+        highNibble = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (subscribedHistory is not null)
+        {
+            subscribedHistory.Applied -= OnHistoryApplied;
+        }
+
+        if (module is not null)
+        {
+            try
+            {
+                await module.InvokeVoidAsync("dispose", scrollElement);
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+    }
+}

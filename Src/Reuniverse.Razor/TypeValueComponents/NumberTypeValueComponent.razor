@@ -5,7 +5,7 @@
 
 @if (Value.HasValue)
 {
-    <input type="number" @bind="Value" readonly="@IsReadOnly" maxlength="@Width" style="width: @(Width)ch;" />
+    <input aria-label="@Label" type="number" @bind="Value" readonly="@IsReadOnly" maxlength="@Width" style="width: @(Width)ch;" />
 }
 else
 {

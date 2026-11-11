@@ -35,7 +35,8 @@ public class ReuObjectTreeUndoRedoTests : ReuObjectTreeTestBase
         activeTree = Render<ReuObjectTree>(parameters => parameters
             .Add(x => x.Value, value)
             .Add(x => x.IsExpandedByDefault, true)
-            .Add(x => x.History, activeHistory));
+            .Add(x => x.History, activeHistory)
+            .Add(x => x.Dialogs, DialogsWithHost()));
 
         return activeTree;
     }

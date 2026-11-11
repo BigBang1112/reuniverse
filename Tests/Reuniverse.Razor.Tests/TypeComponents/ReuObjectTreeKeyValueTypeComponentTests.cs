@@ -43,7 +43,7 @@ public class ReuObjectTreeKeyValueTypeComponentTests : ReuObjectTreeTestBase
     public async Task RemoveValue_WhenDeclined_KeepsKey()
     {
         // Arrange
-        JSInterop.Setup<bool>("confirm", _ => true).SetResult(false);
+        DeclineConfirmDialogs();
         var dictionary = new Dictionary<string, int> { ["a"] = 1 };
         var cut = RenderObjectTree(dictionary);
 

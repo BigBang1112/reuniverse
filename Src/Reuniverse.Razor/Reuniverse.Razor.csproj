@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <PackageId>Reuniverse.Razor</PackageId>
-        <Version>0.11.1</Version>
+        <Version>0.12.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Common Blazor components for BigBang1112 projects (gbx.tools).</Description>
         <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
@@ -10,7 +10,24 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>reuniverse, razor, blazor, gbx</PackageTags>
         <PackageReleaseNotes>
-- Improve theme support with Darkreader
+- **Added `ReuDataTable`** with sortable columns, paging, and on-demand loading through `ItemsProvider`
+- **Added `ReuHexEditor`**, a virtualized hex editor that edits a `byte[]` in place
+- **Added `ReuSplitPane`** with a handle resizable by mouse or keyboard
+- **Added `ReuDialogService` and `ReuDialogHost`** to confirm with a modal instead of the browser's `confirm`
+  - `ReuObjectTree` now asks before removing an element or setting a member to null
+- **Added `ReuReconnectModal`** to replace the `ReconnectModal` of the .NET 10 Blazor Web App template
+- Added `ReuThemeToggle`, a lightbulb button that switches between the light and dark theme
+- Upload components: Added `Streamed` and `OnStream` to open large files as seekable `ReuBrowserFileStream`s
+- Upload components: Added `Directory` to pick a folder and `Paste` to upload files pasted on the page
+- `ReuUploadButton` now renders as a `&lt;label class="reu-button"&gt;` instead of a `ReuButton`
+- Improved accessibility
+  - `ReuModal` makes the rest of the page inert while open and gives the focus back when closed
+  - `ReuTabs` closes a tab with Delete
+  - Upload components show keyboard focus and have accessible names
+  - `ReuObjectTree` value inputs have accessible names
+- Renamed the `--color-footer-bg` CSS variable to `--color-surface-secondary`, keeping the old name as a deprecated alias
+- Component styles and scripts are now minified in the package
+- Smaller text in `ReuLogs` and minor style fixes in `ReuFileBrowser`
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
@@ -101,6 +118,81 @@
                      Link="wwwroot\%(_ReuMinifiedFile.Filename)%(_ReuMinifiedFile.Extension)"
                      ContentRoot="$(MSBuildProjectDirectory)\$(_ReuMinifiedDir)" />
             <FileWrites Include="@(_ReuMinifiedFile)" />
+        </ItemGroup>
+    </Target>
+
+    <!-- The isolated styles (.razor.css) and scripts (.razor.js) of the components are minified too, also by esbuild.
+         They replace the readable ones, as the components load them by their names, so it is only done in Release by default,
+         which is what the package is built in. Pass -p:ReuMinifyIsolatedAssets=true or false to choose otherwise. -->
+    <PropertyGroup>
+        <ReuMinifyIsolatedAssets Condition="'$(ReuMinifyIsolatedAssets)' == '' And '$(Configuration)' == 'Release' And '$(ReuMinifyAssets)' == 'true'">true</ReuMinifyIsolatedAssets>
+    </PropertyGroup>
+
+    <!-- The SDK writes each scoped stylesheet to obj as .rz.scp.css and bundles them afterwards, so minifying them in place there
+         carries over to the bundles, their integrity and the package. A stamp tells when they were last minified, as the SDK only
+         writes them again when the .razor.css files change. -->
+    <Target Name="_ReuMinifyScopedCss"
+            AfterTargets="_ProcessScopedCssFiles"
+            Condition="'$(ReuMinifyIsolatedAssets)' == 'true' And '@(_ScopedCss)' != ''"
+            Inputs="@(_ScopedCssOutputs)"
+            Outputs="$(_ScopedCssIntermediatePath)reu-minified.stamp">
+        <Exec Command="npx --yes esbuild@$(EsbuildVersion) @(_ScopedCssOutputs->'&quot;%(FullPath)&quot;', ' ') --minify --allow-overwrite --outbase=&quot;$([System.IO.Path]::GetFullPath('$(_ScopedCssIntermediatePath)').TrimEnd('\'))&quot; --outdir=&quot;$([System.IO.Path]::GetFullPath('$(_ScopedCssIntermediatePath)').TrimEnd('\'))&quot; --log-level=warning"
+              ContinueOnError="true">
+            <Output TaskParameter="ExitCode" PropertyName="_ReuEsbuildScopedCssExitCode" />
+        </Exec>
+        <Error Condition="'$(_ReuEsbuildScopedCssExitCode)' != '0'"
+               Text="Minifying the scoped styles with esbuild failed. It needs Node.js (npx) on the PATH. Pass -p:ReuMinifyIsolatedAssets=false to keep them as they are." />
+        <Touch Files="$(_ScopedCssIntermediatePath)reu-minified.stamp" AlwaysCreate="true" />
+        <ItemGroup>
+            <FileWrites Include="$(_ScopedCssIntermediatePath)reu-minified.stamp" />
+        </ItemGroup>
+    </Target>
+
+    <!-- The minified scoped styles stay until the SDK writes them again, so turning minifying off removes them along with the stamp. -->
+    <Target Name="_ReuForgetMinifiedScopedCss"
+            BeforeTargets="_ProcessScopedCssFiles"
+            DependsOnTargets="ResolveScopedCssOutputs"
+            Condition="'$(ReuMinifyIsolatedAssets)' != 'true' And Exists('$(_ScopedCssIntermediatePath)reu-minified.stamp')">
+        <Delete Files="@(_ScopedCssOutputs);$(_ScopedCssIntermediatePath)reu-minified.stamp" />
+    </Target>
+
+    <Target Name="_ReuResolveJsModules">
+        <PropertyGroup>
+            <_ReuMinifiedJsModulesDir>$(IntermediateOutputPath)minified-jsmodules\</_ReuMinifiedJsModulesDir>
+        </PropertyGroup>
+        <ItemGroup>
+            <_ReuJsModule Include="@(None)" Condition="'%(Extension)' == '.js' And $([System.String]::Copy('%(Filename)').EndsWith('.razor'))">
+                <ReuRelativePath>%(RecursiveDir)%(Filename)%(Extension)</ReuRelativePath>
+            </_ReuJsModule>
+        </ItemGroup>
+    </Target>
+
+    <Target Name="_ReuMinifyJsModuleFiles"
+            DependsOnTargets="_ReuResolveJsModules"
+            Inputs="@(_ReuJsModule);$(MSBuildProjectFullPath)"
+            Outputs="@(_ReuJsModule->'$(_ReuMinifiedJsModulesDir)%(ReuRelativePath)')">
+        <Exec Command="npx --yes esbuild@$(EsbuildVersion) @(_ReuJsModule->'&quot;%(FullPath)&quot;', ' ') --minify --outbase=&quot;$(MSBuildProjectDirectory)&quot; --outdir=&quot;$(MSBuildProjectDirectory)\$(_ReuMinifiedJsModulesDir.TrimEnd('\'))&quot; --log-level=warning"
+              ContinueOnError="true">
+            <Output TaskParameter="ExitCode" PropertyName="_ReuEsbuildJsModulesExitCode" />
+        </Exec>
+        <Error Condition="'$(_ReuEsbuildJsModulesExitCode)' != '0'"
+               Text="Minifying the component scripts with esbuild failed. It needs Node.js (npx) on the PATH. Pass -p:ReuMinifyIsolatedAssets=false to keep them as they are." />
+    </Target>
+
+    <!-- Puts the minified scripts in place of the .razor.js files just before the SDK turns those into static web assets.
+         They keep the same relative paths, and the folder they are in becomes their content root, so they are served, hashed and
+         packed as they are. -->
+    <Target Name="_ReuUseMinifiedJsModules"
+            BeforeTargets="ResolveJSModuleStaticWebAssets"
+            DependsOnTargets="_ReuMinifyJsModuleFiles"
+            Condition="'$(ReuMinifyIsolatedAssets)' == 'true'">
+        <ItemGroup>
+            <_ReuMinifiedJsModule Include="@(_ReuJsModule->'$(_ReuMinifiedJsModulesDir)%(ReuRelativePath)')" />
+            <None Remove="@(_ReuJsModule)" />
+            <None Include="@(_ReuMinifiedJsModule)"
+                  Link="%(_ReuMinifiedJsModule.ReuRelativePath)"
+                  ContentRoot="$(MSBuildProjectDirectory)\$(_ReuMinifiedJsModulesDir)" />
+            <FileWrites Include="@(_ReuMinifiedJsModule)" />
         </ItemGroup>
     </Target>
 

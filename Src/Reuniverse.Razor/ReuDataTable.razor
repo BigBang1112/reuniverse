@@ -1,0 +1,477 @@
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@using System.Collections
+@using System.Globalization
+@implements IDisposable
+
+<CascadingValue Value="this" IsFixed="true">
+    @ChildContent
+</CascadingValue>
+
+<div class="reu-data-table @(loading ? "loading" : null) @CssClass" aria-busy="@(loading ? "true" : null)" @attributes="AdditionalAttributes">
+    <div class="table-scroll">
+        <table style="@(MinWidth is null ? null : $"min-width: {MinWidth};")">
+            <thead>
+                <tr>
+                    @foreach (var column in columns)
+                    {
+                        <th scope="col" class="@column.Classes" aria-sort="@AriaSort(column)">
+                            @if (column.IsSortable && RendererInfo.IsInteractive)
+                            {
+                                <button type="button" class="sort" @onclick="() => SortAsync(column)">
+                                    @Header(column)
+                                    <span class="sort-icon" aria-hidden="true">@SortIcon(column)</span>
+                                </button>
+                            }
+                            else
+                            {
+                                @Header(column)
+                            }
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (rows.Count == 0 && !loading)
+                {
+                    <tr class="empty">
+                        <td colspan="@Math.Max(columns.Count, 1)">
+                            @if (EmptyContent is not null)
+                            {
+                                @EmptyContent
+                            }
+                            else
+                            {
+                                @("No items")
+                            }
+                        </td>
+                    </tr>
+                }
+                @foreach (var item in rows)
+                {
+                    <tr class="@RowClass?.Invoke(item)">
+                        @foreach (var column in columns)
+                        {
+                            <td class="@column.Classes">
+                                @if (column.ChildContent is not null)
+                                {
+                                    @column.ChildContent(item)
+                                }
+                                else
+                                {
+                                    @column.FormatValue(column.Value?.Invoke(item))
+                                }
+                                @if (column.Secondary is not null && column.FormatValue(column.Secondary(item)) is { Length: > 0 } secondary)
+                                {
+                                    <small>@secondary</small>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (PageCount > 1 && RendererInfo.IsInteractive)
+    {
+        <nav class="pagination" aria-label="@PaginationLabel">
+            <ReuButton Enable="@(page > 1 && !loading)" OnClick="() => GoToPageAsync(page - 1)">Previous</ReuButton>
+            @foreach (var number in VisiblePages())
+            {
+                if (number == 0)
+                {
+                    <span class="gap" aria-hidden="true">…</span>
+                }
+                else
+                {
+                    var target = number;
+                    <ReuButton Active="@(target == page)"
+                               Enable="@(target != page && !loading)"
+                               aria-current="@(target == page ? "page" : null)"
+                               OnClick="() => GoToPageAsync(target)">@target</ReuButton>
+                }
+            }
+            <ReuButton Enable="@(page < PageCount && !loading)" OnClick="() => GoToPageAsync(page + 1)">Next</ReuButton>
+            <small>@totalCount.ToString("N0", CultureInfo.CurrentCulture) @CountLabel</small>
+        </nav>
+    }
+    else if (ShowCount && totalCount > 0)
+    {
+        <div class="pagination">
+            <small>@totalCount.ToString("N0", CultureInfo.CurrentCulture) @CountLabel</small>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<ReuDataColumn<TItem>> columns = new();
+
+    private List<TItem> rows = new();
+    private int totalCount;
+    private int page = 1;
+    private ReuDataColumn<TItem>? sortColumn;
+    private ReuSortDirection sortDirection;
+
+    private bool loading;
+    private bool loadPending;
+    private CancellationTokenSource? loadCancellation;
+    private Func<ReuDataTableRequest, ValueTask<ReuDataTableResult<TItem>>>? loadedProvider;
+
+    /// <summary>
+    /// The items to show, which the table sorts and pages itself. Use <see cref="ItemsProvider"/> instead to load each page on demand.
+    /// </summary>
+    [Parameter]
+    public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>
+    /// Loads the requested page of items, sorted as requested, such as from a database or an API. Takes precedence over <see cref="Items"/>.
+    /// </summary>
+    [Parameter]
+    public Func<ReuDataTableRequest, ValueTask<ReuDataTableResult<TItem>>>? ItemsProvider { get; set; }
+
+    /// <summary>
+    /// The <see cref="ReuDataColumn{TItem}"/> elements that make up the table.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// The number of items on a page. Null shows every item without paging.
+    /// </summary>
+    [Parameter]
+    public int? PageSize { get; set; }
+
+    /// <summary>
+    /// CSS classes to apply to the row of an item, such as to dim removed records.
+    /// </summary>
+    [Parameter]
+    public Func<TItem, string?>? RowClass { get; set; }
+
+    /// <summary>
+    /// What to show when there are no items. Defaults to <c>No items</c>.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>
+    /// The smallest width of the table as a CSS length, below which it scrolls sideways instead of squeezing its columns.
+    /// </summary>
+    [Parameter]
+    public string? MinWidth { get; set; }
+
+    /// <summary>
+    /// The word after the number of items below the table. Defaults to <c>items</c>.
+    /// </summary>
+    [Parameter]
+    public string CountLabel { get; set; } = "items";
+
+    /// <summary>
+    /// Whether to show the number of items below the table also when there is only one page.
+    /// </summary>
+    [Parameter]
+    public bool ShowCount { get; set; }
+
+    /// <summary>
+    /// The accessible label of the page buttons. Defaults to <c>Pages</c>.
+    /// </summary>
+    [Parameter]
+    public string PaginationLabel { get; set; } = "Pages";
+
+    /// <summary>
+    /// Additional CSS classes to apply to the table container.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    /// <summary>
+    /// The current page, starting at 1.
+    /// </summary>
+    public int CurrentPage => page;
+
+    /// <summary>
+    /// The number of pages.
+    /// </summary>
+    public int PageCount => PageSize is > 0 ? Math.Max(1, (totalCount + PageSize.Value - 1) / PageSize.Value) : 1;
+
+    internal bool HasItemsProvider => ItemsProvider is not null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ItemsProvider is null)
+        {
+            loadedProvider = null;
+            UpdateRows();
+            return;
+        }
+
+        if (!ReferenceEquals(ItemsProvider, loadedProvider))
+        {
+            loadedProvider = ItemsProvider;
+            loadPending = true;
+
+            // lets the columns register first, so that the first request already has their default sort
+            await Task.Yield();
+
+            // unless something else loaded in the meantime, such as a click on a page, which this would undo
+            if (loadPending)
+            {
+                await LoadAsync();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Shows the page. With an items provider, it loads the page.
+    /// </summary>
+    /// <param name="number">The page number, starting at 1.</param>
+    public async Task GoToPageAsync(int number)
+    {
+        page = Math.Clamp(number, 1, PageCount);
+        await ReloadAsync();
+    }
+
+    /// <summary>
+    /// Shows the items again, such as after they were changed. With an items provider, it loads the current page again.
+    /// </summary>
+    public async Task RefreshAsync()
+    {
+        await ReloadAsync();
+    }
+
+    internal void AddColumn(ReuDataColumn<TItem> column)
+    {
+        columns.Add(column);
+
+        if (sortColumn is null && column.DefaultSort is { } direction)
+        {
+            sortColumn = column;
+            sortDirection = direction;
+
+            if (ItemsProvider is null)
+            {
+                UpdateRows();
+            }
+            else if (!loadPending)
+            {
+                _ = InvokeAsync(LoadAsync);
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    internal void RemoveColumn(ReuDataColumn<TItem> column)
+    {
+        columns.Remove(column);
+
+        if (ReferenceEquals(sortColumn, column))
+        {
+            sortColumn = null;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task SortAsync(ReuDataColumn<TItem> column)
+    {
+        if (ReferenceEquals(sortColumn, column))
+        {
+            sortDirection = sortDirection == ReuSortDirection.Ascending ? ReuSortDirection.Descending : ReuSortDirection.Ascending;
+        }
+        else
+        {
+            sortColumn = column;
+            sortDirection = column.DefaultSort ?? ReuSortDirection.Ascending;
+        }
+
+        page = 1;
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        if (ItemsProvider is null)
+        {
+            UpdateRows();
+            StateHasChanged();
+        }
+        else
+        {
+            await LoadAsync();
+        }
+    }
+
+    private void UpdateRows()
+    {
+        var items = Items ?? [];
+
+        if (sortColumn is not null && (sortColumn.Value is not null || sortColumn.SortBy is not null))
+        {
+            var comparer = Comparer<object?>.Create(CompareValues);
+            var column = sortColumn;
+
+            items = sortDirection == ReuSortDirection.Ascending
+                ? items.OrderBy(column.GetSortValue, comparer)
+                : items.OrderByDescending(column.GetSortValue, comparer);
+        }
+
+        var all = items as IReadOnlyCollection<TItem> ?? items.ToList();
+        totalCount = all.Count;
+        page = Math.Clamp(page, 1, PageCount);
+
+        rows = PageSize is > 0
+            ? all.Skip((page - 1) * PageSize.Value).Take(PageSize.Value).ToList()
+            : all.ToList();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (ItemsProvider is null)
+        {
+            return;
+        }
+
+        loadPending = false;
+
+        loadCancellation?.Cancel();
+        loadCancellation?.Dispose();
+        var cancellation = loadCancellation = new CancellationTokenSource();
+
+        loading = true;
+        StateHasChanged();
+
+        ReuDataTableResult<TItem> result;
+
+        try
+        {
+            var size = PageSize is > 0 ? PageSize : null;
+            result = await ItemsProvider(new ReuDataTableRequest(page, size, sortColumn?.EffectiveSortKey, sortDirection, cancellation.Token));
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            return;
+        }
+
+        if (cancellation.IsCancellationRequested)
+        {
+            return;
+        }
+
+        rows = result.Items.ToList();
+        totalCount = result.TotalCount;
+        loading = false;
+
+        // the items may have shrunk past the current page
+        if (page > PageCount)
+        {
+            page = PageCount;
+            await LoadAsync();
+            return;
+        }
+
+        StateHasChanged();
+    }
+
+    private static int CompareValues(object? a, object? b)
+    {
+        if (a is null)
+        {
+            return b is null ? 0 : -1;
+        }
+
+        if (b is null)
+        {
+            return 1;
+        }
+
+        if (a is string first && b is string second)
+        {
+            return string.Compare(first, second, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        try
+        {
+            return Comparer.Default.Compare(a, b);
+        }
+        catch (ArgumentException)
+        {
+            // values that cannot be compared with each other, such as of different types
+            return string.Compare(Convert.ToString(a, CultureInfo.CurrentCulture), Convert.ToString(b, CultureInfo.CurrentCulture), StringComparison.CurrentCultureIgnoreCase);
+        }
+    }
+
+    // the first and last page, and the pages around the current one, with 0 for a gap
+    private IEnumerable<int> VisiblePages()
+    {
+        var count = PageCount;
+        var previous = 0;
+
+        for (var number = 1; number <= count; number++)
+        {
+            var shown = number == 1 || number == count || Math.Abs(number - page) <= 1;
+
+            if (!shown)
+            {
+                continue;
+            }
+
+            if (number - previous == 2)
+            {
+                // a gap of a single page shows that page instead
+                yield return number - 1;
+            }
+            else if (number - previous > 2)
+            {
+                yield return 0;
+            }
+
+            yield return number;
+            previous = number;
+        }
+    }
+
+    private RenderFragment Header(ReuDataColumn<TItem> column) => __builder =>
+    {
+        if (column.HideTitle)
+        {
+            <span class="visually-hidden">@column.Title</span>
+        }
+        else if (column.TitleContent is not null)
+        {
+            @column.TitleContent
+        }
+        else
+        {
+            @column.Title
+        }
+    };
+
+    private string? AriaSort(ReuDataColumn<TItem> column)
+    {
+        if (!ReferenceEquals(sortColumn, column))
+        {
+            return null;
+        }
+
+        return sortDirection == ReuSortDirection.Ascending ? "ascending" : "descending";
+    }
+
+    private string SortIcon(ReuDataColumn<TItem> column)
+    {
+        if (!ReferenceEquals(sortColumn, column))
+        {
+            return "↕";
+        }
+
+        return sortDirection == ReuSortDirection.Ascending ? "▲" : "▼";
+    }
+
+    public void Dispose()
+    {
+        loadCancellation?.Cancel();
+        loadCancellation?.Dispose();
+    }
+}

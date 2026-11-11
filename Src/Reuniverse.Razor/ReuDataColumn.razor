@@ -1,0 +1,126 @@
+@typeparam TItem
+@using System.Globalization
+@implements IDisposable
+
+@code {
+    [CascadingParameter]
+    private ReuDataTable<TItem>? Table { get; set; }
+
+    /// <summary>
+    /// The text of the column header. Also the sort key given to the items provider when <see cref="SortKey"/> is not set.
+    /// </summary>
+    [Parameter]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// Custom content of the column header, in place of <see cref="Title"/>.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? TitleContent { get; set; }
+
+    /// <summary>
+    /// Whether to hide the header text visually, while screen readers still announce it, such as for a column of buttons.
+    /// </summary>
+    [Parameter]
+    public bool HideTitle { get; set; }
+
+    /// <summary>
+    /// The value shown in the cell, and sorted by unless <see cref="SortBy"/> is set.
+    /// </summary>
+    [Parameter]
+    public Func<TItem, object?>? Value { get; set; }
+
+    /// <summary>
+    /// A format string for <see cref="Value"/>, such as <c>N0</c> or <c>yyyy-MM-dd</c>.
+    /// </summary>
+    [Parameter]
+    public string? Format { get; set; }
+
+    /// <summary>
+    /// A secondary value shown dimmed on a line of its own below the main one.
+    /// </summary>
+    [Parameter]
+    public Func<TItem, object?>? Secondary { get; set; }
+
+    /// <summary>
+    /// Custom content of the cells, in place of <see cref="Value"/>. <see cref="Value"/> or <see cref="SortBy"/> can still be set for sorting.
+    /// </summary>
+    [Parameter]
+    public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>
+    /// What to sort the column by, when it differs from <see cref="Value"/>.
+    /// </summary>
+    [Parameter]
+    public Func<TItem, object?>? SortBy { get; set; }
+
+    /// <summary>
+    /// Whether the column can be sorted by clicking its header. Defaults to true when the column has a <see cref="Value"/>,
+    /// a <see cref="SortBy"/>, or, with an items provider, a <see cref="SortKey"/>.
+    /// </summary>
+    [Parameter]
+    public bool? Sortable { get; set; }
+
+    /// <summary>
+    /// The key given to the items provider when sorting by this column. Defaults to <see cref="Title"/>.
+    /// </summary>
+    [Parameter]
+    public string? SortKey { get; set; }
+
+    /// <summary>
+    /// Sorts the table by this column from the start, in this direction.
+    /// </summary>
+    [Parameter]
+    public ReuSortDirection? DefaultSort { get; set; }
+
+    /// <summary>
+    /// Whether to make the column only as wide as its content, without wrapping, such as for actions.
+    /// </summary>
+    [Parameter]
+    public bool Fit { get; set; }
+
+    /// <summary>
+    /// Whether to align the column to the right, such as for numbers.
+    /// </summary>
+    [Parameter]
+    public bool AlignRight { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes to apply to the header and cells of the column.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    internal string? EffectiveSortKey => SortKey ?? Title;
+
+    internal bool IsSortable => Sortable ?? (Value is not null || SortBy is not null || (Table?.HasItemsProvider == true && EffectiveSortKey is not null));
+
+    internal string? Classes => string.Join(' ', new[] { Fit ? "fit" : null, AlignRight ? "right" : null, CssClass }.Where(x => x is not null)) is { Length: > 0 } classes ? classes : null;
+
+    internal object? GetSortValue(TItem item) => (SortBy ?? Value)?.Invoke(item);
+
+    internal string? FormatValue(object? value)
+    {
+        return value switch
+        {
+            null => null,
+            IFormattable formattable when Format is not null => formattable.ToString(Format, CultureInfo.CurrentCulture),
+            _ => Convert.ToString(value, CultureInfo.CurrentCulture)
+        };
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Table is null)
+        {
+            throw new InvalidOperationException($"{nameof(ReuDataColumn<TItem>)} must be placed inside a {nameof(ReuDataTable<TItem>)}.");
+        }
+
+        Table.AddColumn(this);
+    }
+
+    public void Dispose()
+    {
+        Table?.RemoveColumn(this);
+    }
+}
