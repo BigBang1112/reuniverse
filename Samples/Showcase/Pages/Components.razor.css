@@ -48,7 +48,8 @@
         font-family: var(--font-mono), monospace;
     }
 
-    .components ::deep label + label {
+    /* stacks checkboxes and radios, but not the upload buttons, which are labels too and sit in a row */
+    .components ::deep label:not(.reu-button) + label:not(.reu-button) {
         margin-top: 0.5rem;
     }
 
