@@ -108,7 +108,6 @@ th:not([aria-sort]) .sort:is(:hover, :focus-visible) .sort-icon {
     .pagination ::deep .reu-button.active {
         color: var(--color-text-primary);
         background-color: var(--color-button-bg-active);
-        border-bottom-color: var(--color-link);
         cursor: default;
     }
 
