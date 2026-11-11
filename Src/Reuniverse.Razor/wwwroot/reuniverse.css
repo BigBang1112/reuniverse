@@ -973,7 +973,8 @@ footer.reu-footer {
         padding: 0.4rem 1rem;
     }
 
-#components-reconnect-modal {
+/* for a reconnect modal of the app's own, as ReuReconnectModal has its own styles */
+#components-reconnect-modal:not(.reu-reconnect) {
     display: none;
     background-color: var(--color-modal-bg);
     text-align: center;
@@ -990,9 +991,7 @@ footer.reu-footer {
     padding: 2rem;
 }
 
-    #components-reconnect-modal.components-reconnect-show,
-    #components-reconnect-modal.components-reconnect-failed,
-    #components-reconnect-modal.components-reconnect-rejected {
+    #components-reconnect-modal:not(.reu-reconnect):is(.components-reconnect-show, .components-reconnect-failed, .components-reconnect-rejected) {
         display: flex;
     }
 

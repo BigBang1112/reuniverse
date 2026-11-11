@@ -358,6 +358,21 @@ Then ask from any component:
 
 `<ReuObjectTree>` asks this way before removing an element or setting a member to null, with dialogs of its own. Pass `Dialogs` to share a service whose host is rendered elsewhere.
 
+### `<ReuReconnectModal>`
+
+What a Blazor Web App shows while the connection to the server is lost, in place of the `ReconnectModal` of the .NET 10 template. Put it in `App.razor`, next to `<Routes />`, with `reuniverse.js` referenced. It needs no interactivity, so it works with the connection gone, and it stays through enhanced navigation.
+
+```cshtml
+<Routes />
+<ReuReconnectModal />
+```
+
+- A short drop only shows a small "Reconnecting…" notice for `Delay` (default: 1500 ms), while holding the clicks back, as they could not reach the server anyway. Only when it takes longer, the dialog that blocks the page comes up, with the attempt, the seconds to the next one and a countdown. Once connected again, the notice says so for a moment.
+- While the browser is offline, the dialog says so. It tries again as soon as the browser is back online or the tab is shown again, without waiting for the Retry button.
+- A session that the server paused resumes when the tab is shown again, or with Resume.
+- When the server no longer has the session, the dialog says so and the page reloads. Set `ReloadOnRejected="false"` to offer a Reload button instead.
+- The dialog cannot be closed with Escape, and Retry or Resume takes the focus when the dialog shows them.
+
 ### `<ReuModal>`
 
 A dialog shown over the page. **(requires interactivity)**

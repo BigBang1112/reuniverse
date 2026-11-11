@@ -1264,3 +1264,236 @@
 
     enhanceAll(document.documentElement);
 })();
+
+// Reuniverse reconnect.
+//
+// Blazor tells the dialog of a ReuReconnectModal about the connection to the server with an event, which does not
+// bubble, so this listens for it on the way down. A short drop only shows a small notice, with the clicks held back,
+// and the dialog that blocks the page only comes up once it takes longer than the delay. Blazor tries again many
+// times within the first moment when the server cannot be reached at all, so failed attempts alone do not bring it up.
+// Once connected again, the notice says so for a moment. While the browser is offline, the dialog says so, and it
+// retries as soon as the browser is back online or the page is shown again; a paused session resumes when the page
+// is shown again too. When the server no longer has the session, the dialog says so before the page reloads.
+(function () {
+    "use strict";
+
+    const eventName = "components-reconnect-state-changed";
+    const connectedNoticeTime = 2000;
+    const rejectedReloadTime = 1500;
+
+    let dialog = null;
+    let delayTimer = 0;
+    let noticeTimer = 0;
+    let shown = false;
+    let state = "hide";
+    let countdownAttempt = 0;
+
+    function part(name) {
+        return dialog.parentElement.querySelector(".reu-reconnect-" + name);
+    }
+
+    function notice(text, connected) {
+        clearTimeout(noticeTimer);
+        const toast = part("toast");
+        toast.textContent = text;
+        toast.classList.toggle("connected", connected);
+        toast.classList.add("visible");
+    }
+
+    function hideNotice() {
+        clearTimeout(noticeTimer);
+        part("toast").classList.remove("visible");
+    }
+
+    function openDialog() {
+        clearTimeout(delayTimer);
+        part("shield").classList.remove("visible");
+        hideNotice();
+
+        if (!dialog.open) {
+            dialog.showModal();
+        }
+
+        // the button to press next, now that the state shows it, or else the dialog itself
+        const main = Array.from(dialog.querySelectorAll("[data-reu-reconnect-main]")).find(function (button) {
+            return button.getClientRects().length > 0;
+        });
+
+        if (main) {
+            main.focus();
+        } else if (!dialog.contains(document.activeElement)) {
+            dialog.setAttribute("tabindex", "-1");
+            dialog.focus();
+        }
+    }
+
+    function updateOffline() {
+        dialog?.classList.toggle("offline", !navigator.onLine);
+    }
+
+    function reload() {
+        location.reload();
+    }
+
+    async function retry() {
+        try {
+            // true when connected again, false when the server was reached but no longer has the circuit
+            if (await Blazor.reconnect()) {
+                return;
+            }
+
+            if (typeof Blazor.resumeCircuit !== "function" || !(await Blazor.resumeCircuit())) {
+                reload();
+            }
+        } catch {
+            // the server could not be reached, which leaves the dialog as it is
+        }
+    }
+
+    async function resume() {
+        try {
+            if (!(await Blazor.resumeCircuit())) {
+                reload();
+            }
+        } catch {
+            dialog.classList.replace("components-reconnect-paused", "components-reconnect-resume-failed");
+            state = "resume-failed";
+        }
+    }
+
+    function retryWhenBack() {
+        if (document.visibilityState !== "visible" || !navigator.onLine) {
+            return;
+        }
+
+        if (state === "failed") {
+            retry();
+        } else if (state === "paused") {
+            resume();
+        }
+    }
+
+    function change(detail) {
+        state = detail.state;
+        updateOffline();
+
+        switch (state) {
+            case "show": {
+                shown = true;
+                countdownAttempt = 0;
+
+                // such as when retrying after it failed, which keeps the dialog up
+                if (dialog.open) {
+                    break;
+                }
+
+                const delay = parseInt(dialog.getAttribute("data-reu-reconnect-delay") ?? "0", 10) || 0;
+
+                if (delay <= 0) {
+                    openDialog();
+                    break;
+                }
+
+                part("shield").classList.add("visible");
+                notice(navigator.onLine ? "Reconnecting…" : "Offline, waiting to reconnect…", false);
+                clearTimeout(delayTimer);
+                delayTimer = setTimeout(openDialog, delay);
+                break;
+            }
+            case "retrying":
+                // Blazor tells the seconds left every second, so the countdown only starts again with the next attempt
+                if (detail.secondsToNextAttempt > 0 && detail.currentAttempt !== countdownAttempt) {
+                    countdownAttempt = detail.currentAttempt;
+
+                    const progress = part("progress");
+                    progress.style.setProperty("--reu-reconnect-wait", detail.secondsToNextAttempt + "s");
+
+                    const bar = progress.firstElementChild;
+                    bar.style.animation = "none";
+                    void bar.offsetWidth;
+                    bar.style.animation = "";
+                }
+                break;
+            case "failed":
+            case "paused":
+            case "resume-failed":
+                shown = true;
+                openDialog();
+                break;
+            case "rejected":
+                shown = true;
+                openDialog();
+
+                if (dialog.getAttribute("data-reu-reconnect-reload") !== "false") {
+                    setTimeout(reload, rejectedReloadTime);
+                }
+                break;
+            case "hide":
+                clearTimeout(delayTimer);
+                part("shield").classList.remove("visible");
+
+                if (dialog.open) {
+                    dialog.close();
+                }
+
+                if (shown) {
+                    notice("Connected again", true);
+                    noticeTimer = setTimeout(hideNotice, connectedNoticeTime);
+                }
+
+                shown = false;
+                break;
+        }
+    }
+
+    document.addEventListener(eventName, function (event) {
+        if (!(event.target instanceof HTMLDialogElement) || !event.target.classList.contains("reu-reconnect")) {
+            return;
+        }
+
+        dialog = event.target;
+        change(event.detail || {});
+    }, true);
+
+    // the dialog only goes away once connected again
+    document.addEventListener("cancel", function (event) {
+        if (event.target instanceof Element && event.target.matches("dialog.reu-reconnect")) {
+            event.preventDefault();
+        }
+    }, true);
+
+    document.addEventListener("click", async function (event) {
+        const button = event.target instanceof Element ? event.target.closest(".reu-reconnect [data-reu-reconnect]") : null;
+
+        if (!button || button.getAttribute("aria-busy") === "true") {
+            return;
+        }
+
+        dialog = button.closest("dialog");
+        button.setAttribute("aria-busy", "true");
+
+        try {
+            switch (button.getAttribute("data-reu-reconnect")) {
+                case "retry":
+                    await retry();
+                    break;
+                case "resume":
+                    await resume();
+                    break;
+                case "reload":
+                    reload();
+                    break;
+            }
+        } finally {
+            button.removeAttribute("aria-busy");
+        }
+    });
+
+    window.addEventListener("online", function () {
+        updateOffline();
+        retryWhenBack();
+    });
+
+    window.addEventListener("offline", updateOffline);
+    document.addEventListener("visibilitychange", retryWhenBack);
+})();

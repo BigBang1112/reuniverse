@@ -215,6 +215,19 @@ public class AccessibilityTests : BrowserTestBase
     [Test]
     [Arguments("dark")]
     [Arguments("light")]
+    [Arguments("dark", "components-reconnect-paused")]
+    public async Task ReconnectModal_HasNoViolations(string theme, string state = "components-reconnect-failed")
+    {
+        // shown in a state as Blazor would, without a connection to lose
+        var markup = RenderMarkup<ReuReconnectModal>(interactive: false)
+            .Replace("class=\"reu-reconnect\"", $"class=\"reu-reconnect {state}\" open");
+
+        await AssertNoViolationsAsync(markup, theme);
+    }
+
+    [Test]
+    [Arguments("dark")]
+    [Arguments("light")]
     public async Task Uploads_HaveNoViolations(string theme)
     {
         var markup = string.Concat(
