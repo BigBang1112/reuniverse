@@ -136,7 +136,7 @@ public class ReuObjectTreeMemberTypeComponentTests : ReuObjectTreeTestBase
     public async Task RemoveValue_WhenDeclined_KeepsValue()
     {
         // Arrange
-        JSInterop.Setup<bool>("confirm", _ => true).SetResult(false);
+        DeclineConfirmDialogs();
         var model = new Model();
         var cut = RenderObjectTree(model);
 

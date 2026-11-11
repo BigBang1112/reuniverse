@@ -46,5 +46,22 @@ public abstract class TypeComponentBase<T> : ComponentBase
     [Parameter]
     public ReuObjectTreeHistory? History { get; set; }
 
+    /// <summary>
+    /// Asks before an edit that loses data, such as removing an element. The tree provides it.
+    /// Without it, nothing is asked.
+    /// </summary>
+    [CascadingParameter]
+    public ReuDialogService? Dialogs { get; set; }
+
+    /// <summary>
+    /// Asks to confirm a destructive edit, or confirms right away when there is nothing to ask with.
+    /// </summary>
+    protected Task<bool> ConfirmAsync(string message, string confirmText)
+    {
+        return Dialogs is { HasHost: true } dialogs
+            ? dialogs.ConfirmAsync(message, new ReuConfirmOptions { ConfirmText = confirmText, Destructive = true })
+            : Task.FromResult(true);
+    }
+
     public Exception? Exception { get; set; }
 }

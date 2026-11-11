@@ -844,7 +844,7 @@
 
 // Reuniverse modal focus.
 //
-// A modal dialog (role="dialog" with aria-modal="true", such as an open ReuModal) takes the
+// A modal dialog (role="dialog" or "alertdialog" with aria-modal="true", such as an open ReuModal) takes the
 // focus when it appears, keeps Tab and Shift+Tab within it, and hands the focus back to where it
 // was once it is gone, so the keyboard never ends up behind the backdrop or back at the start of
 // the page. The dialog itself is focused unless something in it has autofocus, so that a screen
@@ -855,7 +855,7 @@
 (function () {
     "use strict";
 
-    const dialogSelector = '[role="dialog"][aria-modal="true"]';
+    const dialogSelector = ':is([role="dialog"], [role="alertdialog"])[aria-modal="true"]';
     const focusableSelector = [
         "a[href]",
         "area[href]",

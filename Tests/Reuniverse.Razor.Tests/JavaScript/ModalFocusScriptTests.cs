@@ -454,4 +454,18 @@ public class ModalFocusScriptTests : BrowserTestBase
         // Assert
         await Assert.That(await IsInertAsync("#other")).IsFalse();
     }
+
+    [Test]
+    public async Task Show_WithAlertDialog_TakesFocusAndMakesPageInert()
+    {
+        // Arrange
+        await LoadButtonsAsync();
+
+        // Act
+        await ShowAsync("""<div id="alert" role="alertdialog" aria-modal="true" tabindex="-1"><button id="cancel" autofocus>Cancel</button><button>OK</button></div>""");
+
+        // Assert
+        await Assert.That(await FocusedIdAsync()).IsEqualTo("cancel");
+        await Assert.That(await IsInertAsync("#other")).IsTrue();
+    }
 }

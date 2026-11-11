@@ -1,0 +1,16 @@
+.reu-confirm-message {
+    margin: 0;
+    white-space: pre-line;
+}
+
+.reu-confirm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+    .reu-confirm-actions ::deep .reu-button {
+        min-width: 5.5rem;
+        padding: 0.45rem 1rem;
+    }

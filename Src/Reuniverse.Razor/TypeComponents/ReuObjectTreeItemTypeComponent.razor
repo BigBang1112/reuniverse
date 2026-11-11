@@ -1,5 +1,4 @@
 ﻿@inherits TypeComponentBase<ReuObjectTreeItem>
-@inject IJSRuntime JS
 
 @if (!HideType && Value.Value is not null)
 {
@@ -119,7 +118,7 @@ else
             return;
         }
 
-        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to remove #{Value.Index}?");
+        var confirmed = await ConfirmAsync($"Remove #{Value.Index}?", "Remove");
 
         if (!confirmed)
         {

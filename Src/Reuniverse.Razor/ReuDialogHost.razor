@@ -1,0 +1,95 @@
+@using Microsoft.Extensions.DependencyInjection
+@implements IDisposable
+@inject IServiceProvider Services
+
+@if (current is not null)
+{
+    @* a fresh modal for each question, so that the focus moves to it as it does for the first *@
+    <ReuModal @key="current"
+              IsOpen="true"
+              IsOpenChanged="open => Decline(open, current)"
+              Title="@(current.Options.Title ?? "Confirm")"
+              MaxWidth="440px"
+              CssClass="reu-confirm"
+              role="alertdialog"
+              aria-describedby="@messageId">
+        <ChildContent>
+            <p class="reu-confirm-message" id="@messageId">@current.Message</p>
+        </ChildContent>
+        <FooterContent>
+            <div class="reu-confirm-actions">
+                <ReuButton CssClass="reu-confirm-cancel"
+                           autofocus="@(current.Options.Destructive ? true : null)"
+                           OnClick="() => current.Respond(false)">@current.Options.CancelText</ReuButton>
+                <ReuButton CssClass="reu-confirm-ok"
+                           Variant="@(current.Options.Destructive ? ReuButtonVariant.Red : ReuButtonVariant.Blue)"
+                           autofocus="@(current.Options.Destructive ? null : true)"
+                           OnClick="() => current.Respond(true)">@current.Options.ConfirmText</ReuButton>
+            </div>
+        </FooterContent>
+    </ReuModal>
+}
+
+@code {
+    private readonly string messageId = ReuId.Next("reu-confirm-message");
+    private ReuDialogService? attached;
+    private ReuDialogRequest? current;
+
+    /// <summary>
+    /// The service whose questions to show. Defaults to the one registered with <c>AddReuDialogs()</c>.
+    /// </summary>
+    [Parameter]
+    public ReuDialogService? Service { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        var service = Service ?? Services.GetService<ReuDialogService>()
+            ?? throw new InvalidOperationException(
+                $"{nameof(ReuDialogHost)} needs a {nameof(ReuDialogService)}. Register one with services.AddReuDialogs(), or pass one as {nameof(Service)}.");
+
+        if (ReferenceEquals(service, attached))
+        {
+            return;
+        }
+
+        Detach();
+
+        attached = service;
+        attached.Changed += OnChanged;
+        attached.AttachHost();
+        current = attached.Current;
+    }
+
+    private void OnChanged()
+    {
+        _ = InvokeAsync(() =>
+        {
+            current = attached?.Current;
+            StateHasChanged();
+        });
+    }
+
+    // closing the modal, with Escape, the backdrop or ✕, declines
+    private static void Decline(bool open, ReuDialogRequest request)
+    {
+        if (!open)
+        {
+            request.Respond(false);
+        }
+    }
+
+    private void Detach()
+    {
+        if (attached is not null)
+        {
+            attached.Changed -= OnChanged;
+            attached.DetachHost();
+            attached = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        Detach();
+    }
+}

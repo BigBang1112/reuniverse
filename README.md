@@ -322,6 +322,42 @@ Renders the description, Open Graph, Twitter and canonical tags. Place it inside
 </HeadContent>
 ```
 
+### `ReuDialogService` and `<ReuDialogHost>`
+
+Asks the user to confirm with a `<ReuModal>`, in place of the browser's `confirm`. **(requires interactivity)**
+
+Register the service and render the host once, such as in the layout:
+
+```csharp
+builder.Services.AddReuDialogs();
+```
+
+```cshtml
+<ReuDialogHost />
+```
+
+Then ask from any component:
+
+```cshtml
+@inject ReuDialogService Dialogs
+
+@code {
+    private async Task CloseTabAsync()
+    {
+        if (!history.CanUndo || await Dialogs.ConfirmAsync("Discard changes?", new ReuConfirmOptions { ConfirmText = "Discard", Destructive = true }))
+        {
+            showTab = false;
+        }
+    }
+}
+```
+
+- `ConfirmAsync(message, options, cancellationToken)` - Completes with `true` when confirmed. Cancel, Escape, the backdrop and ✕ decline. Questions asked meanwhile wait their turn, and cancelling the token takes the question back.
+- `ReuConfirmOptions` - `Title` (default: `Confirm`), `ConfirmText` (default: `OK`), `CancelText` (default: `Cancel`) and `Destructive`, which makes the confirm button red and focuses Cancel, so that Enter does not destroy anything.
+- `<ReuDialogHost Service="...">` - Shows the questions of a service of your own instead of the registered one. Asking without a host throws, and removing the last host declines what is still open.
+
+`<ReuObjectTree>` asks this way before removing an element or setting a member to null, with dialogs of its own. Pass `Dialogs` to share a service whose host is rendered elsewhere.
+
 ### `<ReuModal>`
 
 A dialog shown over the page. **(requires interactivity)**

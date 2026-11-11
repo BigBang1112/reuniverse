@@ -200,6 +200,21 @@ public class AccessibilityTests : BrowserTestBase
     [Test]
     [Arguments("dark")]
     [Arguments("light")]
+    public async Task ConfirmDialog_HasNoViolations(string theme)
+    {
+        using var context = new BunitContext();
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
+        context.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var dialogs = new ReuDialogService();
+        var host = context.Render<ReuDialogHost>(p => p.Add(x => x.Service, dialogs));
+        await host.InvokeAsync(() => { _ = dialogs.ConfirmAsync("Discard changes?", new ReuConfirmOptions { ConfirmText = "Discard", Destructive = true }); });
+
+        await AssertNoViolationsAsync(host.Markup, theme);
+    }
+
+    [Test]
+    [Arguments("dark")]
+    [Arguments("light")]
     public async Task Uploads_HaveNoViolations(string theme)
     {
         var markup = string.Concat(

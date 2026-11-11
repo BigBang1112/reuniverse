@@ -1,4 +1,5 @@
 ﻿@page "/components"
+@inject ReuDialogService Dialogs
 @layout MainLayout
 
 <PageTitle>Components - Reuniverse</PageTitle>
@@ -86,12 +87,12 @@
             </ReuTab>
             @if (showClosableTab)
             {
-                <ReuTab ShowCloseButton="true" OnClosed="() => showClosableTab = false">
+                <ReuTab ShowCloseButton="true" OnClosed="CloseNotesTabAsync">
                     <TitleContent>
-                        Tab 3
+                        Notes
                     </TitleContent>
                     <ChildContent>
-                        This tab can be closed.
+                        <input @bind="notes" @bind:event="oninput" placeholder="Type something, then close the tab" aria-label="Notes" />
                     </ChildContent>
                 </ReuTab>
             }
@@ -197,7 +198,7 @@
         </div>
     </div>
     <div style="overflow: auto">
-        <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true" History="history"></ReuObjectTree>
+        <ReuObjectTree Value="obj" HideType="!showTypes" IsExpandedByDefault="true" History="history" Dialogs="Dialogs"></ReuObjectTree>
     </div>
     <div>
         <h2 class="element">&lt;ReuSplitPane&gt;</h2>
@@ -236,6 +237,17 @@
     </div>
     <div>
         <ReuHexEditor Data="hexData" Highlights="hexHighlights" History="hexHistory" style="height: 260px"></ReuHexEditor>
+    </div>
+    <div>
+        <h2 class="element">ReuDialogService</h2>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;">
+        <ReuButton OnClick="AskAsync">Ask</ReuButton>
+        <ReuButton Variant="ReuButtonVariant.Red" OnClick="AskDestructiveAsync">Ask to discard</ReuButton>
+        @if (lastAnswer is not null)
+        {
+            <span>Answered: <strong>@lastAnswer</strong></span>
+        }
     </div>
     <div>
         <h2 class="element">&lt;ReuModal&gt;</h2>
@@ -282,6 +294,30 @@
 @code {
     private readonly ReuObjectTreeHistory history = new();
     private readonly ReuObjectTreeHistory hexHistory = new();
+
+    private string notes = "";
+    private string? lastAnswer;
+
+    private async Task CloseNotesTabAsync()
+    {
+        if (notes.Length == 0 || await Dialogs.ConfirmAsync("Discard your notes?", new ReuConfirmOptions { Title = "Unsaved notes", ConfirmText = "Discard", Destructive = true }))
+        {
+            notes = "";
+            showClosableTab = false;
+        }
+    }
+
+    private async Task AskAsync()
+    {
+        var confirmed = await Dialogs.ConfirmAsync("Continue with the import?", new ReuConfirmOptions { ConfirmText = "Continue" });
+        lastAnswer = confirmed ? "Continue" : "Cancel";
+    }
+
+    private async Task AskDestructiveAsync()
+    {
+        var confirmed = await Dialogs.ConfirmAsync("Discard changes?", new ReuConfirmOptions { ConfirmText = "Discard", Destructive = true });
+        lastAnswer = confirmed ? "Discard" : "Cancel";
+    }
 
     private sealed record ShowcaseRecord(int Rank, string Nickname, string Login, TimeSpan Time, DateTime Driven, bool Removed = false);
 
