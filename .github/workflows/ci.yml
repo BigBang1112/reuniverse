@@ -18,8 +18,6 @@ jobs:
     name: Continuous Integration
     uses: bigbang1112/workflows/.github/workflows/dotnet-ci.yml@main
     with:
-      dotnet-version: |
-        10.0.x
-        9.0.x
+      dotnet-version: latest
       workloads: wasm-tools
       timeout-minutes: 20

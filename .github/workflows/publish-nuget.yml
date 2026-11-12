@@ -22,9 +22,7 @@ jobs:
     steps:
       - uses: bigbang1112/workflows/publish-nuget-immutable@main
         with:
-          dotnet-version: |
-            10.0.x
-            9.0.x
+          dotnet-version: latest
           project-path: Src/*/*.csproj
           test-path: Tests/*/*.csproj
           pack-path: |

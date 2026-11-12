@@ -850,7 +850,7 @@ Example:
 
 You need:
 
-- [.NET SDK 10](https://dotnet.microsoft.com/download) and the .NET 9 runtime, as the library and the tests target both `net10.0` and `net9.0`.
+- [.NET SDK 11](https://dotnet.microsoft.com/download) and the .NET 10 and .NET 9 runtimes, as the library and the tests target `net11.0`, `net10.0` and `net9.0`.
 - [Node.js](https://nodejs.org/), as [esbuild](https://esbuild.github.io/) (run through `npx`) minifies the `.min` files, and in Release also the styles and scripts of the components. Pass `-p:ReuMinifyAssets=false` to build without it.
 - [Google Chrome](https://www.google.com/chrome/), as the JavaScript and accessibility tests run in it through Playwright.
 - The `wasm-tools` workload (`dotnet workload install wasm-tools`) to publish the Showcase.

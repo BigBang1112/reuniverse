@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <PackageId>Reuniverse.Razor</PackageId>
-        <Version>0.12.0</Version>
+        <Version>0.12.1</Version>
         <Authors>BigBang1112</Authors>
         <Description>Common Blazor components for BigBang1112 projects (gbx.tools).</Description>
         <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
@@ -10,30 +10,13 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageTags>reuniverse, razor, blazor, gbx</PackageTags>
         <PackageReleaseNotes>
-- **Added `ReuDataTable`** with sortable columns, paging, and on-demand loading through `ItemsProvider`
-- **Added `ReuHexEditor`**, a virtualized hex editor that edits a `byte[]` in place
-- **Added `ReuSplitPane`** with a handle resizable by mouse or keyboard
-- **Added `ReuDialogService` and `ReuDialogHost`** to confirm with a modal instead of the browser's `confirm`
-  - `ReuObjectTree` now asks before removing an element or setting a member to null
-- **Added `ReuReconnectModal`** to replace the `ReconnectModal` of the .NET 10 Blazor Web App template
-- Added `ReuThemeToggle`, a lightbulb button that switches between the light and dark theme
-- Upload components: Added `Streamed` and `OnStream` to open large files as seekable `ReuBrowserFileStream`s
-- Upload components: Added `Directory` to pick a folder and `Paste` to upload files pasted on the page
-- `ReuUploadButton` now renders as a `&lt;label class="reu-button"&gt;` instead of a `ReuButton`
-- Improved accessibility
-  - `ReuModal` makes the rest of the page inert while open and gives the focus back when closed
-  - `ReuTabs` closes a tab with Delete
-  - Upload components show keyboard focus and have accessible names
-  - `ReuObjectTree` value inputs have accessible names
-- Renamed the `--color-footer-bg` CSS variable to `--color-surface-secondary`, keeping the old name as a deprecated alias
-- Component styles and scripts are now minified in the package
-- Smaller text in `ReuLogs` and minor style fixes in `ReuFileBrowser`
+- **Added .NET 11 support**
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <PropertyGroup>
-        <TargetFrameworks>net10.0;net9.0</TargetFrameworks>
+        <TargetFrameworks>net11.0;net10.0;net9.0</TargetFrameworks>
         <LangVersion>14</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -65,6 +48,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.11" Condition="'$(TargetFramework)' == 'net9.0'" />
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" Condition="'$(TargetFramework)' == 'net10.0'" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="11.0.0" Condition="'$(TargetFramework)' == 'net11.0'" />
     </ItemGroup>
 
     <ItemGroup>
