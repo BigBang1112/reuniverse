@@ -504,15 +504,22 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        try
         {
-            module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Reuniverse.Razor/ReuLogs.razor.js");
-        }
+            if (firstRender)
+            {
+                module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Reuniverse.Razor/ReuLogs.razor.js");
+            }
 
-        if (scrollPending && module is not null)
+            if (scrollPending && module is not null)
+            {
+                scrollPending = false;
+                await module.InvokeVoidAsync("scrollToBottom", logListRef);
+            }
+        }
+        catch (JSDisconnectedException)
         {
-            scrollPending = false;
-            await module.InvokeVoidAsync("scrollToBottom", logListRef);
+            // the circuit is gone, so there is nothing left to scroll
         }
     }
 

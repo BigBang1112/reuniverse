@@ -13,9 +13,11 @@ public sealed class FakeJSObjectReference : IJSObjectReference
 
     public bool Disposed { get; private set; }
 
+    // the overloads do not call each other, as the analyzer of .NET 11 (BL0016) takes such a call for unguarded JS interop
     public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
     {
-        return InvokeAsync<TValue>(identifier, CancellationToken.None, args);
+        Calls.Add(identifier);
+        return ValueTask.FromResult((TValue)Handler(identifier, args ?? [])!);
     }
 
     public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)

@@ -2,6 +2,9 @@
 @using System.Globalization
 @implements IAsyncDisposable
 @inject IJSRuntime JS
+@* BL0011 (.NET 11) asks Virtualize with ItemsProvider for an ItemComparer, as the default one compares classes by reference.
+   The items here are row indexes, which the default one compares by value, and ItemComparer does not exist before .NET 11. *@
+@attribute [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "BL0011", Justification = "The items are row indexes, compared by value.")]
 
 @* the attributes come first, so that the style below, which keeps theirs, wins *@
 <div @attributes="AdditionalAttributes" class="reu-hex-editor @CssClass" style="@Style">
@@ -212,26 +215,33 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        try
         {
-            module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Reuniverse.Razor/ReuHexEditor.razor.js");
-            await module.InvokeVoidAsync("init", scrollElement);
-        }
-
-        if (refreshPending)
-        {
-            refreshPending = false;
-
-            if (virtualize is not null)
+            if (firstRender)
             {
-                await virtualize.RefreshDataAsync();
+                module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Reuniverse.Razor/ReuHexEditor.razor.js");
+                await module.InvokeVoidAsync("init", scrollElement);
+            }
+
+            if (refreshPending)
+            {
+                refreshPending = false;
+
+                if (virtualize is not null)
+                {
+                    await virtualize.RefreshDataAsync();
+                }
+            }
+
+            if (scrollPending && module is not null)
+            {
+                scrollPending = false;
+                await module.InvokeVoidAsync("scrollToRow", scrollElement, cursor / bytesPerRow, ItemSize);
             }
         }
-
-        if (scrollPending && module is not null)
+        catch (JSDisconnectedException)
         {
-            scrollPending = false;
-            await module.InvokeVoidAsync("scrollToRow", scrollElement, cursor / bytesPerRow, ItemSize);
+            // the circuit is gone, so there is nothing left to set up or scroll
         }
     }
 

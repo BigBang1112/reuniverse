@@ -115,8 +115,15 @@
     {
         if (firstRender)
         {
-            module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadScreen.razor.js");
-            await module.InvokeVoidAsync("addHandlers", objRef);
+            try
+            {
+                module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadScreen.razor.js");
+                await module.InvokeVoidAsync("addHandlers", objRef);
+            }
+            catch (JSDisconnectedException)
+            {
+                // the circuit is gone, so there is nothing to upload from
+            }
         }
     }
 

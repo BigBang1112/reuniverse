@@ -19,22 +19,23 @@ internal sealed class JSFileReader(IJSObjectReference file, bool useStreamRefere
             return 0;
         }
 
-        try
-        {
-            return useStreamReference
-                ? await ReadStreamAsync(offset, buffer, cancellationToken)
-                : await ReadBytesAsync(offset, buffer, cancellationToken);
-        }
-        catch (JSException ex)
-        {
-            // usually NotReadableError, when the file was changed or removed after it was selected
-            throw new IOException($"The file could not be read: {ex.Message}", ex);
-        }
+        return useStreamReference
+            ? await ReadStreamAsync(offset, buffer, cancellationToken)
+            : await ReadBytesAsync(offset, buffer, cancellationToken);
     }
 
     private async Task<int> ReadBytesAsync(long offset, Memory<byte> buffer, CancellationToken cancellationToken)
     {
-        var data = await file.InvokeAsync<byte[]>("read", cancellationToken, offset, buffer.Length);
+        byte[] data;
+
+        try
+        {
+            data = await file.InvokeAsync<byte[]>("read", cancellationToken, offset, buffer.Length);
+        }
+        catch (JSException ex)
+        {
+            throw NotReadable(ex);
+        }
 
         // the client is not trusted to return what was asked for
         var count = Math.Min(data.Length, buffer.Length);
@@ -44,21 +45,32 @@ internal sealed class JSFileReader(IJSObjectReference file, bool useStreamRefere
 
     private async Task<int> ReadStreamAsync(long offset, Memory<byte> buffer, CancellationToken cancellationToken)
     {
-        await using var streamReference = await file.InvokeAsync<IJSStreamReference>("slice", cancellationToken, offset, buffer.Length);
-
-        // throws when the client sends more than was asked for
-        await using var stream = await streamReference.OpenReadStreamAsync(buffer.Length, cancellationToken);
-
-        var total = 0;
-        int read;
-
-        while (total < buffer.Length && (read = await stream.ReadAsync(buffer[total..], cancellationToken)) > 0)
+        try
         {
-            total += read;
-        }
+            await using var streamReference = await file.InvokeAsync<IJSStreamReference>("slice", cancellationToken, offset, buffer.Length);
 
-        return total;
+            // throws when the client sends more than was asked for
+            await using var stream = await streamReference.OpenReadStreamAsync(buffer.Length, cancellationToken);
+
+            var total = 0;
+            int read;
+
+            while (total < buffer.Length && (read = await stream.ReadAsync(buffer[total..], cancellationToken)) > 0)
+            {
+                total += read;
+            }
+
+            return total;
+        }
+        catch (JSException ex)
+        {
+            throw NotReadable(ex);
+        }
     }
+
+    // usually NotReadableError, when the file was changed or removed after it was selected
+    private static IOException NotReadable(JSException ex) =>
+        new($"The file could not be read: {ex.Message}", ex);
 
     public ValueTask DisposeAsync() => file.DisposeAsync();
 }

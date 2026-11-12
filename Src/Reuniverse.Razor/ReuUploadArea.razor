@@ -130,8 +130,15 @@
     {
         if (firstRender)
         {
-            module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadArea.razor.js");
-            await module.InvokeVoidAsync("addHandlers", inputFileUpload, objRef, Streamed);
+            try
+            {
+                module = await JS.InvokeAsync<IJSObjectReference>("import", $"./_content/Reuniverse.Razor/ReuUploadArea.razor.js");
+                await module.InvokeVoidAsync("addHandlers", inputFileUpload, objRef, Streamed);
+            }
+            catch (JSDisconnectedException)
+            {
+                // the circuit is gone, so there is nothing to upload from
+            }
         }
     }
 
