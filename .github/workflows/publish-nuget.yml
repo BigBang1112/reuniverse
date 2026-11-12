@@ -20,7 +20,8 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - uses: bigbang1112/workflows/publish-nuget-immutable@main
+      - name: Build, test, and publish NuGet packages
+        uses: bigbang1112/workflows/publish-nuget-immutable@main
         with:
           dotnet-version: latest
           project-path: Src/*/*.csproj
