@@ -9,7 +9,7 @@
     <div class="log-list" @ref="logListRef" role="log" aria-live="polite">
         @if (entries.Count > 0)
         {
-            <Virtualize Items="entries" ItemSize="ItemSize" Context="entry" OverscanCount="8">
+            <Virtualize Items="entries" ItemSize="ItemSize" Context="entry" OverscanCount="32">
                 <div class="entry level-@GetLevelClass(entry.Level) @(entry.HasException ? "clickable" : "") @(ReferenceEquals(SelectedException, entry.Exception) && entry.HasException ? "exception-selected" : "")"
                      style="height: @(ItemSize.ToString(System.Globalization.CultureInfo.InvariantCulture))px;"
                      @onclick="() => { if (entry.HasException) OnExceptionClicked(entry); }">

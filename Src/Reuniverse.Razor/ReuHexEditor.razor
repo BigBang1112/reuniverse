@@ -26,7 +26,7 @@
         </div>
         @if (Data is { Length: > 0 })
         {
-            <Virtualize @ref="virtualize" TItem="int" ItemsProvider="ProvideRowsAsync" ItemSize="ItemSize" OverscanCount="8" Context="row">
+            <Virtualize @ref="virtualize" TItem="int" ItemsProvider="ProvideRowsAsync" ItemSize="ItemSize" OverscanCount="32" Context="row">
                 @RenderRow(row)
             </Virtualize>
         }
@@ -296,7 +296,7 @@
         var end = Math.Min(start + bytesPerRow, data.Length);
         var rowHighlights = highlights.Count == 0 ? highlights : highlights.Where(x => x.Offset < end && x.Offset + x.Length > start).ToList();
 
-        <div class="hex-row">
+        <div @key="row" class="hex-row">
             <span class="offset">@start.ToString("X8", CultureInfo.InvariantCulture)</span>
             <span class="hex">
                 @for (var offset = start; offset < end; offset++)
