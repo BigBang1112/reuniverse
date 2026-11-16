@@ -20,6 +20,7 @@
 .nav-brand {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .brand {
@@ -27,6 +28,7 @@
     text-decoration: none;
     font-size: 1.5rem;
     margin-right: 2rem;
+    white-space: nowrap;
 }
 
 @media (max-width: 850px) {
