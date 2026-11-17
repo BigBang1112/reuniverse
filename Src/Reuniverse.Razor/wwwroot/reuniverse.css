@@ -373,7 +373,7 @@ main.reu-main {
 /* In the light theme, icons inside plain buttons are white SVGs designed for
    dark backgrounds — invert them so they are visible on the light surface. */
 :is([data-theme="light"], .reu-theme-light) .reu-button img {
-    filter: invert(1);
+    filter: invert(1) hue-rotate(180deg);
 }
 
 /* Colored-variant buttons keep their dark backgrounds so they are excluded. */
