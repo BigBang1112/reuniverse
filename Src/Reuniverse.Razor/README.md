@@ -766,6 +766,42 @@ A table with sortable columns and pages, styled after the tables of envimix: no 
 </ReuDataTable>
 ```
 
+### QuickGrid theme
+
+`reuniverse.css` has a theme for [QuickGrid](https://learn.microsoft.com/aspnet/core/blazor/components/quickgrid). Reuniverse.Razor only provides the styles, so reference the `Microsoft.AspNetCore.Components.QuickGrid` package in the app.
+
+- `Theme="reu"` on `<QuickGrid>` applies the theme.
+- `Class="fit"` on a column makes it only as wide as its content. `Align="Align.End"` aligns it to the right.
+- `<small>` in a `TemplateColumn` shows a dimmed second line.
+- `<Paginator>` gets buttons in the look of `<ReuButton>`. It has no theme of its own, so every paginator is styled this way.
+- `<div class="reu-table-scroll">` around a grid with a `min-width` lets it scroll sideways instead of squeezing its columns.
+
+On .NET 11, sorting and paging keep their state in the address (`page`, `sort` and `direction`, or with a prefix from `QueryParameterNameOptions`), with links that also work without interactivity. On .NET 9 and 10, they need interactivity. `RowClass` needs .NET 10 or later.
+
+A `PropertyColumn` sorts only with `Sortable="true"`, while a `TemplateColumn` sorts when given `SortBy`. Give `Items` the same `IQueryable` on every render, as another instance loads the items again.
+
+```cshtml
+<div class="reu-table-scroll">
+    <QuickGrid Items="records" Pagination="pagination" Theme="reu" style="min-width: 28rem">
+        <PropertyColumn Title="#" Property="r => r.Rank" Class="fit" Sortable="true" IsDefaultSortColumn="true" />
+        <TemplateColumn Title="Player" SortBy="byNickname">
+            @context.Nickname
+            <small>@context.Login</small>
+        </TemplateColumn>
+        <PropertyColumn Title="Time" Property="r => r.Time" Format="m\:ss\.fff" Sortable="true" />
+        <TemplateColumn Title="Download" Class="fit">
+            <ReuButton Href="@context.ReplayUrl">Replay</ReuButton>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+<Paginator State="pagination" />
+
+@code {
+    private static readonly GridSort<Record> byNickname = GridSort<Record>.ByAscending(r => r.Nickname);
+    private readonly PaginationState pagination = new() { ItemsPerPage = 20 };
+}
+```
+
 ### `<ReuExpansionPanels>` and `<ReuExpansionPanel>`
 
 An accordion-style container with collapsible panels.

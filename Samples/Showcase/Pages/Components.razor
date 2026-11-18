@@ -229,6 +229,32 @@
         </ReuDataTable>
     </div>
     <div>
+        <h2 class="element">&lt;QuickGrid Theme="reu"&gt;</h2>
+    </div>
+    <div style="min-width: 0">
+        <div class="reu-table-scroll">
+            <QuickGrid Items="records" Pagination="recordsPagination" QueryParameterNameOptions="recordsQuery" Theme="reu" RowClass="@(record => record.Removed ? "removed-record" : null)" style="min-width: 28rem">
+                <PropertyColumn Title="#" Property="record => record.Rank" Class="fit" Sortable="true" IsDefaultSortColumn="true" />
+                <TemplateColumn Title="Player" SortBy="byNickname">
+                    @context.Nickname
+                    <small>@context.Login</small>
+                </TemplateColumn>
+                <TemplateColumn Title="Time" SortBy="byTime">
+                    @context.Time.ToString(@"m\:ss\.fff")
+                    @if (context.Removed)
+                    {
+                        <small>(removed)</small>
+                    }
+                </TemplateColumn>
+                <PropertyColumn Title="Driven" Property="record => record.Driven" Format="yyyy-MM-dd" Sortable="true" />
+                <TemplateColumn Title="Download" Class="fit">
+                    <ReuButton Href="@($"#{context.Login}")">Replay</ReuButton>
+                </TemplateColumn>
+            </QuickGrid>
+        </div>
+        <Paginator State="recordsPagination" />
+    </div>
+    <div>
         <h2 class="element">&lt;ReuHexEditor&gt;</h2>
         <div class="undo-redo">
             <ReuButton Enable="hexHistory.CanUndo" OnClick="() => hexHistory.Undo()">Undo</ReuButton>
@@ -321,8 +347,15 @@
 
     private sealed record ShowcaseRecord(int Rank, string Nickname, string Login, TimeSpan Time, DateTime Driven, bool Removed = false);
 
-    private readonly ShowcaseRecord[] records =
-    [
+    private static readonly QueryParameterNameOptions recordsQuery = new("records-");
+    private static readonly GridSort<ShowcaseRecord> byNickname = GridSort<ShowcaseRecord>.ByAscending(record => record.Nickname);
+    private static readonly GridSort<ShowcaseRecord> byTime = GridSort<ShowcaseRecord>.ByAscending(record => record.Time);
+
+    private readonly PaginationState recordsPagination = new() { ItemsPerPage = 5 };
+
+    // a field, as QuickGrid loads the items again whenever it is given another instance
+    private readonly IQueryable<ShowcaseRecord> records = new ShowcaseRecord[]
+    {
         new(1, "BigBang1112", "bigbang1112", TimeSpan.FromMilliseconds(43_120), new(2026, 10, 3)),
         new(2, "Hylis", "hylis", TimeSpan.FromMilliseconds(43_480), new(2026, 9, 21)),
         new(3, "riolu", "riolu_tm", TimeSpan.FromMilliseconds(43_910), new(2026, 10, 30)),
@@ -331,7 +364,7 @@
         new(6, "Wosile", "wosile", TimeSpan.FromMilliseconds(44_730), new(2026, 11, 1)),
         new(7, "Bren", "bren_tm", TimeSpan.FromMilliseconds(45_010), new(2026, 6, 18)),
         new(8, "Gwen", "gwen", TimeSpan.FromMilliseconds(45_320), new(2026, 5, 9))
-    ];
+    }.AsQueryable();
 
     private readonly byte[] hexData = CreateHexData();
 

@@ -14,6 +14,9 @@
         <PackageReference Include="bunit" Version="2.13.3" />
         <PackageReference Include="Deque.AxeCore.Playwright" Version="4.14.0" />
         <PackageReference Include="Microsoft.Playwright" Version="1.64.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="9.0.11" Condition="'$(TargetFramework)' == 'net9.0'" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="10.0.2" Condition="'$(TargetFramework)' == 'net10.0'" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="11.0.0" Condition="'$(TargetFramework)' == 'net11.0'" />
         <PackageReference Include="TUnit" Version="1.78.0" />
     </ItemGroup>
 
@@ -30,6 +33,21 @@
               Link="Scripts\Reuniverse.Razor.styles.css"
               CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
+
+    <!-- the scoped styles of QuickGrid, from the package version this framework uses, which the Reu theme has to win over -->
+    <Target Name="CopyQuickGridStyles" AfterTargets="ResolveAssemblyReferences">
+        <ItemGroup>
+            <_QuickGridReference Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == 'Microsoft.AspNetCore.Components.QuickGrid'" />
+        </ItemGroup>
+        <PropertyGroup>
+            <_QuickGridVersion>@(_QuickGridReference->'%(NuGetPackageVersion)')</_QuickGridVersion>
+        </PropertyGroup>
+        <ItemGroup>
+            <_QuickGridStyles Include="$(NuGetPackageRoot)microsoft.aspnetcore.components.quickgrid\$(_QuickGridVersion)\staticwebassets\*.bundle.scp.css" />
+        </ItemGroup>
+        <Error Condition="'@(_QuickGridStyles)' == ''" Text="The styles of QuickGrid $(_QuickGridVersion) were not found." />
+        <Copy SourceFiles="@(_QuickGridStyles)" DestinationFiles="$(OutDir)Scripts\QuickGrid.styles.css" SkipUnchangedFiles="true" />
+    </Target>
 
     <ItemGroup>
         <Using Include="Bunit" />

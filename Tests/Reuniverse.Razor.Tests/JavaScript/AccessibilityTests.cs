@@ -2,6 +2,7 @@ using System.Text;
 using Deque.AxeCore.Commons;
 using Deque.AxeCore.Playwright;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.QuickGrid;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.Extensions.Logging;
 
@@ -26,6 +27,7 @@ public class AccessibilityTests : BrowserTestBase
         <title>Accessibility</title>
         <link rel="stylesheet" href="/reuniverse.css" />
         <link rel="stylesheet" href="/Reuniverse.Razor.styles.css" />
+        <link rel="stylesheet" href="/QuickGrid.styles.css" />
         <script src="/reuniverse.js" defer></script>
         """;
 
@@ -250,6 +252,8 @@ public class AccessibilityTests : BrowserTestBase
             new(3, "riolu", "riolu_tm", TimeSpan.FromSeconds(43.91))
         ];
 
+        var pagination = new PaginationState { ItemsPerPage = 2 };
+
         var markup = string.Concat(
             RenderMarkup<ReuDataTable<Record>>(p => p
                 .Add(x => x.Items, records)
@@ -257,6 +261,15 @@ public class AccessibilityTests : BrowserTestBase
                 .AddChildContent<ReuDataColumn<Record>>(c => c.Add(x => x.Title, "#").Add(x => x.Value, r => r.Rank).Add(x => x.DefaultSort, ReuSortDirection.Ascending))
                 .AddChildContent<ReuDataColumn<Record>>(c => c.Add(x => x.Title, "Player").Add(x => x.Value, r => r.Player).Add(x => x.Secondary, r => r.Login))
                 .AddChildContent<ReuDataColumn<Record>>(c => c.Add(x => x.Title, "Time").Add(x => x.Value, r => r.Time).Add(x => x.Format, @"m\:ss\.fff"))),
+            RenderMarkup<QuickGrid<Record>>(p => p
+                .Add(x => x.Items, records.AsQueryable())
+                .Add(x => x.Pagination, pagination)
+                .Add(x => x.Theme, "reu")
+                .AddChildContent<PropertyColumn<Record, int>>(c => c.Add(x => x.Title, "#").Add(x => x.Property, r => r.Rank).Add(x => x.Sortable, true).Add(x => x.IsDefaultSortColumn, true))
+                .AddChildContent<TemplateColumn<Record>>(c => c.Add(x => x.Title, "Player").Add(x => x.ChildContent, r => $"{r.Player} <small>{r.Login}</small>"))
+                .AddChildContent<PropertyColumn<Record, TimeSpan>>(c => c.Add(x => x.Title, "Time").Add(x => x.Property, r => r.Time).Add(x => x.Format, @"m\:ss\.fff"))),
+            // the grid has given the state its item count by now, which the paginator needs to show
+            RenderMarkup<Paginator>(p => p.Add(x => x.State, pagination)),
             RenderMarkup<ReuFileBrowser>(p => p
                 .Add(x => x.Root, new TestFolder("", new TestFolder("Maps", new TestFile("A01.Map.Gbx", 1024)), new TestFile("readme.md", 12)))
                 .AddUnmatched("style", "height: 200px")),

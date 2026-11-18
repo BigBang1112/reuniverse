@@ -1025,6 +1025,181 @@ footer.reu-footer {
     }
 }
 
+/* QuickGrid with Theme="reu", styled after the tables of envimix: no frame, thin row dividers and a dimmed second line in <small>.
+   QuickGrid's own styles are scoped and load after this file, so every selector here is more specific than the one it overrides.
+   The icons are QuickGrid's own, as masks in the text color. */
+.quickgrid[theme=reu] {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .quickgrid[theme=reu] > thead > tr > th,
+    .quickgrid[theme=reu] > tbody > tr > td {
+        padding: 0.45rem 0.6rem;
+        border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+    }
+
+    .quickgrid[theme=reu] > thead > tr > th {
+        font-weight: 600;
+        text-align: start;
+        white-space: nowrap;
+    }
+
+    .quickgrid[theme=reu] .col-title {
+        gap: 0.35rem;
+        font: inherit;
+    }
+
+    .quickgrid[theme=reu] > thead > tr > th .sort-indicator {
+        width: 0.7rem;
+        height: 0.7rem;
+        background: currentColor;
+        mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M 2 3.25 L 12 20.75 L 22 3.25 L 12 10 z" /></svg>') center / contain no-repeat;
+        opacity: 0;
+        transition: opacity 0.1s ease;
+    }
+
+    .quickgrid[theme=reu] > thead > tr > th:is(.col-sort-asc, .col-sort-desc) .sort-indicator {
+        opacity: 0.8;
+    }
+
+    /* hints at sorting by a column that is not sorted yet, which sorts it ascending */
+    .quickgrid[theme=reu] > thead > tr > th:not(.col-sort-asc, .col-sort-desc) .col-title:is(:hover, :focus-visible) .sort-indicator {
+        opacity: 0.5;
+        transform: scaleY(-1);
+    }
+
+    .quickgrid[theme=reu] > thead > tr > th .col-options-button {
+        width: 1.5rem;
+        background: currentColor;
+        mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="1.5 0 21 24" stroke="black" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" /></svg>') center / 1rem no-repeat;
+        opacity: 0.7;
+        cursor: pointer;
+    }
+
+        .quickgrid[theme=reu] > thead > tr > th .col-options-button:is(:hover, :focus-visible) {
+            opacity: 1;
+        }
+
+    .quickgrid[theme=reu] > thead > tr > th .col-options {
+        color: var(--color-text-primary);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        box-shadow: var(--shadow-popover);
+        font-weight: normal;
+        white-space: normal;
+    }
+
+    .quickgrid[theme=reu] > tbody > tr[aria-rowindex] {
+        transition: background-color 0.1s ease;
+    }
+
+        .quickgrid[theme=reu] > tbody > tr[aria-rowindex]:hover {
+            background-color: var(--color-overlay-weak);
+        }
+
+    /* the empty rows that keep the last page as tall as the others */
+    .quickgrid[theme=reu] > tbody > tr:not([aria-rowindex]) > td {
+        border-bottom-color: transparent;
+    }
+
+        .quickgrid[theme=reu] > tbody > tr:not([aria-rowindex]) > td::after {
+            content: "\00a0";
+        }
+
+    .quickgrid[theme=reu] > tbody > tr > td small {
+        display: block;
+        margin-top: 0.15rem;
+        opacity: 0.7;
+    }
+
+    .quickgrid[theme=reu] > tbody > tr > td.grid-cell-placeholder::after {
+        content: "\2026";
+        opacity: 0.7;
+    }
+
+    .quickgrid[theme=reu] .fit {
+        width: 1%;
+        white-space: nowrap;
+    }
+
+    .quickgrid[theme=reu].loading > tbody {
+        opacity: 0.6;
+        transition: opacity 0.15s ease 25ms;
+    }
+
+@media (max-width: 600px) {
+    .quickgrid[theme=reu] > thead > tr > th,
+    .quickgrid[theme=reu] > tbody > tr > td {
+        padding-inline: 0.4rem;
+    }
+}
+
+/* Lets a wide table scroll sideways instead of squeezing its columns, such as a QuickGrid given a min-width */
+.reu-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+}
+
+/* The Paginator of QuickGrid, with buttons in the look of .reu-button. It has no class or theme to opt in with,
+   so this styles every paginator, as div.paginator.paginator to be more specific than its scoped styles. */
+div.paginator.paginator {
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin-top: 1rem;
+    padding: 0;
+    border-top: none;
+}
+
+    div.paginator.paginator > .summary {
+        color: var(--color-text-secondary);
+    }
+
+    div.paginator.paginator > nav {
+        gap: 0.4rem;
+    }
+
+        div.paginator.paginator > nav > .pagination-text {
+            margin: 0 0.35rem;
+        }
+
+        div.paginator.paginator > nav > :is(a, button) {
+            position: relative;
+            width: 2.25rem;
+            height: 2.25rem;
+            color: var(--color-text-primary);
+            background: var(--color-button-bg);
+            border-bottom: 2px solid var(--color-button-border);
+            border-radius: 4px;
+            transition: background-color 0.05s ease;
+        }
+
+            div.paginator.paginator > nav > :is(a:not([aria-disabled="true"]), button:not(:disabled)):hover {
+                background-color: var(--color-button-bg-hover);
+            }
+
+            div.paginator.paginator > nav > :is(a:not([aria-disabled="true"]), button:not(:disabled)):active {
+                background-color: var(--color-button-bg-active);
+            }
+
+            div.paginator.paginator > nav > :is(a, button)::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background-color: currentColor;
+                mask: center / 1rem no-repeat;
+            }
+
+            div.paginator.paginator > nav > :is(.go-first, .go-last)::before {
+                mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g transform="rotate(90) scale(0.8)" transform-origin="12 12"><path d="m 2,1.5 l 10,17.5 l 10,-17.5 l -10,7.75 l -10,-7.75 z"/><rect height="2" width="20" y="20.5" x="2"/></g></svg>');
+            }
+
+            div.paginator.paginator > nav > :is(.go-previous, .go-next)::before {
+                mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g transform="rotate(90)" transform-origin="12 12"><path d="M 2 3.25 L 12 20.75 L 22 3.25 L 12 11 z" /></g></svg>');
+            }
+
 /* Scrollbar */
 * {
     scrollbar-color: var(--color-scrollbar-thumb) var(--color-input-bg);

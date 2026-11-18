@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <PackageId>Reuniverse.Razor</PackageId>
-        <Version>0.12.1</Version>
+        <Version>0.13.0</Version>
         <Authors>BigBang1112</Authors>
         <Description>Common Blazor components for BigBang1112 projects (gbx.tools).</Description>
         <Copyright>Copyright (c) 2026 Petr Pivoňka</Copyright>
@@ -11,6 +11,8 @@
         <PackageTags>reuniverse, razor, blazor, gbx</PackageTags>
         <PackageReleaseNotes>
 - **Added .NET 11 support**
+- Added a theme for QuickGrid with `Theme="reu"`, which `reuniverse.css` styles together with its `Paginator`, as an alternative to `ReuDataTable`. Reuniverse.Razor only provides the styles, so apps reference the QuickGrid package themselves. On .NET 11, QuickGrid keeps sorting and paging in the address, with links that also work without interactivity
+- Added `reu-table-scroll` to let a wide table scroll sideways
         </PackageReleaseNotes>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
